@@ -1,0 +1,3 @@
+{"userInfo":{"UserName":"asay1","Password":"2rZ>33660181487"},"contractDetailId":37480487,"customerId":10486408,"stepCode":"1591A_CombinedRCStep","stepId":"1084836047","propertyValueList":[{"ProductType":"EPTINSTALLATION","PropertyCode":"PInstallationProblemType","PropertyLOVCode":"LVInstProbNoProblem","PropertyType":"List"}]}->"looks like we got no XML document"
+null->"Client error: `POST http:\/\/lifi.asay.com.tr\/upload` resulted in a `403 Forbidden` response:\n{\"status\":false,\"message\":null}\n"
+null->"Client error: `POST http:\/\/lifi.asay.com.tr\/upload` resulted in a `403 Forbidden` response:\n{\"status\":false,\"message\":null}\n"

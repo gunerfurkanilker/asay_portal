@@ -90,6 +90,18 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'sqlsrvn' => [
+            'driver' => 'sqlsrv',
+            'url' => '',
+            'host' => 'netsis.asay.corp',
+            'port' => '1433',
+            'database' =>'ASAYGROUP2019',
+            'username' => 'bitrix',
+            'password' => 'Om8200230*',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 

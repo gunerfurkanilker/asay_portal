@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::namespace("Api")->group(function(){
+    Route::post('auth/login', "AuthController@loginPost")->name("apiloginPost");
+    Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
+    Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
+
+
+    Route::get('processes/expense/list', "Processes\ExpenseController@expenseList")->name("expense_expenseList");
+
+
 });
