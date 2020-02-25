@@ -4,10 +4,9 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AsayExpenseModel extends Model
+class AsayProjeModel extends Model
 {
-    protected $table = "asay_expense";
-    protected $primaryKey = "ID";
+    protected $table = "asay_proje";
 
     public $timestamps = false;
     protected $fillable = [];

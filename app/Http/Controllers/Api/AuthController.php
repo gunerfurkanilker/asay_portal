@@ -13,6 +13,13 @@ class AuthController extends Controller
     {
         $data["username"] = $request->input("username");
         $data["password"] = $request->input("password");
+        if($data["username"]=="" || $data["password"]=="")
+        {
+            return response([
+                'status' => false,
+                'message' => "Kullanıcı adı ve şifre Hatası"
+            ], 200);
+        }
         if(filter_var( $data["username"], FILTER_VALIDATE_EMAIL))
             $email = $data["username"];
         else
@@ -36,7 +43,9 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
+                'photo' => "http://portal.asay.com.tr/".$user->photo,
                 'full_name' => $user->full_name,
+                'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
                 'active' => $user->active,
                 'user_group' => $user->user_group
             ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
 use App\Model\UserModel;
 
@@ -24,6 +25,9 @@ class ApiController extends Controller
                     'error' => "unauthorized",
                 ], 200);
             }
+
+            $userId = UserTokensModel::where(["user_token"=>$token])->first()->user_id;
+            $request->userId = $userId;
             return $next($request);
         });
     }

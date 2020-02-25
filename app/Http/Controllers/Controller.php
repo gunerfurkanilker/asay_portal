@@ -10,5 +10,6 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-    public $api_url = "http://portal2.asay.com.tr/api/";
+    public $api_url = "http://portal.asay.com.tr/api/";
+    public $crm_url = "http://asy-crm.asay.corp:1212/api/";
 }

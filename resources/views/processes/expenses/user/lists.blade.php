@@ -54,7 +54,7 @@
                                         <td>{{$expense->NAME}}</td>
                                         <td>{{$expense->CONTENT}}</td>
                                         <td>
-                                            @if ($expense->EXPENSE_TYPE==0)
+                                            @if ($expense->EXPENSE_TYPE=="0")
                                                Genel/Diğer
                                             @elseif ($expense->EXPENSE_TYPE=="toplanti")
                                                 Toplantı
@@ -68,11 +68,13 @@
                                                 Satış ve Pazarlama
                                             @elseif ($expense->EXPENSE_TYPE=="BTXMİSTEMS")
                                                 Misafir Temsil Ağırlama
+                                            @elseif ($expense->EXPENSE_TYPE=="BTXMSTURKCELL")
+                                                Turkcell MS Marmara Projesi
                                             @endif
                                         </td>
                                         <td>{{$expense->TUTAR}}</td>
                                         <td>{{$expense->EXPENSE_TYPE_VALUE}}</td>
-                                        <td>{{$request->manager}}</td>
+                                        <td>{{$user->manager}}</td>
                                         <td>{{$expense->DATE_CREATE}}</td>
                                         <td>
                                             @if ($expense->STATUS==0)
@@ -88,13 +90,13 @@
                                         <td class="text-center">
                                             <div>
                                             @if ($expense->STATUS==0)
-                                                <a class="btn btn-warning btn-sm" href="{{route("expense_view",["expense_id"=>1])}}"><i class="fa fa-edit"></i> Düzenle</a>
+                                                <a class="btn btn-warning btn-sm" href="{{route("expense_view",["expense_id"=>$expense->ID])}}"><i class="fa fa-edit"></i> Düzenle</a>
                                                 <a class="btn btn-danger btn-sm" href="#"><i class="fa fa-trash"></i> Sil</a>
                                             @elseif ($expense->STATUS==1)
                                                 <a class="btn btn-info btn-sm" href="#"><i class="fa fa-undo"></i> Geri Al</a>
-                                                <a class="btn btn-primary btn-sm" href="{{route("expense_print",["expense_id"=>2])}}"><i class="fa fa-eye"></i>Gör</a>
+                                                <a class="btn btn-primary btn-sm" href="{{route("expense_print",["expense_id"=>$expense->ID])}}"><i class="fa fa-eye"></i> Yazdır</a>
                                             @elseif ($expense->STATUS==2)
-                                                <a class="btn btn-primary btn-sm" href="{{route("expense_print",["expense_id"=>2])}}"><i class="fa fa-eye"></i>Gör</a>
+                                                <a class="btn btn-primary btn-sm" href="{{route("expense_print",["expense_id"=>$expense->ID])}}"><i class="fa fa-eye"></i> Yazdır</a>
                                             @endif
                                             </div>
                                         </td>

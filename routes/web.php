@@ -44,11 +44,12 @@ Route::namespace("Processes")->group(function(){
 
     //Expense User
     Route::prefix("processes/expense")->group(function(){
-        Route::get('list/{leave_id?}', "ExpenseController@expense_list")->name("expense_list")->where(['leave_id' => '[0-9]+']);
+        Route::get('list/{expense_id?}', "ExpenseController@expense_list")->name("expense_list")->where(['expense_id' => '[0-9]+']);
         Route::get('add', "ExpenseController@expense_add")->name("expense_add");
+        Route::post('add', "ExpenseController@expense_add_post")->name("expense_add_post");
         Route::get('view/{expense_id}', "ExpenseController@expense_view")->name("expense_view");
         Route::get('print/{expense_id}', "ExpenseController@expense_print")->name("expense_print");
-        Route::get('add-document/{expense_id}', "ExpenseController@expense_add_document")->name("expense_add_document");
+        Route::get('add-document/{expense_id}/{document_id?}', "ExpenseController@expense_add_document")->name("expense_add_document");
     });
 
     //Expense Manager

@@ -11,7 +11,7 @@
                     </h3>
                 </div>
             </div>
-            <form class="kt-form kt-form--label-right">
+            <form class="kt-form kt-form--label-right" enctype="multipart/form-data" method="post" action="">
                 <div class="kt-portlet__body">
                     <!--begin::Section-->
                     <div class="kt-section">
@@ -106,7 +106,7 @@
                                     <label class="col-xl-3 col-lg-3 col-form-label">Belge No</label>
                                     <div class="col-lg-9 col-xl-6">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Username" value="123123">
+                                            <input type="text" class="form-control" placeholder="" name="BELGE_NO" value="">
                                         </div>
                                     </div>
                                 </div>
@@ -114,7 +114,7 @@
                                     <label class="col-xl-3 col-lg-3 col-form-label">Tarih</label>
                                     <div class="col-lg-9 col-xl-6">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="kt_datepicker_1" readonly placeholder="Select date" />
+                                            <input type="text" class="form-control tt" id="kt_datepicker_1" name="TARIH" readonly />
                                         </div>
                                     </div>
                                 </div>
@@ -122,7 +122,7 @@
                                     <label class="col-xl-3 col-lg-3 col-form-label">Para Birimi</label>
                                     <div class="col-lg-9 col-xl-6">
                                         <div class="input-group">
-                                            <select class="form-control" id="exampleSelect1">
+                                            <select class="form-control ct" name="CURRENCY">
                                                 <option selected>Türk Lirası</option>
                                                 <option>USD</option>
                                             </select>
@@ -134,7 +134,7 @@
                                     <label class="col-xl-3 col-lg-3 col-form-label">Belge Resmi</label>
                                     <div class="col-lg-9 col-xl-6">
                                         <div class="input-group">
-                                            <input type="file" class="form-control">
+                                            <input type="file" class="form-control" name="FILE_ID">
                                         </div>
                                     </div>
                                 </div>
@@ -168,9 +168,9 @@
                                 <tr>
                                     <td>
                                         <select class="form-control" name="GIDER_HESABI[]">
-                                            <option value="">Test</option>
-                                            <option value="">Test2</option>
-                                            <option value="">Test3</option>
+                                            @foreach ($muhasebeGiderHesaplari as $giderHesabi)
+                                                <option value="{{$giderHesabi->HESAP_KODU}}">{{$giderHesabi->HS_ADI}}</option>
+                                            @endforeach
                                         </select>
                                     </td>
                                     <td><input required="" name="ACIKLAMA[]" size="50" value="" type="text" class="form-control"></td>
@@ -194,9 +194,9 @@
                                 <tr class="original">
                                     <td>
                                         <select class="form-control" name="GIDER_HESABI[]">
-                                            <option value="">Test</option>
-                                            <option value="">Test2</option>
-                                            <option value="">Test3</option>
+                                            @foreach ($muhasebeGiderHesaplari as $giderHesabi)
+                                                <option value="{{$giderHesabi->HESAP_KODU}}">{{$giderHesabi->HS_ADI}}</option>
+                                            @endforeach
                                         </select>
                                     </td>
                                     <td><input required="" name="ACIKLAMA[]" size="50" value="" type="text" class="form-control"></td>
@@ -220,6 +220,9 @@
 
                             </tbody>
                         </table>
+                        <div class="mt-1 text-right" style="margin-bottom: 10px">
+                            <button type="submit" name="kaydet" class="btn btn-warning">Kaydet</button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -231,6 +234,30 @@
 @endsection
 
 @section("js")
+    <script src="assets/js/pages/dashboard.js" type="text/javascript"></script>
+    <script src="assets/js/pages/custom/user/profile.js" type="text/javascript"></script>
+    <script>
+        var arrows;
+        if (KTUtil.isRTL()) {
+            arrows = {
+                leftArrow: '<i class="la la-angle-right"></i>',
+                rightArrow: '<i class="la la-angle-left"></i>'
+            }
+        } else {
+            arrows = {
+                leftArrow: '<i class="la la-angle-left"></i>',
+                rightArrow: '<i class="la la-angle-right"></i>'
+            }
+        }
+
+        // minimum setup
+        $('#kt_datepicker_1, #kt_datepicker_1_validate').datepicker({
+            rtl: KTUtil.isRTL(),
+            todayHighlight: true,
+            orientation: "bottom left",
+            templates: arrows
+        });
+    </script>
     <script>
         $("#FormDocument").submit(function(){
             if(($("#belge_type").val()=="Faturalı") && (($("#cari_yok").prop("checked")==true && $("#CariIsim").val()=="") || ($("#cari_yok").prop("checked")==false && ($("#NetsisCariKod").val()=="" || $("#NetsisCariKod").val()==0)))){
@@ -418,7 +445,7 @@
             tutar = tutar.toFixed(2);
             $(this).parent().parent().children(".mtd").children().val(tutar);
             handler();
-        }
+        };
         $(".birim_fiyat_input,.adet_input,.kdvoran_input").change(tutarguncelle);
     </script>
     <script>
@@ -436,14 +463,12 @@
         });
 
     </script>
-@endsection
-
-@section("vjs")
     <script
         src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
         integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
         crossorigin="anonymous"></script>
 @endsection
+
 
 @section("css")
     <style>

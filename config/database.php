@@ -102,6 +102,18 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'sqlsrv_net' => [
+            'driver' => 'sqlsrv',
+            'url' => '',
+            'host' => 'netsis.asay.corp',
+            'port' => '1433',
+            'database' =>'NETSIS',
+            'username' => 'bitrix',
+            'password' => 'Om8200230*',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 
