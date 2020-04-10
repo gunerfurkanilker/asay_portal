@@ -34,7 +34,6 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
     Route::get('processes/expense/getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
 
-
     Route::namespace("Ik")->group(function(){
 
         Route::prefix('ik')->group(function () {
