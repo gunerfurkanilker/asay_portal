@@ -51,12 +51,6 @@ class DefaultController extends AsayController
     }
     public function employee_add()
     {
-        $data['educationlevels'] = EducationLevel::all();
-        $data['educationstatus'] = EducationStatus::all();
-        $data['countries'] = Country::all();
-        $data['cities'] = City::where('CountryID',1)->get();//Türkiye'deki iller
-        $data['nationalities'] = Nationality::all();
-        $data['genders'] = Gender::all();
         $data["menu"] = "employee_list";
         return view("ik.employee.employee_add",$data);
     }

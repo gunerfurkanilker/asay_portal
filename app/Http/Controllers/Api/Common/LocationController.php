@@ -9,4 +9,5 @@ use App\Http\Controllers\Api\ApiController;
 class LocationController extends ApiController
 {
 
+
 }
