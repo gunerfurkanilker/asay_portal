@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 */
 
 Route::namespace("Api")->group(function(){
+
     Route::post('auth/login', "AuthController@loginPost")->name("apiloginPost");
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
     Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
@@ -32,4 +33,18 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getParaBirimleri', "Processes\ExpenseController@getParaBirimleri")->name("expense_getParaBirimleri");
     Route::get('processes/expense/getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
     Route::get('processes/expense/getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
+
+
+    Route::namespace("Ik")->group(function(){
+
+        Route::prefix('ik')->group(function () {
+
+            Route::get('employee/all', "EmployeeController@allEmployees")->name("get_employees");
+
+        });
+
+    });
+
+
+
 });

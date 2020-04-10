@@ -181,7 +181,7 @@
                                             <div class="col-lg-3 col-xl-3">
                                             </div>
                                             <div class="col-lg-9 col-xl-9">
-                                                <button type="reset" class="btn btn-success">Kaydet</button>
+                                                <button type="reset" class="btn btn-success mr-auto">Kaydet</button>
                                             </div>
                                         </div>
                                     </div>

@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Ik;
 
 use App\Http\Controllers\AsayController;
+use App\Model\Ik\Employee\City;
+use App\Model\Ik\Employee\Country;
+use App\Model\Ik\Employee\EducationLevel;
+use App\Model\Ik\Employee\EducationStatus;
+use App\Model\Ik\Employee\Gender;
+use App\Model\Ik\Employee\Nationality;
 use Illuminate\Http\Request;
 
 class DefaultController extends AsayController
@@ -45,6 +51,12 @@ class DefaultController extends AsayController
     }
     public function employee_add()
     {
+        $data['educationlevels'] = EducationLevel::all();
+        $data['educationstatus'] = EducationStatus::all();
+        $data['countries'] = Country::all();
+        $data['cities'] = City::where('CountryID',1)->get();//Türkiye'deki iller
+        $data['nationalities'] = Nationality::all();
+        $data['genders'] = Gender::all();
         $data["menu"] = "employee_list";
         return view("ik.employee.employee_add",$data);
     }
