@@ -38,7 +38,7 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
-            Route::get('employee/all', "EmployeeController@allEmployees")->name("get_employees");
+            Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
 
         });
 
