@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Http\Controllers\Api\Ik\Employee;
+namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
@@ -21,13 +21,13 @@ class EmployeeController extends ApiController
 
     public function allEmployees()
     {
+
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => EmployeeModel::all()
         ],200);
     }
-
 
     public function getEmployeeById($id)
     {
@@ -38,5 +38,32 @@ class EmployeeController extends ApiController
     {
 
     }
+
+    public function generalInformations($id)
+    {
+        /*$employeeTableFields = ['FirstName','LastName','Domain','JobEmail','JobMobilePhone',
+            'InterPhone','StartDate','ContractFinishDate','MobilePhone','HomePhone','REMMail','Email',
+            'PositionStartDate','PositionEndDate','CreateDate','LastUpdateDate'];*/
+        $data = EmployeeModel::where('Id',$id);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => EmployeeModel::all()
+        ],200);
+
+    }
+
+    public function positionInformations($id)
+    {
+
+    }
+
+    public function contactInformations($id)
+    {
+
+    }
+
+
 
 }
