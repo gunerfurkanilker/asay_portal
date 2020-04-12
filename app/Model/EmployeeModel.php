@@ -12,15 +12,11 @@ class EmployeeModel extends Model
     protected $table = "Employee";
     const CREATED_AT = 'CreateDate';
     const UPDATED_AT = 'LastUpdateDate';
-
-
-    public function accesstype()
-    {
-        return $this->hasOne("App\Model\AccessTypeModel","Id","AccessTypeID");
-    }
-
-
-
+    protected $appends = [
+        "AccessType",
+        "ContractType",
+        "WorkingSchedule"
+    ];
 
     public static function saveGeneralInformations($employee,$requestData)
     {
@@ -78,6 +74,48 @@ class EmployeeModel extends Model
 
     }
 
+
+    public function getAccessTypeAttribute()
+    {
+
+        $accessType = $this->hasOne(AccessTypeModel::class,"Id","AccessTypeID");
+        if ($accessType)
+        {
+            return $accessType->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getContractTypeAttribute()
+    {
+
+        $contractType = $this->hasOne(ContractTypeModel::class,"Id","ContractTypeID");
+        if ($contractType)
+        {
+            return $contractType->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getWorkingScheduleAttribute()
+    {
+
+        $workingSchedule = $this->hasOne(WorkingScheduleModel::class,"Id","WorkingScheduleID");
+        if ($workingSchedule)
+        {
+            return $workingSchedule->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
 
 
 }
