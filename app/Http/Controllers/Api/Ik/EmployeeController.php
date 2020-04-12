@@ -46,7 +46,6 @@ class EmployeeController extends ApiController
 
         $isSuccess = EmployeeModel::saveGeneralInformations($employee,$requestData);
 
-
         if ($isSuccess)
             return response([
                 'status' => true,
@@ -60,21 +59,31 @@ class EmployeeController extends ApiController
             'InterPhone','StartDate','ContractFinishDate','MobilePhone','HomePhone','REMMail','Email',
             'PositionStartDate','PositionEndDate','CreateDate','LastUpdateDate'];*/
 
-
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => EmployeeModel::all()
-        ],200);
-
     }
 
-    public function savePosition()
+    public function saveJobPosition(Request $request,$id)
     {
 
+        $requestData = $request->all();
+        $employee = EmployeeModel::where('Id',$id)->first();
+
+        $freshData = EmployeeModel::saveJobPosition($employee,$requestData);
+
+        if ($freshData)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ]);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.'
+            ]);
+
     }
 
-    public function editPosition($id)
+    public function editJobPosition($id)
     {
 
     }

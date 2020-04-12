@@ -40,6 +40,7 @@ Route::namespace("Api")->group(function(){
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::post('employee/{id}/general-informations', "EmployeeController@saveGeneralInformations")->name("employee_general_informations");
+            Route::post('employee/{id}/job-position', "EmployeeController@saveJobPosition")->name("employee_job_position");
 
         });
 
