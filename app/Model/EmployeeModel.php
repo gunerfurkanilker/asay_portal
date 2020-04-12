@@ -4,8 +4,6 @@ namespace App\Model;
 
 
 use Carbon\Carbon;
-use Carbon\Traits\Date;
-use http\Client\Request;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeeModel extends Model
@@ -14,6 +12,12 @@ class EmployeeModel extends Model
     protected $table = "Employee";
     const CREATED_AT = 'CreateDate';
     const UPDATED_AT = 'LastUpdateDate';
+
+
+    public function accesstype()
+    {
+        return $this->hasOne("App\Model\AccessTypeModel","Id","AccessTypeID");
+    }
 
 
 
