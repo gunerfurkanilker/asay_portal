@@ -15,10 +15,21 @@ class EmployeeModel extends Model
 
 
 
-    public static function saveGeneralInformations($id,$requestData)
+    public static function saveGeneralInformations($employee,$requestData)
     {
-        $isProcessOk = self::where('Id',$id)->update($requestData);
-        return $isProcessOk;
+        $employee->FirstName = $requestData['firstname'];
+        $employee->LastName = $requestData['lastname'];
+        $employee->AccessTypeID = $requestData['accesstypeid'];
+        $employee->Domain = $requestData['domain'];
+        $employee->JobEmail = $requestData['jobemail'];
+        $employee->JobMobilePhone = $requestData['jobphone'];
+        $employee->InterPhone = $requestData['internalphone'];
+        $employee->ContractTypeID = $requestData['contracttypeid'];
+        $employee->StartDate = $requestData['jobbegindate'];
+        $employee->ContractFinishDate = $requestData['contractfinishdate'];
+        $employee->WorkingScheduleID = $requestData['workingscheduleid'];
+
+        return $employee->save();
     }
 
 

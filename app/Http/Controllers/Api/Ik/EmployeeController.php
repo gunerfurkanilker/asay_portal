@@ -42,8 +42,11 @@ class EmployeeController extends ApiController
     public function saveGeneralInformations(Request $request,$id)
     {
         $requestData = $request->all();
-        $isSuccess = EmployeeModel::saveGeneralInformations(EmployeeModel::find($id),$requestData);
-        dd($isSuccess);
+        $employee = EmployeeModel::where('Id',$id)->first();
+
+        $isSuccess = EmployeeModel::saveGeneralInformations($employee,$requestData);
+
+
         if ($isSuccess)
             return response([
                 'status' => true,
