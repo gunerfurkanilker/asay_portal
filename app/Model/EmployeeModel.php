@@ -13,14 +13,12 @@ class EmployeeModel extends Model
     const UPDATED_AT = 'LastUpdateDate';
 
 
-    public function accesstypemodel()
-    {
-        return $this->hasOne("App\Model\AccessTypeModel","id","AccessTypeID");
-    }
 
-    public function addEmployee(Request $request)
-    {
 
+    public static function saveGeneralInformations($id,$requestData)
+    {
+        $isProcessOk = self::where('Id',$id)->update($requestData);
+        return $isProcessOk;
     }
 
 

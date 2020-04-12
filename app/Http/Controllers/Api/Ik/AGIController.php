@@ -9,4 +9,8 @@ use App\Http\Controllers\Api\ApiController;
 class AGIController extends ApiController
 {
 
+    public function saveAGI()
+    {
+
+    }
 }

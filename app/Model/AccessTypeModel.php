@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class AccessTypeModel extends Model
 {
     protected $primaryKey = "Id";
-    protected $table = "accesstype";
+    protected $table = "AccessType";
 
-    public function employeemodel()
-    {
-        return $this->belongsTo("App\Model\EmployeeModel","AccessTypeID","id");
-    }
 }

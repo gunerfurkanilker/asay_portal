@@ -9,4 +9,8 @@ use App\Http\Controllers\Api\ApiController;
 class EducationController extends ApiController
 {
 
+    public function saveEducation()
+    {
+
+    }
 }

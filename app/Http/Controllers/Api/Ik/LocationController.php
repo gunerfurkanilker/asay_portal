@@ -6,11 +6,10 @@ namespace App\Http\Controllers\Api\Ik;
 
 use App\Http\Controllers\Api\ApiController;
 
-class IDCardController extends ApiController
+class LocationController extends ApiController
 {
-    public function saveIDCard()
+    public function saveLocation()
     {
 
     }
-
 }

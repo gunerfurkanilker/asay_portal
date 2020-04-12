@@ -39,12 +39,24 @@ class EmployeeController extends ApiController
 
     }
 
-    public function generalInformations($id)
+    public function saveGeneralInformations(Request $request,$id)
+    {
+        $requestData = $request->all();
+        $isSuccess = EmployeeModel::saveGeneralInformations(EmployeeModel::find($id),$requestData);
+        dd($isSuccess);
+        if ($isSuccess)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı'
+            ]);
+    }
+
+    public function getGeneralInformations($id)
     {
         /*$employeeTableFields = ['FirstName','LastName','Domain','JobEmail','JobMobilePhone',
             'InterPhone','StartDate','ContractFinishDate','MobilePhone','HomePhone','REMMail','Email',
             'PositionStartDate','PositionEndDate','CreateDate','LastUpdateDate'];*/
-        $data = EmployeeModel::where('Id',$id);
+
 
         return response([
             'status' => true,
@@ -54,15 +66,28 @@ class EmployeeController extends ApiController
 
     }
 
-    public function positionInformations($id)
+    public function savePosition()
     {
 
     }
 
-    public function contactInformations($id)
+    public function editPosition($id)
     {
 
     }
+
+    public function deletePosition($id)
+    {
+
+    }
+
+    public function saveContactInformations(Request $request)
+    {
+
+    }
+
+
+
 
 
 

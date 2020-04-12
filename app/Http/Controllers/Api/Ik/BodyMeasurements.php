@@ -8,5 +8,8 @@ use App\Http\Controllers\Api\ApiController;
 
 class BodyMeasurements extends ApiController
 {
+    public function saveBodyMeasurments()
+    {
 
+    }
 }
