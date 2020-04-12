@@ -32,24 +32,42 @@ class EmployeeModel extends Model
         $employee->ContractFinishDate = new Carbon($requestData['contractfinishdate']);
         $employee->WorkingScheduleID = $requestData['workingscheduleid'];
 
-        return $employee->save();
+        if ($employee->save())
+            return $employee->fresh();
+        else
+            return false;
+
     }
 
     public static function saveJobPosition($employee,$requestData)
     {
-        $employee->CompanyID = $requestData['firstname'];
-        $employee->CityID = $requestData['lastname'];
-        $employee->DistrictID = $requestData['accesstypeid'];
-        $employee->DepartmentID = $requestData['domain'];
-        $employee->TitleID = $requestData['jobemail'];
-        $employee->ManagerID = $requestData['jobphone'];
-        $employee->WorkingTypeID = $requestData['internalphone'];
-        $employee->PositionStartDate = $requestData['contracttypeid'];
-        $employee->PositionEndDate = $requestData['jobbegindate'];
-        $employee->ContractFinishDate = $requestData['contractfinishdate'];
-        $employee->WorkingScheduleID = $requestData['workingscheduleid'];
+        $employee->CompanyID = $requestData['companyid'];
+        $employee->CityID = $requestData['cityid'];
+        $employee->DistrictID = $requestData['districtid'];
+        $employee->DepartmentID = $requestData['departmentid'];
+        $employee->TitleID = $requestData['titleid'];
+        $employee->ManagerID = $requestData['managerid'];
+        $employee->WorkingTypeID = $requestData['workingtypeid'];
+        $employee->PositionStartDate = new Carbon($requestData['positionstartdate']);
+        $employee->PositionEndDate = new Carbon($requestData['positionenddate']);
 
-        if ($employee->save)
+        if ($employee->save())
+            return $employee->fresh();
+        else
+            return false;
+
+    }
+
+    public static function saveContactInformation($employee,$requestData)
+    {
+
+        $employee->MobilePhone = $requestData['personalmobilephone'];
+        $employee->HomePhone = $requestData['personalhomephone'];
+        $employee->REMMail = $requestData['personalemail'];
+        $employee->Email = $requestData['kepemail'];
+
+
+        if ($employee->save())
             return $employee->fresh();
         else
             return false;

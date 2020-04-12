@@ -44,12 +44,18 @@ class EmployeeController extends ApiController
         $requestData = $request->all();
         $employee = EmployeeModel::where('Id',$id)->first();
 
-        $isSuccess = EmployeeModel::saveGeneralInformations($employee,$requestData);
+        $freshData = EmployeeModel::saveGeneralInformations($employee,$requestData);
 
-        if ($isSuccess)
+        if ($freshData)
             return response([
                 'status' => true,
-                'message' => 'İşlem Başarılı'
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ]);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.'
             ]);
     }
 
@@ -93,8 +99,25 @@ class EmployeeController extends ApiController
 
     }
 
-    public function saveContactInformations(Request $request)
+    public function saveContactInformation(Request $request,$id)
     {
+
+        $requestData = $request->all();
+        $employee = EmployeeModel::where('Id',$id)->first();
+
+        $freshData = EmployeeModel::saveContactInformation($employee,$requestData);
+
+        if ($freshData)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ]);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.'
+            ]);
 
     }
 
