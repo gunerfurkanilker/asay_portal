@@ -42,7 +42,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/{id}/general-informations', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/{id}/job-position', "EmployeeController@saveJobPosition")->where(['id' => '[0-9]+'])->name("employee_job_position");
             Route::post('employee/{id}/contact-information', "EmployeeController@saveContactInformation")->where(['id' => '[0-9]+'])->name("employee_contact_information");
-            Route::post('employee/{id}/add-salary', "PaymentController@addSalary")->where(['id' => '[0-9]+'])->name("employee_add_salary");
+            Route::post('employee/{id}/salary', "PaymentController@addSalary");
 
         });
 

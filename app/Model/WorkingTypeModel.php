@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class WorkingTypeModel extends Model
 {
     protected $primaryKey = "Id";
+    protected $table = "WorkingType";
 }

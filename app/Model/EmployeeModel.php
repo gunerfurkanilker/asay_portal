@@ -141,7 +141,7 @@ class EmployeeModel extends Model
     public function getCityAttribute()
     {
 
-        $city = $this->hasOne(CompanyModel::class,"Id","CityID");
+        $city = $this->hasOne(CityModel::class,"Id","CityID");
         if ($city)
         {
             return $city->where("Active",1)->first();
