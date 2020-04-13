@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class TitleModel extends Model
 {
     protected $primaryKey = "Id";
+    protected $title ="Title";
 }
