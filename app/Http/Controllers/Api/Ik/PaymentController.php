@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 class PaymentController extends ApiController
 {
 
-    public function payment()
+    public function allPayment()
     {
         return response([
             'status' => true,
@@ -23,17 +23,17 @@ class PaymentController extends ApiController
         ]);
     }
 
-    public function saveSalary(Request $request,$employeeId)
+    public function savePayment(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);
 
         if (!is_null($employee))
         {
-            $salary = PaymentModel::first($employee->PaymentID);
+            $salary = PaymentModel::find($employee->PaymentID);
 
             if (!is_null($salary))
             {
-                $salary = PaymentModel::editSalary($request->all(),$salary->Id);
+                $salary = PaymentModel::editSalary($request->all(),$salary);
                 return response([
                     'status' => true,
                     'message' => 'İşlem Başarılı.',

@@ -22,7 +22,8 @@ class EmployeeModel extends Model
         "Department",
         "Title",
         "Manager",
-        "WorkingType"
+        "WorkingType",
+        "Payment"
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -215,6 +216,20 @@ class EmployeeModel extends Model
         if ($workingType)
         {
             return $workingType->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getPaymentAttribute()
+    {
+
+        $payment = $this->hasOne(WorkingTypeModel::class,"Id","PaymentID");
+        if ($payment)
+        {
+            return PaymentModel::find($payment->where("Active",1)->first()->Id);
         }
         else
         {

@@ -24,7 +24,6 @@ class PaymentModel extends Model
 
             $salary = self::create([
                 'Pay' => $request['pay'],
-                'EmployeeID' => $request['employee'],
                 'CurrencyID' => $request['currency'],
                 'ExpireDate' => new Carbon($request['expiredate']),
                 'PayPeriodID' => $request['payperiod'],
@@ -36,12 +35,11 @@ class PaymentModel extends Model
             return $salary->fresh();
     }
 
-    public static function editSalary($request,$salaryId)
+    public static function editSalary($request,$salary)
     {
-        $salary = self::find($salaryId);
+
 
         $salary->Pay = $request['pay'];
-        $salary->EmployeeID = $request['employee'];
         $salary->CurrencyID = $request['currency'];
         $salary->ExpireDate = new Carbon($request['expiredate']);
         $salary->PayPeriodID = $request['payperiod'];
