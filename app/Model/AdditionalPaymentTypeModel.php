@@ -4,8 +4,10 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CurrencyModel extends Model
+class AdditionalPaymentTypeModel extends Model
 {
     protected $primaryKey = "Id";
-    protected $table = "Currency";
+    protected $table = "AdditionalPaymentType";
+
+
 }

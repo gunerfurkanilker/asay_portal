@@ -5,31 +5,61 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\AdditionalPaymentModel;
+use App\Model\EmployeeModel;
 use App\Model\PaymentModel;
-use http\Client\Request;
+use Illuminate\Http\Request;
 
 
 class PaymentController extends ApiController
 {
 
-    public function addSalary(Request $request,$id)
+    public function allPayments()
     {
-        $employee = PaymentModel::addSalary($request->all(),$id);
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı.',
+            'data' => PaymentModel::all()
+        ]);
+    }
 
-        if ($employee)
+    public function saveSalary(Request $request,$employeeId)
+    {
+        $employee = EmployeeModel::find($employeeId);
+
+        if (!is_null($employee))
         {
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $employee
-            ]);
+            $salary = PaymentModel::first($employee->PaymentID);
+
+            if (!is_null($salary))
+            {
+                $salary = PaymentModel::editSalary($request->all(),$salary->Id);
+                return response([
+                    'status' => true,
+                    'message' => 'İşlem Başarılı.',
+                    'data' => $salary
+                ]);
+            }
+
+            else
+            {
+                $salary = PaymentModel::addSalary($request->all(),$employeeId);
+                return response([
+                    'status' => true,
+                    'message' => 'İşlem Başarılı.',
+                    'data' => $salary
+                ]);
+            }
         }
 
+        else{
+            return response([
+                'status' => false,
+                'message' => 'Kullanıcı Bulunamadı.'
+            ]);
+        }
     }
 
-    public function addPayment(Request $request,$id)
-    {
 
-    }
 
 }
