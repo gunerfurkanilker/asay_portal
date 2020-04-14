@@ -22,7 +22,7 @@ class PaymentController extends ApiController
 
             if (!is_null($employee->PaymentID))
             {
-                $salary = PaymentModel::editSalary($request->all(),$salary);
+                $salary = PaymentModel::editSalary($request->all(),$employee->PaymentID);
                 return response([
                     'status' => true,
                     'message' => 'İşlem Başarılı.',

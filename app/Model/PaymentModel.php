@@ -35,9 +35,9 @@ class PaymentModel extends Model
             return $salary->fresh();
     }
 
-    public static function editSalary($request,$salary)
+    public static function editSalary($request,$salaryId)
     {
-
+        $salary = PaymentModel::find($salaryId);
 
         $salary->Pay = $request['pay'];
         $salary->CurrencyID = $request['currency'];
