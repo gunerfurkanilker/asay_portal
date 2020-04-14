@@ -46,7 +46,8 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/contact-information/save/{id}', "EmployeeController@saveContactInformation")->where(['id' => '[0-9]+'])->name("employee_contact_information");
             Route::post('employee/payment/save/{id}', "PaymentController@savePayment")->name("save_payment");
             Route::post('employee/additional-payment/save/{id}', "PaymentController@savePayment")->name("save_additional_payment");
-            Route::post('employee/location/save/{id}', "PaymentController@savePayment")->name("save_location");
+            Route::post('employee/location/save/{id}', "LocationController@saveLocation")->name("save_location");
+            Route::post('employee/education/save/{id}', "EducationController@saveEducation")->name("save_education");
 
 
         });

@@ -32,6 +32,7 @@ class PaymentModel extends Model
             ]);
 
             $employee->PaymentID = $salary->Id;
+            $employee->save();
             return $salary->fresh();
     }
 

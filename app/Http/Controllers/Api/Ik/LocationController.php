@@ -16,7 +16,7 @@ class LocationController extends ApiController
         $employee = EmployeeModel::find($employeeId);
        if (!is_null($employee))
        {
-            if ($employee->LocationID =! null)
+            if ($employee->LocationID != null)
                 $location = LocationModel::saveLocation($request->all(),$employee->LocationID);
             else
                 $location = LocationModel::addLocation($request->all(),$employee);
@@ -24,15 +24,14 @@ class LocationController extends ApiController
             if ($location)
                 return response([
                     'status' => true,
-                    'message' => $location->Id." ID No'lu Lokasyon Kaydedildi",
-                    'data' =>$location->fresh()
+                    'message' => $location->Id . " ID No'lu Lokasyon Kaydedildi",
+                    'data' =>$location
                 ],200);
             else
                 return response([
                     'status' => false,
-                    'message' => "İşlem Başarısız.",
-                    'data' =>$location->fresh()
-                ]);
+                    'message' => "İşlem Başarısız."
+                ],200);
        }
        else
        {

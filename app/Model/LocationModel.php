@@ -8,6 +8,13 @@ class LocationModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = "Location";
+    protected $guarded = [];
+    public $timestamps = false;
+    protected $appends = [
+      'City',
+      'District',
+      'Country'
+    ];
 
     public static function saveLocation($request,$locationID)
     {
@@ -16,10 +23,14 @@ class LocationModel extends Model
         if ($location != null)
         {
             $location->Address = $request['address'];
-            $location->CityID = $request['address'];
-            $location->DistrictID = $request['address'];
-            $location->CountryID = $request['address'];
+            $location->CityID = $request['city'];
+            $location->DistrictID = $request['district'];
+            $location->CountryID = $request['country'];
             $location->ZIPCode = $request['zipcode'];
+
+            $location->save();
+
+            return $location->fresh();
         }
 
         else
@@ -40,10 +51,34 @@ class LocationModel extends Model
         if ($location)
         {
             $employee->LocationID = $location->Id;
+            $employee->save();
             return $location;
         }
 
         else
             return false;
     }
+
+    public function getCityAttribute()
+    {
+        $city = $this->hasOne(CityModel::class,"Id","CityID");
+
+        return $city->where("Active","1")->first();
+
+    }
+
+    public function getDistrictAttribute()
+    {
+        $district = $this->hasOne(DistrictModel::class,"Id","DistrictID");
+
+        return $district->where("Active","1")->first();
+    }
+
+    public function getCountryAttribute()
+    {
+        $country = $this->hasOne(CountryModel::class,"Id","CountryID");
+
+        return $country->where("Active","1")->first();
+    }
+
 }
