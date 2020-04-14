@@ -15,7 +15,7 @@ class PaymentModel extends Model
         "AdditionalPayment",
         "Currency",
         "PayPeriod",
-        "PayMethod",
+        "PayMethod"
     ];
 
     public static function addSalary($request,$id)
@@ -53,28 +53,28 @@ class PaymentModel extends Model
         return $salary->fresh();
     }
 
-    public function getAdditionalPaymentAttribute()
+   public function getAdditionalPaymentAttribute()
     {
-        $additionalPayments = $this->belongsTo(AdditionalPaymentModel::class,"PaymentID","Id");
-        return $additionalPayments->where("Active",1)->get()->toArray();
+        $additionalPayments = $this->hasMany(AdditionalPaymentModel::class,"PaymentID","Id");
+        return $additionalPayments->where("Active","1")->get();
     }
 
     public function getCurrencyAttribute()
-    {
-        $currency = $this->hasOne(CurrencyModel::class,"Id","CurrencyID");
-        return $currency->where("Active",1)->first()->toArray();
-    }
+   {
+       $currency = $this->hasOne(CurrencyModel::class,"Id","CurrencyID");
+       return $currency->where("Active",1)->first();
+   }
 
-    public function getPayPeriodAttribute()
-    {
-        $payPeriod = $this->hasOne(PayPeriodModel::class,"Id","PayPeriodID");
-        return $payPeriod->where("Active",1)->first()->toArray();
-    }
+   public function getPayPeriodAttribute()
+   {
+       $payPeriod = $this->hasOne(PayPeriodModel::class,"Id","PayPeriodID");
+       return $payPeriod->where("Active",1)->first()->toArray();
+   }
 
-    public function getPayMethodAttribute()
-    {
-        $payMethod = $this->hasOne(PayMethodModel::class,"Id","PayMethod");
-        return $payMethod->where("Active",1)->first()->toArray();
-    }
+   public function getPayMethodAttribute()
+   {
+       $payMethod = $this->hasOne(PayMethodModel::class,"Id","PayMethodID");
+       return $payMethod->where("Active",1)->first()->toArray();
+   }
 
 }

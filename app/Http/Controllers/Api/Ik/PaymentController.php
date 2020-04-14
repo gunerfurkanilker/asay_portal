@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 class PaymentController extends ApiController
 {
 
-    public function allPayments()
+    public function payment()
     {
         return response([
             'status' => true,

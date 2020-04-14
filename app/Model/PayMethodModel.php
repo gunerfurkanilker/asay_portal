@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class PayMethodModel extends Model
 {
     protected $primaryKey = "Id";
+    protected $table ="PayMethod";
 }
