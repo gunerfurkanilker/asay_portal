@@ -20,10 +20,14 @@ class DrivingLicenseModel extends Model
 
         if ($drivingLicenseID != null) {
 
-            $drivingLicenseID->StatusID = $request['educationstatus'];
-            $drivingLicenseID->Institution = $request['schoolname'];
-            $drivingLicenseID->LevelID = $request['educationlevel'];
-            $drivingLicenseID->DocumentID = $request['graduationdocument'];
+            $drivingLicenseID->DrivingLicenceType = $request['licensetype'];
+            $drivingLicenseID->BirthDate = $request['birthdate'];
+            $drivingLicenseID->BirthPlace = $request['birthplace'];
+            $drivingLicenseID->StartDate = $request['licensebegindate'];
+            $drivingLicenseID->EffectiveDate = $request['licenseenddate'];
+            $drivingLicenseID->PlaceOfIssue = $request['licenselocation'];
+            $drivingLicenseID->DocumentNo = $request['licensedocumentno'];
+            $drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
 
             $drivingLicenseID->save();
 
@@ -36,10 +40,14 @@ class DrivingLicenseModel extends Model
     public static function addDrivingLicense($request,$employee)
     {
         $drivingLicenseID = self::create([
-            'StatusID' => $request['educationstatus'],
-            'Institution' => $request['schoolname'],
-            'LevelID' => $request['educationlevel'],
-            'DocumentID' => $request['graduationdocument']
+            'DrivingLicenceType' => $request['licensetype'],
+            'BirthDate' => $request['birthdate'],
+            'BirthPlace' => $request['birthplace'],
+            'StartDate' => $request['licensebegindate'],
+            'EffectiveDate' => $request['licenseenddate'],
+            'PlaceOfIssue' => $request['licenselocation'],
+            'DocumentNo' => $request['licensedocumentno'],
+            'DrivingLicenceClass' => $request['licenseclass']
         ]);
 
         if ($drivingLicenseID != null)
