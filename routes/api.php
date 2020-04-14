@@ -39,7 +39,7 @@ Route::namespace("Api")->group(function(){
         Route::prefix('ik')->group(function () {
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
-            Route::get('employee/{id}', "EmployeeController@employee")->name("employee");
+            Route::get('employee/{id}', "EmployeeController@getEmployeeById")->name("employee");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/job-position/save/{id}', "EmployeeController@saveJobPosition")->where(['id' => '[0-9]+'])->name("employee_job_position");
@@ -48,6 +48,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/additional-payment/save/{id}', "PaymentController@savePayment")->name("save_additional_payment");
             Route::post('employee/location/save/{id}', "LocationController@saveLocation")->name("save_location");
             Route::post('employee/education/save/{id}', "EducationController@saveEducation")->name("save_education");
+            Route::post('employee/driving-license/save/{id}', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
 
 
         });
