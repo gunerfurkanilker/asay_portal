@@ -37,7 +37,7 @@ class EducationModel extends Model
             'DocumentID' => $request['graduationdocument']
         ]);
 
-        if ($education)
+        if ($education != null)
         {
             $employee->EducationID = $education->Id;
             $employee->save();

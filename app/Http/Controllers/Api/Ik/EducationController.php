@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\ApiController;
 use App\Model\EducationModel;
 use App\Model\EmployeeModel;
 use App\Model\LocationModel;
-use http\Client\Request;
+use Illuminate\Http\Request;
 
 class EducationController extends ApiController
 {
@@ -19,9 +19,9 @@ class EducationController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->LocationID != null)
-                $education = EducationModel::saveLocation($request->all(),$employee->EducationID);
+                $education = EducationModel::saveEducation($request->all(),$employee->EducationID);
             else
-                $education = EducationModel::addLocation($request->all(),$employee);
+                $education = EducationModel::addEducation($request->all(),$employee);
 
             if ($education)
                 return response([

@@ -48,7 +48,7 @@ class LocationModel extends Model
             'ZIPCode' => $request['zipcode']
         ]);
 
-        if ($location)
+        if ($location != null)
         {
             $employee->LocationID = $location->Id;
             $employee->save();

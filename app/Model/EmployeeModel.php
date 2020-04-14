@@ -20,6 +20,7 @@ class EmployeeModel extends Model
         "City",
         "District",
         "Department",
+        "Education",
         "Title",
         "Manager",
         "WorkingType",
@@ -230,6 +231,20 @@ class EmployeeModel extends Model
         if ($payment)
         {
             return PaymentModel::find($payment->where("Active",1)->first()->Id);
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getEducationAttribute()
+    {
+
+        $education = $this->hasOne(EducationModel::class,"Id","EducationID");
+        if ($education)
+        {
+            return $education->where("Active",1)->first();
         }
         else
         {
