@@ -44,11 +44,9 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/job-position/save/{id}', "EmployeeController@saveJobPosition")->where(['id' => '[0-9]+'])->name("employee_job_position");
             Route::post('employee/contact-information/save/{id}', "EmployeeController@saveContactInformation")->where(['id' => '[0-9]+'])->name("employee_contact_information");
-
-
-            Route::get('employee/payment/all', "PaymentController@allPayments")->name("all_payments");
-            Route::get('employee/payment/{id}', "PaymentController@payment")->name("all_payments");
             Route::post('employee/payment/save/{id}', "PaymentController@savePayment")->name("save_payment");
+            Route::post('employee/additional-payment/save/{id}', "PaymentController@savePayment")->name("save_payment");
+
 
 
         });

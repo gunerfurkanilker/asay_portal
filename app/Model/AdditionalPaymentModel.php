@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 
@@ -17,7 +18,13 @@ class AdditionalPaymentModel extends Model
 
     public static function addAdditionalPayment($request,$salaryId)
     {
-
+        $salary = self::create([
+            'Pay' => $request['pay'],
+            'PaymentID' => $request['paymentid'],
+            'CurrencyID' => $request['currencyid'],
+            'AdditionalPaymentTypeID' => $request['additionalpaymenttypeid'],
+            'PayPeriodID' => $request['payperiod']
+        ]);
     }
 
     public function getAdditionalPaymentTypeAttribute()

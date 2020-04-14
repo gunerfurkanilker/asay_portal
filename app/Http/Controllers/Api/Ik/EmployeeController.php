@@ -51,12 +51,12 @@ class EmployeeController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı',
                 'data' => $freshData
-            ]);
+            ],200);
         else
             return response([
                 'status' => false,
                 'message' => 'İşlem Başarısız.'
-            ]);
+            ],200);
     }
 
     public function getGeneralInformations($id)
