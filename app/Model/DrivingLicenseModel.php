@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class DrivingLicenseModel extends Model
@@ -21,10 +22,10 @@ class DrivingLicenseModel extends Model
         if ($drivingLicenseID != null) {
 
             $drivingLicenseID->DrivingLicenceType = $request['licensetype'];
-            $drivingLicenseID->BirthDate = $request['birthdate'];
-            $drivingLicenseID->BirthPlace = $request['birthplace'];
-            $drivingLicenseID->StartDate = $request['licensebegindate'];
-            $drivingLicenseID->EffectiveDate = $request['licenseenddate'];
+            $drivingLicenseID->BirthDate = new Carbon($request['birthdate']);
+            $drivingLicenseID->BirthPlace = new Carbon($request['birthplace']);
+            $drivingLicenseID->StartDate = new Carbon($request['licensebegindate']);
+            $drivingLicenseID->EffectiveDate = new Carbon($request['licenseenddate']);
             $drivingLicenseID->PlaceOfIssue = $request['licenselocation'];
             $drivingLicenseID->DocumentNo = $request['licensedocumentno'];
             $drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
@@ -41,10 +42,10 @@ class DrivingLicenseModel extends Model
     {
         $drivingLicenseID = self::create([
             'DrivingLicenceType' => $request['licensetype'],
-            'BirthDate' => $request['birthdate'],
-            'BirthPlace' => $request['birthplace'],
-            'StartDate' => $request['licensebegindate'],
-            'EffectiveDate' => $request['licenseenddate'],
+            'BirthDate' => new Carbon($request['birthdate']),
+            'BirthPlace' => new Carbon($request['birthplace']),
+            'StartDate' => new Carbon($request['licensebegindate']),
+            'EffectiveDate' => new Carbon($request['licenseenddate']),
             'PlaceOfIssue' => $request['licenselocation'],
             'DocumentNo' => $request['licensedocumentno'],
             'DrivingLicenceClass' => $request['licenseclass']
@@ -52,7 +53,7 @@ class DrivingLicenseModel extends Model
 
         if ($drivingLicenseID != null)
         {
-            $employee->DrivingLicence = $drivingLicenseID->Id;
+            $employee->DrivingLicenceID = $drivingLicenseID->Id;
             $employee->save();
             return $drivingLicenseID;
         }

@@ -16,7 +16,7 @@ class DrivingLicenseController
         $employee = EmployeeModel::find($employeeId);
         if (!is_null($employee))
         {
-            if ($employee->EducationID != null)
+            if ($employee->DrivingLicenceID != null)
                 $drivingLicense = DrivingLicenseModel::saveDrivingLicense($request->all(),$employee->DrivingLicenceID);
             else
                 $drivingLicense = DrivingLicenseModel::addDrivingLicense($request->all(),$employee);
