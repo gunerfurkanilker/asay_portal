@@ -8,6 +8,8 @@ class EducationModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = "Education";
+    protected $guarded = [];
+    public $timestamps =false;
 
     public static function saveEducation($request, $educationID)
     {
@@ -16,7 +18,7 @@ class EducationModel extends Model
         if ($education != null) {
 
             $education->StatusID = $request['educationstatus'];
-            $education->Institutions = $request['schoolname'];
+            $education->Institution = $request['schoolname'];
             $education->LevelID = $request['educationlevel'];
             $education->DocumentID = $request['graduationdocument'];
 
@@ -32,7 +34,7 @@ class EducationModel extends Model
     {
         $education = self::create([
             'StatusID' => $request['educationstatus'],
-            'Institutions' => $request['schoolname'],
+            'Institution' => $request['schoolname'],
             'LevelID' => $request['educationlevel'],
             'DocumentID' => $request['graduationdocument']
         ]);

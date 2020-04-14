@@ -244,7 +244,7 @@ class EmployeeModel extends Model
         $education = $this->hasOne(EducationModel::class,"Id","EducationID");
         if ($education)
         {
-            return $education->where("Active",1)->first();
+            return $education->first();
         }
         else
         {

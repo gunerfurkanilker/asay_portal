@@ -18,7 +18,7 @@ class EducationController extends ApiController
         $employee = EmployeeModel::find($employeeId);
         if (!is_null($employee))
         {
-            if ($employee->LocationID != null)
+            if ($employee->EducationID != null)
                 $education = EducationModel::saveEducation($request->all(),$employee->EducationID);
             else
                 $education = EducationModel::addEducation($request->all(),$employee);
@@ -26,7 +26,7 @@ class EducationController extends ApiController
             if ($education)
                 return response([
                     'status' => true,
-                    'message' => $education->Id . " ID No'lu Lokasyon Kaydedildi",
+                    'message' => $education->Id . " ID No'lu Eğitim Bilgisi Kaydedildi",
                     'data' =>$education
                 ],200);
             else
