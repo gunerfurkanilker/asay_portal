@@ -54,6 +54,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/body-measurements/save/{id}', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");
             Route::post('employee/id-card/save/{id}', "IDCardController@saveIDCard")->name("save_id_card");
             Route::post('employee/ssi/save/{id}', "SocialSecurityInformationController@saveSocialSecurityInformation")->name("save_ssi");
+            Route::post('employee/bank/save/{id}', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
 
 
         });
