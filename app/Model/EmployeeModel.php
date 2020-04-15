@@ -24,7 +24,8 @@ class EmployeeModel extends Model
         "Title",
         "Manager",
         "WorkingType",
-        "Payment"
+        "Payment",
+        "DrivingLicense"
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -245,6 +246,20 @@ class EmployeeModel extends Model
         if ($education)
         {
             return $education->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getDrivingLicenseAttribute()
+    {
+
+        $drivingLicense = $this->hasOne(DrivingLicenseModel::class,"Id","DrivingLicenceID");
+        if ($drivingLicense)
+        {
+            return $drivingLicense->first();
         }
         else
         {
