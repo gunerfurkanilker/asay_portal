@@ -9,9 +9,9 @@ use App\Model\BodyMeasurementModel;
 use App\Model\EmployeeModel;
 use Illuminate\Http\Request;
 
-class BodyMeasurements extends ApiController
+class BodyMeasurementsController extends ApiController
 {
-    public function saveEmergencyField(Request $request,$employeeId)
+    public function saveBodyMeasurements(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);
         if (!is_null($employee))
