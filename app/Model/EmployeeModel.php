@@ -26,7 +26,9 @@ class EmployeeModel extends Model
         "WorkingType",
         "Payment",
         "DrivingLicense",
-        "AGI"
+        "AGI",
+        "EmergencyField",
+        "BodyMeasurements"
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -282,5 +284,31 @@ class EmployeeModel extends Model
         }
     }
 
+    public function getEmergencyFieldAttribute()
+    {
 
+        $emergencyField = $this->hasOne(EmergencyFieldModel::class,"Id","EmergencyFieldID");
+        if ($emergencyField)
+        {
+            return $emergencyField->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getBodyMeasurementsAttribute()
+    {
+
+        $bodyMeasurements = $this->hasOne(BodyMeasurementModel::class,"Id","BodyMeasurementID");
+        if ($bodyMeasurements)
+        {
+            return $bodyMeasurements->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
 }

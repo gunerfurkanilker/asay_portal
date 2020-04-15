@@ -17,15 +17,15 @@ class EmergencyFieldController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->EmergencyFieldID != null)
-                $agi = EmergencyFieldModel::saveEmergencyField($request->all(),$employee->EmergencyFieldID);
+                $emergencyField = EmergencyFieldModel::saveEmergencyField($request->all(),$employee->EmergencyFieldID);
             else
-                $agi = EmergencyFieldModel::addEmergencyField($request->all(),$employee);
+                $emergencyField = EmergencyFieldModel::addEmergencyField($request->all(),$employee);
 
-            if ($agi)
+            if ($emergencyField)
                 return response([
                     'status' => true,
-                    'message' => $agi->Id . " ID No'lu Acil Durum Bilgisi Kaydedildi",
-                    'data' =>$agi
+                    'message' => $emergencyField->Id . " ID No'lu Acil Durum Bilgisi Kaydedildi",
+                    'data' =>$emergencyField
                 ],200);
             else
                 return response([
