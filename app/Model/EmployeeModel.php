@@ -30,7 +30,8 @@ class EmployeeModel extends Model
         "EmergencyField",
         "BodyMeasurements",
         'IDCard',
-        'SocialSecurityInformation'
+        'SocialSecurityInformation',
+        'EmployeeBank'
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -334,6 +335,19 @@ class EmployeeModel extends Model
         if ($socialSecurityInformation)
         {
             return $socialSecurityInformation->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getEmployeeBankInformationAttribute()
+    {
+        $employeeBank = $this->hasOne(EmployeeBankModel::class,"Id","EmployeeBankID");
+        if ($employeeBank)
+        {
+            return $employeeBank->first();
         }
         else
         {

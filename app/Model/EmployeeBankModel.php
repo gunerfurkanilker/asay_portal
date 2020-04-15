@@ -2,7 +2,6 @@
 
 namespace App\Model;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeeBankModel extends Model
@@ -31,17 +30,17 @@ class EmployeeBankModel extends Model
 
     public static function addEmployeeBank($request,$employee)
     {
-        $drivingLicense = self::create([
+        $employeeBank = self::create([
             'BankName' => $request['bankname'],
             'AccountNo' => $request['accountno'],
             'IBAN' => $request['iban']
         ]);
 
-        if ($drivingLicense != null)
+        if ($employeeBank != null)
         {
-            $employee->DrivingLicenceID = $drivingLicense->Id;
+            $employee->EmployeeBankID = $employeeBank->Id;
             $employee->save();
-            return $drivingLicense;
+            return $employeeBank;
         }
 
         else
