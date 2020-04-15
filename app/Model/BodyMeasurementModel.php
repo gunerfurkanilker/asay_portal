@@ -11,9 +11,9 @@ class BodyMeasurementModel extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = [
-        'UpperBody',
-        'LowerBody',
-        'ShoeSize'
+        'UBody',
+        'LBody',
+        'SSize'
     ];
 
     public static function saveBodyMeasurements($request, $bodyMeasurementID)
@@ -37,6 +37,7 @@ class BodyMeasurementModel extends Model
 
     public static function addBodyMeasurements($request,$employee)
     {
+
         $bodyMeasurement = self::create([
             'UpperBody' => $request['upperbody'],
             'LowerBody' => $request['lowerbody'],
@@ -54,19 +55,19 @@ class BodyMeasurementModel extends Model
             return false;
     }
 
-    public function getUpperBodyAttribute()
+    public function getUBodyAttribute()
     {
         $upperBody = $this->hasOne(UpperBodyModel::class,"Id","UpperBody");
         return $upperBody->where("Active",1)->first();
     }
 
-    public function getLowerBodyAttribute()
+    public function getLBodyAttribute()
     {
-        $upperBody = $this->hasOne(LowerBodyModel::class,"Id","LowerBody");
-        return $upperBody->where("Active",1)->first();
+        $lowerBody = $this->hasOne(LowerBodyModel::class,"Id","LowerBody");
+        return $lowerBody->where("Active",1)->first();
     }
 
-    public function getShoeSizeAttribute()
+    public function getSSizeAttribute()
     {
         $shoeSize = $this->hasOne(ShoeSizeModel::class,"Id","ShoeSize");
         return $shoeSize->where("Active",1)->first();

@@ -14,6 +14,7 @@ class BodyMeasurementsController extends ApiController
     public function saveBodyMeasurements(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);
+
         if (!is_null($employee))
         {
             if ($employee->BodyMeasurementID != null)
@@ -25,7 +26,7 @@ class BodyMeasurementsController extends ApiController
                 return response([
                     'status' => true,
                     'message' => $bodyMeasurements->Id . " ID No'lu Fiziksel Bilgi Kaydedildi",
-                    'data' =>$bodyMeasurements
+                    'data' => $bodyMeasurements
                 ],200);
             else
                 return response([
