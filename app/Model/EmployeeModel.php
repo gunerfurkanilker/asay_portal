@@ -28,7 +28,8 @@ class EmployeeModel extends Model
         "DrivingLicense",
         "AGI",
         "EmergencyField",
-        "BodyMeasurements"
+        "BodyMeasurements",
+        'IDCard'
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -305,6 +306,20 @@ class EmployeeModel extends Model
         if ($bodyMeasurements)
         {
             return $bodyMeasurements->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getIDCardAttribute()
+    {
+
+        $idCard = $this->hasOne(IdCardModel::class,"Id","IDCardID");
+        if ($idCard)
+        {
+            return $idCard->first();
         }
         else
         {
