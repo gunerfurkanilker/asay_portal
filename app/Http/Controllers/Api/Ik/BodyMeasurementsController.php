@@ -17,9 +17,9 @@ class BodyMeasurementsController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->BodyMeasurementID != null)
-                $bodyMeasurements = BodyMeasurementModel::saveEmergencyField($request->all(),$employee->BodyMeasurementID);
+                $bodyMeasurements = BodyMeasurementModel::saveBodyMeasurements($request->all(),$employee->BodyMeasurementID);
             else
-                $bodyMeasurements = BodyMeasurementModel::addEmergencyField($request->all(),$employee);
+                $bodyMeasurements = BodyMeasurementModel::addBodyMeasurements($request->all(),$employee);
 
             if ($bodyMeasurements)
                 return response([
