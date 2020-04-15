@@ -11,7 +11,7 @@ class EmergencyFieldModel extends Model
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = [
-
+        'BloodType'
     ];
 
     public static function saveEmergencyField($request, $emergencyFieldID)
@@ -52,5 +52,12 @@ class EmergencyFieldModel extends Model
 
         else
             return false;
+    }
+
+    public function getBloodTypeAttribute()
+    {
+        $bloodType = $this->hasOne(BloodTypeModel::class,"Id","BloodTypeID");
+
+        return $bloodType->where("Active",1)->first();
     }
 }
