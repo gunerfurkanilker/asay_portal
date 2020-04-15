@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\Ik;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
-use App\Model\IdCardModel;
+use App\Model\SocialSecurityInformationModel;
 use Illuminate\Http\Request;
 
 class SocialSecurityInformationController extends ApiController
@@ -19,9 +19,9 @@ class SocialSecurityInformationController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->SocialSecurityInformationID != null)
-                $socialSecurityInformation = IdCardModel::saveSocialSecurityInformation($request->all(),$employee->SocialSecurityInformationID);
+                $socialSecurityInformation = SocialSecurityInformationModel::saveSocialSecurityInformation($request->all(),$employee->SocialSecurityInformationID);
             else
-                $socialSecurityInformation = IdCardModel::addSocialSecurityInformation($request->all(),$employee);
+                $socialSecurityInformation = SocialSecurityInformationModel::addSocialSecurityInformation($request->all(),$employee);
 
             if ($socialSecurityInformation)
                 return response([

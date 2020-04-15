@@ -12,7 +12,7 @@ class DrivingLicenseModel extends Model
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = [
-
+        'DrivingLicenseType'
     ];
 
     public static function saveDrivingLicense($request, $drivingLicenseID)
@@ -40,7 +40,7 @@ class DrivingLicenseModel extends Model
 
     public static function addDrivingLicense($request,$employee)
     {
-        $drivingLicenseID = self::create([
+        $drivingLicense = self::create([
             'DrivingLicenceType' => $request['licensetype'],
             'BirthDate' => new Carbon($request['birthdate']),
             'BirthPlace' => new Carbon($request['birthplace']),
@@ -51,15 +51,21 @@ class DrivingLicenseModel extends Model
             'DrivingLicenceClass' => $request['licenseclass']
         ]);
 
-        if ($drivingLicenseID != null)
+        if ($drivingLicense != null)
         {
-            $employee->DrivingLicenceID = $drivingLicenseID->Id;
+            $employee->DrivingLicenceID = $drivingLicense->Id;
             $employee->save();
-            return $drivingLicenseID;
+            return $drivingLicense;
         }
 
         else
             return false;
+    }
+
+    public function getDrivingLicenseTypeAttribute()
+    {
+        $drivingLicenseType = $this->hasOne(DrivingLicenceType::class,"Id","DrivingLicenceType");
+        return $drivingLicenseType->where("Active",1)->first();
     }
 
 }

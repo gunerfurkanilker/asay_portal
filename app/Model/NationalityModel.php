@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class NationalityModel extends Model
 {
     protected $primaryKey = "Id";
-    protected $table = "nationality";
+    protected $table = "Nationality";
 
-    public static function allNationalities()
-    {
-        return self::where("active",1)->get()->toArray();
-    }
 }

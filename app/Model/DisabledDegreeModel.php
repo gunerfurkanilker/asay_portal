@@ -7,4 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class DisabledDegreeModel extends Model
 {
     protected $primaryKey = "Id";
+    protected $table = "DisabledDegree";
+
 }

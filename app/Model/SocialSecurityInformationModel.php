@@ -9,8 +9,13 @@ class SocialSecurityInformationModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = 'SocialSecurityInformation';
+    protected $guarded = [];
+    public $timestamps = false;
+    protected $appends = [
+        'DisabledDegree'
+    ];
 
-    public static function saveIDCard($request, $socialSecurityInformationID)
+    public static function saveSocialSecurityInformation($request, $socialSecurityInformationID)
     {
         $socialSecurityInformation = self::find($socialSecurityInformationID);
 
@@ -20,7 +25,7 @@ class SocialSecurityInformationModel extends Model
             $socialSecurityInformation->SSINo = $request['sgkno'];
             $socialSecurityInformation->SSIRecord = $request['sgkrecord'];
             $socialSecurityInformation->FirstLastName = $request['firstlastname'];
-            $socialSecurityInformation->DisabledDegree = $request['disableddegree'];
+            $socialSecurityInformation->DisabledDegreeID = $request['disableddegree'];
             $socialSecurityInformation->DisabledReport = $request['disabledreport'];
             $socialSecurityInformation->JobCodeID = $request['jobcode'];
             $socialSecurityInformation->JobDescription = $request['jobdescription'];
@@ -37,7 +42,7 @@ class SocialSecurityInformationModel extends Model
             return false;
     }
 
-    public static function addIDCard($request,$employee)
+    public static function addSocialSecurityInformation($request,$employee)
     {
 
         $socialSecurityInformation = self::create([
@@ -45,7 +50,7 @@ class SocialSecurityInformationModel extends Model
             'SSINo' => $request['sgkno'],
             'SSIRecord' => $request['sgkrecord'],
             'FirstLastName' => $request['firstlastname'],
-            'DisabledDegree' => $request['disableddegree'],
+            'DisabledDegreeID' => $request['disableddegree'],
             'DisabledReport' => $request['disabledreport'],
             'JobCodeID' => $request['jobcode'],
             'JobDescription' => $request['jobdescription'],
@@ -64,5 +69,11 @@ class SocialSecurityInformationModel extends Model
 
         else
             return false;
+    }
+
+    public function getDisabledDegreeAttribute()
+    {
+        $disabledDegree = $this->hasOne(DisabledDegreeModel::class,"Id","DisabledDegreeID");
+        return $disabledDegree->where("Active",1)->first();
     }
 }

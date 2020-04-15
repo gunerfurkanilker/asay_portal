@@ -29,7 +29,8 @@ class EmployeeModel extends Model
         "AGI",
         "EmergencyField",
         "BodyMeasurements",
-        'IDCard'
+        'IDCard',
+        'SocialSecurityInformation'
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -326,4 +327,18 @@ class EmployeeModel extends Model
             return "";
         }
     }
+
+    public function getSocialSecurityInformationAttribute()
+    {
+        $socialSecurityInformation = $this->hasOne(SocialSecurityInformationModel::class,"Id","IDCardID");
+        if ($socialSecurityInformation)
+        {
+            return $socialSecurityInformation->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
 }

@@ -14,7 +14,8 @@ class IdCardModel extends Model
     protected $appends = [
         'Gender',
         'City',
-        'District'
+        'District',
+        'Nationality'
     ];
 
     public static function saveIDCard($request, $IDCardID)
@@ -105,6 +106,12 @@ class IdCardModel extends Model
     {
         $district = $this->hasOne(DistrictModel::class,"Id","GenderID");
         return $district->where("Active",1)->first();
+    }
+
+    public function getNationalityAttribute()
+    {
+        $nationality = $this->hasOne(NationalityModel::class,"Id","NationalityID");
+        return $nationality->where("Active",1)->first();
     }
 
 }

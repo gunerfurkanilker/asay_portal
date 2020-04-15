@@ -10,6 +10,10 @@ class EducationModel extends Model
     protected $table = "Education";
     protected $guarded = [];
     public $timestamps =false;
+    protected $appends = [
+        'EducationLevel',
+        'EducationStatus'
+    ];
 
     public static function saveEducation($request, $educationID)
     {
@@ -48,6 +52,18 @@ class EducationModel extends Model
 
         else
             return false;
+    }
+
+    public function getEducationLevelAttribute()
+    {
+        $educationLevel = $this->hasOne(EducationLevelModel::class,"Id","LevelID");
+        return $educationLevel->where("Active",1)->first();
+    }
+
+    public function getEducationStatusAttribute()
+    {
+        $educationStatus = $this->hasOne(EducationStatusModel::class,"Id","StatusID");
+        return $educationStatus->where("Active",1)->first();
     }
 
 }
