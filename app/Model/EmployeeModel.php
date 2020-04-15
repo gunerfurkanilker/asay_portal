@@ -25,7 +25,8 @@ class EmployeeModel extends Model
         "Manager",
         "WorkingType",
         "Payment",
-        "DrivingLicense"
+        "DrivingLicense",
+        "AGI"
     ];
 
     public static function saveGeneralInformations($employee,$requestData)
@@ -260,6 +261,20 @@ class EmployeeModel extends Model
         if ($drivingLicense)
         {
             return $drivingLicense->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getAGIAttribute()
+    {
+
+        $agi = $this->hasOne(AgiModel::class,"Id","AGIID");
+        if ($agi)
+        {
+            return $agi->first();
         }
         else
         {

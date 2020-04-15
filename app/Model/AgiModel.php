@@ -9,6 +9,12 @@ class AgiModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = 'AGI';
+    protected $guarded = [];
+    public $timestamps = false;
+    protected $appends = [
+        'MaritalStatus',
+        'SpouseWorkingStatus'
+    ];
 
     public static function saveAgi($request, $agiID)
     {
@@ -16,14 +22,14 @@ class AgiModel extends Model
 
         if ($agiID != null) {
 
-            $agiID->MartialStatusID = $request['martialstatus'];
-            $agiID->SpouseWorkingStatus = $request['spouseworkingstatus'];
-            $agiID->TotalChildren = $request['totalchilden'];
-            $agiID->PrePrimaryChildren = $request['preprimarychildren'];
-            $agiID->PrimaryChild = $request['primarychilden'];
-            $agiID->MiddleSchoolChild = $request['middleschoolchildren'];
-            $agiID->HighSchoolChild = $request['highschoolchildren'];
-            $agiID->UniversityChild = $request['universitychildren'];
+            $agiID->MaritalStatusID = $request['maritalstatus'];
+            $agiID->SpouseWorkingStatusID = $request['spouseworkingstatus'];
+            $agiID->TotalChildren = $request['totalchildren'];
+            $agiID->PrePrimaryChild = $request['preprimarychild'];
+            $agiID->PrimaryChild = $request['primarychild'];
+            $agiID->MiddleSchoolChild = $request['middleschoolchild'];
+            $agiID->HighSchoolChild = $request['highschoolchild'];
+            $agiID->UniversityChild = $request['universitychild'];
 
             $agiID->save();
 
@@ -36,19 +42,19 @@ class AgiModel extends Model
     public static function addAgi($request,$employee)
     {
         $agiID = self::create([
-            'MartialStatusID' => $request['martialstatus'],
-            'SpouseWorkingStatus' => $request['spouseworkingstatus'],
-            'TotalChildren' => $request['totalchilden'],
-            'PrePrimaryChildren' => $request['preprimarychildren'],
-            'PrimaryChild' => $request['primarychilden'],
-            'MiddleSchoolChild' => $request['middleschoolchildren'],
-            'HighSchoolChild' => $request['highschoolchildren'],
-            'UniversityChild' => $request['universitychildren']
+            'MaritalStatusID' => $request['maritalstatus'],
+            'SpouseWorkingStatusID' => $request['spouseworkingstatus'],
+            'TotalChildren' => $request['totalchildren'],
+            'PrePrimaryChild' => $request['preprimarychild'],
+            'PrimaryChild' => $request['primarychild'],
+            'MiddleSchoolChild' => $request['middleschoolchild'],
+            'HighSchoolChild' => $request['highschoolchild'],
+            'UniversityChild' => $request['universitychild']
         ]);
 
         if ($agiID != null)
         {
-            $employee->DrivingLicenceID = $agiID->Id;
+            $employee->AGIID = $agiID->Id;
             $employee->save();
             return $agiID;
         }
@@ -56,4 +62,18 @@ class AgiModel extends Model
         else
             return false;
     }
+
+
+    public function getMaritalStatusAttribute()
+    {
+        $maritalStatus = $this->hasOne(MartialStatusModel::class,"Id","MaritalStatusID");
+        return $maritalStatus->where("Active",1)->first();
+    }
+
+    public function getSpouseWorkingStatusAttribute()
+    {
+        $spouseWorkingStatus = $this->hasOne(WorkingStatusModel::class,"Id","SpouseWorkingStatusID");
+        return $spouseWorkingStatus->where("Active",1)->first();
+    }
+
 }
