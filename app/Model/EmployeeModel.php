@@ -342,7 +342,7 @@ class EmployeeModel extends Model
         }
     }
 
-    public function getEmployeeBankInformationAttribute()
+    public function getEmployeeBankAttribute()
     {
         $employeeBank = $this->hasOne(EmployeeBankModel::class,"Id","EmployeeBankID");
         if ($employeeBank)

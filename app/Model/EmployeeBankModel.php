@@ -8,6 +8,8 @@ class EmployeeBankModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = 'EmployeeBank';
+    public $timestamps = false;
+    protected $guarded = [];
 
     public static function saveEmployeeBank($request, $employeeBank)
     {

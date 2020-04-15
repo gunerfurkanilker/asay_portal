@@ -12,7 +12,7 @@ class PaymentModel extends Model
     protected $guarded = [];
     public $timestamps =false;
     protected $appends = [
-        "AdditionalPayment",
+        "AdditionalPayments",
         "Currency",
         "PayPeriod",
         "PayMethod"
@@ -52,7 +52,7 @@ class PaymentModel extends Model
         return $salary->fresh();
     }
 
-   public function getAdditionalPaymentAttribute()
+   public function getAdditionalPaymentsAttribute()
     {
         $additionalPayments = $this->hasMany(AdditionalPaymentModel::class,"PaymentID","Id");
         return $additionalPayments->where("Active","1")->get();
