@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class GenderModel extends Model
 {
     protected $primaryKey = "Id";
-    protected $table="gender";
+    protected $table="Gender";
 }

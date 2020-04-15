@@ -9,6 +9,13 @@ class IdCardModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = 'IDCard';
+    protected $guarded = [];
+    public $timestamps = false;
+    protected $appends = [
+        'Gender',
+        'City',
+        'District'
+    ];
 
     public static function saveIDCard($request, $IDCardID)
     {
@@ -29,7 +36,7 @@ class IdCardModel extends Model
             $IDCard->BirthPlace = $request['birthplace'];
             $IDCard->CityID = $request['city'];
             $IDCard->DistrictID = $request['district'];
-            $IDCard->Neigborhood = $request['neighborhood'];
+            $IDCard->Neighborhood = $request['neighborhood'];
             $IDCard->Village = $request['village'];
             $IDCard->CoverNo = $request['coverno'];
             $IDCard->PageNo = $request['pageno'];
@@ -62,7 +69,7 @@ class IdCardModel extends Model
             'BirthPlace' => $request['birthplace'],
             'CityID' => $request['city'],
             'DistrictID' => $request['district'],
-            'Neigborhood' => $request['neighborhood'],
+            'Neighborhood' => $request['neighborhood'],
             'Village' => $request['village'],
             'CoverNo' => $request['coverno'],
             'PageNo' => $request['pageno'],
@@ -80,6 +87,24 @@ class IdCardModel extends Model
 
         else
             return false;
+    }
+
+    public function getGenderAttribute()
+    {
+        $gender = $this->hasOne(GenderModel::class,"Id","GenderID");
+        return $gender->where("Active",1)->first();
+    }
+
+    public function getCityAttribute()
+    {
+        $city = $this->hasOne(CityModel::class,"Id","GenderID");
+        return $city->where("Active",1)->first();
+    }
+
+    public function getDistrictAttribute()
+    {
+        $district = $this->hasOne(DistrictModel::class,"Id","GenderID");
+        return $district->where("Active",1)->first();
     }
 
 }
