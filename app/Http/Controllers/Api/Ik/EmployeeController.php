@@ -38,7 +38,7 @@ class EmployeeController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
                 'data' => $employee,
-                'formFields' => [EmployeeModel::getGeneralInformationsFields()]
+                'formFields' => EmployeeModel::getGeneralInformationsFields()
             ],200);
         else
             return response([
