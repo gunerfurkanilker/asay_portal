@@ -37,7 +37,8 @@ class EmployeeController extends ApiController
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
-                'data' => $employee
+                'data' => $employee,
+                'formFields' => [EmployeeModel::getGeneralInformationsFields()]
             ],200);
         else
             return response([
@@ -47,23 +48,6 @@ class EmployeeController extends ApiController
 
     }
 
-    public function getGeneralInformationsFields($id)
-    {
-        $data = EmployeeModel::getGeneralInformationsFields($id);
-
-        if ($data != null)
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı.',
-                'data' => $data
-            ],200);
-        else
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarısız.',
-            ],200);
-
-    }
 
 
     public function deleteEmployee($id)
