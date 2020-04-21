@@ -47,15 +47,15 @@ class EmployeeController extends ApiController
 
     }
 
-    public function getGeneralInformationsOfEmployee($id)
+    public function getGeneralInformationsFields($id)
     {
-        $employee = EmployeeModel::getGeneralInformationsOfEmployee($id);
+        $data = EmployeeModel::getGeneralInformationsFields($id);
 
-        if ($employee != null)
+        if ($data != null)
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
-                'data' => $employee
+                'data' => $data
             ],200);
         else
             return response([
@@ -64,6 +64,7 @@ class EmployeeController extends ApiController
             ],200);
 
     }
+
 
     public function deleteEmployee($id)
     {

@@ -40,7 +40,7 @@ Route::namespace("Api")->group(function(){
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::get('employee/{id}', "EmployeeController@getEmployeeById")->name("employee");
-            Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployee")->name("employee_general_informations");
+            Route::get('employee/general-informations-fields/{id}', "EmployeeController@getGeneralInformationsFields")->name("employee_general_informations");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/job-position/save/{id}', "EmployeeController@saveJobPosition")->where(['id' => '[0-9]+'])->name("employee_job_position");

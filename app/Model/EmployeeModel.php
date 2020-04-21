@@ -34,14 +34,9 @@ class EmployeeModel extends Model
         'EmployeeBank'
     ];
 
-    public static function getGeneralInformationsOfEmployee($id)
+    public static function getGeneralInformationsFields()
     {
         $data = [];
-        $employee = self::select('FirstName','LastName','AccessTypeID','Domain','JobEmail','JobMobilePhone',
-            'InterPhone','ContractTypeID','StartDate','ContractFinishDate','WorkingScheduleID')
-            ->where("Id",$id)->first();
-
-        $data['employee'] = $employee;
         $data['fields']['accesstypefield'] = AccessTypeModel::all();
         $data['fields']['contractypefield'] = ContractTypeModel::all();
         $data['fields']['workingschedulefield'] = WorkingScheduleModel::all();
@@ -255,10 +250,10 @@ class EmployeeModel extends Model
     public function getPaymentAttribute()
     {
 
-        $payment = $this->hasOne(WorkingTypeModel::class,"Id","PaymentID");
+        $payment = $this->hasOne(PaymentModel::class,"Id","PaymentID");
         if ($payment)
         {
-            return PaymentModel::find($payment->where("Active",1)->first()->Id);
+            return PaymentModel::find($payment->select('*')->first()->Id);
         }
         else
         {
