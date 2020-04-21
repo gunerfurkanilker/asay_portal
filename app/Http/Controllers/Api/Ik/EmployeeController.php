@@ -47,6 +47,24 @@ class EmployeeController extends ApiController
 
     }
 
+    public function getGeneralInformationsOfEmployee($id)
+    {
+        $employee = EmployeeModel::getGeneralInformationsOfEmployee($id);
+
+        if ($employee != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+                'data' => $employee
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarısız.',
+            ],200);
+
+    }
+
     public function deleteEmployee($id)
     {
 

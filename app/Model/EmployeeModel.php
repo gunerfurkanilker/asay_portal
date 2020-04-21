@@ -34,6 +34,25 @@ class EmployeeModel extends Model
         'EmployeeBank'
     ];
 
+    public static function getGeneralInformationsOfEmployee($id)
+    {
+        $data = [];
+        $employee = self::select('FirstName','LastName','AccessTypeID','Domain','JobEmail','JobMobilePhone',
+            'InterPhone','ContractTypeID','StartDate','ContractFinishDate','WorkingScheduleID')
+            ->where("Id",$id)->first();
+
+        $data['employee'] = $employee;
+        $data['fields']['accesstypefield'] = AccessTypeModel::all();
+        $data['fields']['contractypefield'] = ContractTypeModel::all();
+        $data['fields']['workingschedulefield'] = WorkingScheduleModel::all();
+
+        if ($data['employee'] != null)
+            return $data;
+        else
+            return false;
+
+    }
+
     public static function saveGeneralInformations($employee,$requestData)
     {
         $employee->FirstName = $requestData['firstname'];
@@ -73,6 +92,8 @@ class EmployeeModel extends Model
             return false;
 
     }
+
+
 
     public static function saveContactInformation($employee,$requestData)
     {
