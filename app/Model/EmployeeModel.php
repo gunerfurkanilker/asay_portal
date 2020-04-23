@@ -34,7 +34,31 @@ class EmployeeModel extends Model
         'EmployeeBank'
     ];
 
+    public static function getGeneralInformationsFields()
+    {
+        $data = [];
+        $data['accesstypefield'] = AccessTypeModel::all();
+        $data['contractypefield'] = ContractTypeModel::all();
+        $data['workingschedulefield'] = WorkingScheduleModel::all();
 
+        return $data;
+
+    }
+
+    public static function getCompanyInformationsFields()
+    {
+        $data = [];
+        $data['Companies'] = CompanyModel::all();
+        $data['Cities'] = CityModel::all();
+        $data['Districts'] = DistrictModel::all();
+        $data['Departments'] = DepartmentModel::all();
+        $data['Titles'] = TitleModel::all();
+        $data['Managers'] = EmployeeModel::all();
+        $data['WorkingTypes'] = WorkingTypeModel::all();
+
+        return $data;
+
+    }
 
     public static function saveGeneralInformations($employee,$requestData)
     {
@@ -57,16 +81,8 @@ class EmployeeModel extends Model
 
     }
 
-    public static function getGeneralInformationsFields()
-    {
-        $data = [];
-        $data['fields']['accesstypefield'] = AccessTypeModel::all();
-        $data['fields']['contractypefield'] = ContractTypeModel::all();
-        $data['fields']['workingschedulefield'] = WorkingScheduleModel::all();
 
-        return $data;
 
-    }
 
     public static function saveJobPosition($employee,$requestData)
     {

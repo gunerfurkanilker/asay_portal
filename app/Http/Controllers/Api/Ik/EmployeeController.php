@@ -13,15 +13,8 @@ use Illuminate\Http\Request;
 class EmployeeController extends ApiController
 {
 
-
-    public function addEmployee(Request $request)
-    {
-        $incomingData = $request->all();
-    }
-
     public function allEmployees()
     {
-
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
@@ -29,7 +22,7 @@ class EmployeeController extends ApiController
         ],200);
     }
 
-    public function getEmployeeById($id)
+    public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
 
@@ -38,20 +31,14 @@ class EmployeeController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
                 'data' => $employee,
-                'formFields' => EmployeeModel::getGeneralInformationsFields()
+                'generalInfoFields' => EmployeeModel::getGeneralInformationsFields(),
+                'companyInfoFields' => EmployeeModel::getCompanyInformationsFields()
             ],200);
         else
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarısız.',
             ],200);
-
-    }
-
-
-
-    public function deleteEmployee($id)
-    {
 
     }
 
@@ -75,13 +62,6 @@ class EmployeeController extends ApiController
             ],200);
     }
 
-    public function getGeneralInformations($id)
-    {
-        /*$employeeTableFields = ['FirstName','LastName','Domain','JobEmail','JobMobilePhone',
-            'InterPhone','StartDate','ContractFinishDate','MobilePhone','HomePhone','REMMail','Email',
-            'PositionStartDate','PositionEndDate','CreateDate','LastUpdateDate'];*/
-
-    }
 
     public function saveJobPosition(Request $request,$id)
     {
@@ -102,11 +82,6 @@ class EmployeeController extends ApiController
                 'status' => false,
                 'message' => 'İşlem Başarısız.'
             ]);
-
-    }
-
-    public function editJobPosition($id)
-    {
 
     }
 
