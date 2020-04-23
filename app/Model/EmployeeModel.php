@@ -45,20 +45,7 @@ class EmployeeModel extends Model
 
     }
 
-    public static function getCompanyInformationsFields()
-    {
-        $data = [];
-        $data['Companies'] = CompanyModel::all();
-        $data['Cities'] = CityModel::all();
-        $data['Districts'] = DistrictModel::all();
-        $data['Departments'] = DepartmentModel::all();
-        $data['Titles'] = TitleModel::all();
-        $data['Managers'] = EmployeeModel::all();
-        $data['WorkingTypes'] = WorkingTypeModel::all();
 
-        return $data;
-
-    }
 
     public static function saveGeneralInformations($employee,$requestData)
     {
@@ -73,28 +60,6 @@ class EmployeeModel extends Model
         $employee->StartDate = new Carbon($requestData['jobbegindate']);
         $employee->ContractFinishDate = new Carbon($requestData['contractfinishdate']);
         $employee->WorkingScheduleID = $requestData['workingscheduleid'];
-
-        if ($employee->save())
-            return $employee->fresh();
-        else
-            return false;
-
-    }
-
-
-
-
-    public static function saveJobPosition($employee,$requestData)
-    {
-        $employee->CompanyID = $requestData['companyid'];
-        $employee->CityID = $requestData['cityid'];
-        $employee->DistrictID = $requestData['districtid'];
-        $employee->DepartmentID = $requestData['departmentid'];
-        $employee->TitleID = $requestData['titleid'];
-        $employee->ManagerID = $requestData['managerid'];
-        $employee->WorkingTypeID = $requestData['workingtypeid'];
-        $employee->PositionStartDate = new Carbon($requestData['positionstartdate']);
-        $employee->PositionEndDate = new Carbon($requestData['positionenddate']);
 
         if ($employee->save())
             return $employee->fresh();

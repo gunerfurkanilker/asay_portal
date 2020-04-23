@@ -31,8 +31,7 @@ class EmployeeController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
                 'data' => $employee,
-                'generalInfoFields' => EmployeeModel::getGeneralInformationsFields(),
-                'companyInfoFields' => EmployeeModel::getCompanyInformationsFields()
+                'generalInfoFields' => EmployeeModel::getGeneralInformationsFields()
             ],200);
         else
             return response([
@@ -59,6 +58,24 @@ class EmployeeController extends ApiController
             return response([
                 'status' => false,
                 'message' => 'İşlem Başarısız.'
+            ],200);
+    }
+
+    public function getJobPositionInformations($id)
+    {
+        $employee = EmployeeModel::find($id);
+
+        if ($employee != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+                'data' => $employee,
+                'companyInfoFields' => EmployeeModel::getCompanyInformationsFields()
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarısız.',
             ],200);
     }
 
