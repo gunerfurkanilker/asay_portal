@@ -13,14 +13,14 @@ class PositionController extends ApiController
 {
     public function getJobPositionInformations($id)
     {
-        $employee = EmployeeModel::find($id);
+        $positions = EmployeePositionModel::where('EmployeeID',$id)->get();
 
-        if ($employee != null)
+        if ($positions != null)
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
-                'data' => $employee,
-                'companyInfoFields' => EmployeePositionModel::getCompanyInformationsFields()
+                'data' => $positions,
+                'positionFields' => EmployeePositionModel::getPositionFields()
             ],200);
         else
             return response([

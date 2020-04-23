@@ -10,7 +10,7 @@ class EmployeePositionModel extends Model
     protected $primaryKey = 'Id';
     protected $table = 'EmployeePosition';
 
-    public static function getCompanyInformationsFields()
+    public static function getPositionFields()
     {
         $data = [];
         $data['Companies'] = CompanyModel::all();
