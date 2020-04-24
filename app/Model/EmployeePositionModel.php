@@ -42,7 +42,7 @@ class EmployeePositionModel extends Model
         ]);*/
     }
 
-    public static function saveJobPosition($position,$requestData)
+    public static function editJobPosition($position,$requestData)
     {
 
         $position->EmployeeID = $requestData['employeeid'];
@@ -53,8 +53,8 @@ class EmployeePositionModel extends Model
         $position->TitleID = $requestData['titleid'];
         $position->ManagerID = $requestData['managerid'];
         $position->WorkingTypeID = $requestData['workingtypeid'];
-        $position->PositionStartDate = new Carbon($requestData['positionstartdate']);
-        $position->PositionEndDate = new Carbon($requestData['positionenddate']);
+        $position->StartDate = new Carbon($requestData['positionstartdate']);
+        $position->EndDate = new Carbon($requestData['positionenddate']);
 
         if ($position->save())
             return $position->fresh();
