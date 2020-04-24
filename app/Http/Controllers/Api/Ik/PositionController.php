@@ -29,6 +29,15 @@ class PositionController extends ApiController
             ],200);
     }
 
+    public function getJobPositionInformationFields()
+    {
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı.',
+            'data' => EmployeePositionModel::getPositionFields()
+        ],200);
+    }
+
 
     public function addJobPosition(Request $request)
     {
