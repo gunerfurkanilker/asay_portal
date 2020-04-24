@@ -68,10 +68,10 @@ class PositionController extends ApiController
 
     }
 
-    public function deleteJobPosition($id)
+    public function deleteJobPosition(Request $request)
     {
-
-        $status = EmployeePositionModel::deleteJobPosition($id);
+        $request = $request->all();
+        $status = EmployeePositionModel::deleteJobPosition($request['positionid']);
 
         return response([
             'status' => true,
