@@ -67,4 +67,20 @@ class PositionController extends ApiController
             ]);
 
     }
+
+    public function deleteJobPosition($id)
+    {
+
+
+        $status = EmployeePositionModel::deleteJobPosition($id);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $status
+        ]);
+
+
+    }
+
 }

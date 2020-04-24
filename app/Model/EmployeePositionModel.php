@@ -76,6 +76,22 @@ class EmployeePositionModel extends Model
 
     }
 
+    public static function deleteJobPosition($id)
+    {
+        $position = EmployeePositionModel::find($id);
+        try
+        {
+            $position->delete();
+            return true;
+        }
+        catch(\Exception $e)
+        {
+            return $e->getMessage();
+        }
+
+    }
+
+
     public function getTitleAttribute(){
         $title = $this->hasOne(TitleModel::class,'Id','TitleID');
         return $title->first();
