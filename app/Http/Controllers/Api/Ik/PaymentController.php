@@ -13,6 +13,35 @@ use Illuminate\Http\Request;
 
 class PaymentController extends ApiController
 {
+
+    public function getPaymentsOfEmployee($id)
+    {
+        $employee = EmployeeModel::find($id);
+
+        if (!is_null($employee))
+        {
+                $salaries = PaymentModel::getSalaries($employee->Id);
+                if ($salaries)
+                    return response([
+                    'status' => true,
+                    'message' => 'İşlem Başarılı.',
+                    'data' => $salaries
+                ],200);
+
+                else
+                    return response([
+                    'status' => false,
+                    'message' => 'İşlem Başarısız.'
+                ],200);
+        }
+        else{
+            return response([
+                'status' => false,
+                'message' => 'Kullanıcı Bulunamadı.'
+            ],200);
+        }
+    }
+
     public function savePayment(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);

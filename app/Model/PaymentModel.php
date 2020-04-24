@@ -52,6 +52,18 @@ class PaymentModel extends Model
         return $salary->fresh();
     }
 
+    public static function getSalaries($employeeId)
+    {
+        $salariesOfEmployee = PaymentModel::where('EmployeeID',$employeeId)->get();
+
+        if ($salariesOfEmployee != null)
+            return $salariesOfEmployee;
+        else
+            return false;
+
+
+    }
+
    public function getAdditionalPaymentsAttribute()
     {
         $additionalPayments = $this->hasMany(AdditionalPaymentModel::class,"PaymentID","Id");

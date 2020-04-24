@@ -10,6 +10,10 @@ class EmployeePositionModel extends Model
     protected $primaryKey = 'Id';
     protected $table = 'EmployeePosition';
     public $timestamps = false;
+    protected $appends = [
+      'Title',
+      'Company'
+    ];
 
     public static function getPositionFields()
     {
@@ -43,6 +47,16 @@ class EmployeePositionModel extends Model
         else
             return false;
 
+    }
+
+    public function getTitleAttribute(){
+        $title = $this->hasOne(TitleModel::class,'Id','TitleID');
+        return $title->first();
+    }
+
+    public function getCompanyAttribute(){
+        $company = $this->hasOne(CompanyModel::class,'Id','CompanyID');
+        return $company->first();
     }
 
  }
