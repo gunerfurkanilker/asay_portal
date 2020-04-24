@@ -30,6 +30,22 @@ class PositionController extends ApiController
     }
 
 
+    public function addJobPosition(Request $request)
+    {
+
+        $requestData = $request->all();
+
+        $freshData = EmployeePositionModel::addJobPosition($requestData);
+
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ]);
+
+
+    }
+
     public function editJobPosition(Request $request,$employeeId,$positionId)
     {
 
@@ -38,7 +54,7 @@ class PositionController extends ApiController
 
         $freshData = EmployeePositionModel::editJobPosition($positionOfEmployee,$requestData);
 
-        if (true)
+        if ($freshData)
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',

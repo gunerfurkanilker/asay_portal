@@ -33,13 +33,26 @@ class EmployeePositionModel extends Model
 
     public static function addJobPosition($requestData)
     {
-        /*$salary = self::create([
-            'Pay' => $request['pay'],
-            'PaymentID' => $request['paymentid'],
-            'CurrencyID' => $request['currencyid'],
-            'AdditionalPaymentTypeID' => $request['additionalpaymenttypeid'],
-            'PayPeriodID' => $request['payperiod']
-        ]);*/
+        try{
+            $salary = self::create([
+                'EmployeeID' => $requestData['employeeid'],
+                'CompanyID' => $requestData['companyid'],
+                'CityID' => $requestData['cityid'],
+                'DistrictID' => $requestData['districtid'],
+                'DepartmentID' => $requestData['departmentid'],
+                'TitleID' => $requestData['titleid'],
+                'ManagerID' => $requestData['managerid'],
+                'WorkingTypeID' => $requestData['workingtypeid'],
+                'StartDate' => new Carbon($requestData['positionstartdate']),
+                'EndDate' =>new Carbon($requestData['positionenddate'])
+            ]);
+            $salary->save();
+
+            return $salary->fresh();
+        }
+        catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 
     public static function editJobPosition($position,$requestData)
