@@ -30,13 +30,13 @@ class PositionController extends ApiController
     }
 
 
-    public function saveJobPosition(Request $request,$id)
+    public function editJobPosition(Request $request,$id)
     {
 
         $requestData = $request->all();
-        $employee = EmployeeModel::where('Id',$id)->first();
+        $positionOfEmployee = EmployeePositionModel::where('EmployeeID',$id)->first();
 
-        $freshData = EmployeePositionModel::saveJobPosition($employee,$requestData);
+        $freshData = EmployeePositionModel::saveJobPosition($positionOfEmployee,$requestData);
 
         if ($freshData)
             return response([

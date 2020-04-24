@@ -10,6 +10,7 @@ class EmployeePositionModel extends Model
     protected $primaryKey = 'Id';
     protected $table = 'EmployeePosition';
     public $timestamps = false;
+    protected $guarded = [];
     protected $appends = [
       'Title',
       'Company'
@@ -30,20 +31,33 @@ class EmployeePositionModel extends Model
 
     }
 
-    public static function saveJobPosition($employee,$requestData)
+    public static function addJobPosition($requestData)
     {
-        $employee->CompanyID = $requestData['companyid'];
-        $employee->CityID = $requestData['cityid'];
-        $employee->DistrictID = $requestData['districtid'];
-        $employee->DepartmentID = $requestData['departmentid'];
-        $employee->TitleID = $requestData['titleid'];
-        $employee->ManagerID = $requestData['managerid'];
-        $employee->WorkingTypeID = $requestData['workingtypeid'];
-        $employee->PositionStartDate = new Carbon($requestData['positionstartdate']);
-        $employee->PositionEndDate = new Carbon($requestData['positionenddate']);
+        /*$salary = self::create([
+            'Pay' => $request['pay'],
+            'PaymentID' => $request['paymentid'],
+            'CurrencyID' => $request['currencyid'],
+            'AdditionalPaymentTypeID' => $request['additionalpaymenttypeid'],
+            'PayPeriodID' => $request['payperiod']
+        ]);*/
+    }
 
-        if ($employee->save())
-            return $employee->fresh();
+    public static function saveJobPosition($position,$requestData)
+    {
+
+        $position->EmployeeID = $requestData['employeeid'];
+        $position->CompanyID = $requestData['companyid'];
+        $position->CityID = $requestData['cityid'];
+        $position->DistrictID = $requestData['districtid'];
+        $position->DepartmentID = $requestData['departmentid'];
+        $position->TitleID = $requestData['titleid'];
+        $position->ManagerID = $requestData['managerid'];
+        $position->WorkingTypeID = $requestData['workingtypeid'];
+        $position->PositionStartDate = new Carbon($requestData['positionstartdate']);
+        $position->PositionEndDate = new Carbon($requestData['positionenddate']);
+
+        if ($position->save())
+            return $position->fresh();
         else
             return false;
 
