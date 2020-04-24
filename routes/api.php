@@ -39,6 +39,7 @@ Route::namespace("Api")->group(function(){
         Route::prefix('ik')->group(function () {
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
+            Route::get('employee/{id}', "EmployeeController@getEmployeeById")->name("get_employee_byid");
             Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployeeById")->name("get_employee_generalinformations");
             Route::get('employee/position-informations/{id}', "PositionController@getJobPositionInformations")->name("get_employee_positioninformations");
 

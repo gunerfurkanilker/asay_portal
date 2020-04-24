@@ -22,6 +22,24 @@ class EmployeeController extends ApiController
         ],200);
     }
 
+    public function getEmployeeById($id)
+    {
+        $employee = EmployeeModel::find($id);
+
+        if ($employee != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+                'data' => $employee,
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarısız.',
+            ],200);
+
+    }
+
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);

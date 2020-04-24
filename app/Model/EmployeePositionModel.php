@@ -9,6 +9,7 @@ class EmployeePositionModel extends Model
 {
     protected $primaryKey = 'Id';
     protected $table = 'EmployeePosition';
+    public $timestamps = false;
 
     public static function getPositionFields()
     {
