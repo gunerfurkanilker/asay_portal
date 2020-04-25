@@ -98,11 +98,11 @@ class EmployeeController extends ApiController
     }
 
 
-    public function saveContactInformation(Request $request,$id)
+    public function saveContactInformation(Request $request)
     {
 
         $requestData = $request->all();
-        $employee = EmployeeModel::where('Id',$id)->first();
+        $employee = EmployeeModel::where('Id',$requestData['employeeid'])->first();
 
         $freshData = EmployeeModel::saveContactInformation($employee,$requestData);
 
