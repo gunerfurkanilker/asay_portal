@@ -231,7 +231,7 @@ class EmployeeModel extends Model
     {
 
         $payment = $this->hasOne(PaymentModel::class,"Id","PaymentID");
-        if ($payment)
+        if ($payment->select('*')->first() != null)
         {
             return PaymentModel::find($payment->select('*')->first()->Id);
         }

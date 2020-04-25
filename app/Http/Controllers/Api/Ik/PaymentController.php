@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Ik;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\AdditionalPaymentModel;
 use App\Model\EmployeeModel;
+use App\Model\EmployeePositionModel;
 use App\Model\PaymentModel;
 use Illuminate\Http\Request;
 
@@ -40,6 +41,14 @@ class PaymentController extends ApiController
                 'message' => 'Kullanıcı Bulunamadı.'
             ],200);
         }
+    }
+
+    public function getPaymentInformationFields(){
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı.',
+            'data' => PaymentModel::getPaymentInformationFields()
+        ],200);
     }
 
     public function savePayment(Request $request,$employeeId)

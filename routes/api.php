@@ -41,9 +41,10 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::get('employee/{id}', "EmployeeController@getEmployeeById")->name("get_employee_byid");
             Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployeeById")->name("get_employee_general_informations");
-            Route::get('employee/position-informations/{id}', "PositionController@getJobPositionInformations")->name("get_employee_position_informations");
-            Route::get('employee/payment-informations/{id}', "PaymentController@getPaymentsOfEmployee")->name("get_employee_payment_informations");
-            Route::get('employee/position-informations/fields', "PositionController@getJobPositionInformationFields")->name("get_job_position_informations_fields");
+            Route::get('employee/position-informations/{id}', "PositionController@getJobPositionInformations")->where(['id' => '[0-9]+'])->name("get_employee_position_informations");
+            Route::get('employee/payment-informations/{id}', "PaymentController@getPaymentsOfEmployee")->where(['id' => '[0-9]+'])->name("get_employee_payment_informations");
+            Route::get('employee/position-informations/fields', "PositionController@getJobPositionInformationFields")->name('fields_of_pos_information');
+            Route::get('employee/payment-informations/fields', "PaymentController@getPaymentInformationFields")->name('fields_of_payment_information');
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/job-position/edit/{id}/{positionId}', "PositionController@editJobPosition")->where(['id' => '[0-9]+'])->name("employee_edit_job_position");

@@ -18,6 +18,16 @@ class PaymentModel extends Model
         "PayMethod"
     ];
 
+    public static function getPaymentInformationFields(){
+
+        $data = [];
+        $data['Currency'] = CurrencyModel::all();
+        $data['PayPeriod'] = PayPeriodModel::all();
+        $data['PayMethod'] = PayMethodModel::all();
+
+        return $data;
+    }
+
     public static function addSalary($request,$id)
     {
         $employee = EmployeeModel::find($id);
@@ -60,8 +70,6 @@ class PaymentModel extends Model
             return $salariesOfEmployee;
         else
             return false;
-
-
     }
 
    public function getAdditionalPaymentsAttribute()

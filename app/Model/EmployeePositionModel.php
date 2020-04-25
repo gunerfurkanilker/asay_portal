@@ -20,8 +20,8 @@ class EmployeePositionModel extends Model
     {
         $data = [];
         $data['Companies'] = CompanyModel::all();
-        $data['Cities'] = CityModel::all();
-        $data['Districts'] = DistrictModel::all();
+        $data['Cities'] = CityModel::where('Id',35)->get();
+        $data['Districts'] = DistrictModel::where('CityId',35)->get();
         $data['Departments'] = DepartmentModel::all();
         $data['Titles'] = TitleModel::all();
         $data['Managers'] = EmployeeModel::all();

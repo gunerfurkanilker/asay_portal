@@ -79,52 +79,6 @@ class EmployeeController extends ApiController
             ],200);
     }
 
-    public function getJobPositionInformations($id)
-    {
-        $employee = EmployeeModel::find($id);
-
-        if ($employee != null)
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı.',
-                'data' => $employee,
-                'companyInfoFields' => EmployeeModel::getCompanyInformationsFields()
-            ],200);
-        else
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarısız.',
-            ],200);
-    }
-
-
-    public function saveJobPosition(Request $request,$id)
-    {
-
-        $requestData = $request->all();
-        $employee = EmployeeModel::where('Id',$id)->first();
-
-        $freshData = EmployeeModel::saveJobPosition($employee,$requestData);
-
-        if ($freshData)
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $freshData
-            ]);
-        else
-            return response([
-                'status' => false,
-                'message' => 'İşlem Başarısız.'
-            ]);
-
-    }
-
-    public function deletePosition($id)
-    {
-
-    }
-
     public function saveContactInformation(Request $request,$id)
     {
 
@@ -146,10 +100,5 @@ class EmployeeController extends ApiController
             ]);
 
     }
-
-
-
-
-
 
 }
