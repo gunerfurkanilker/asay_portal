@@ -37,12 +37,12 @@ class PaymentModel extends Model
 
             'EmployeeID' => $request['employeeid'],
             'Pay' => $request['pay'],
-            'Description' => $request['description'],
+            //'Description' => $request['description'],
             'CurrencyID' => $request['currencyid'],
             'StartDate' => new Carbon($request['startdate']),
             'EndDate' => new Carbon($request['enddate']),
             'PayPeriodID' => $request['payperiod'],
-            'PayMethodID' => $request['paymethod'] ? 1:2,
+            'PayMethodID' => $request['paymethod'] ? 2:1,
             'LowestPayID' => $request['lowestpay'] ? 1:0,
         ]);
 
@@ -58,18 +58,32 @@ class PaymentModel extends Model
     {
         $payment->EmployeeID = $request['employeeid'];
         $payment->Pay = $request['pay'];
-        $payment->Desription = $request['description'];
-        $payment->CurrencyID = $request['cityid'];
-        $payment->StartDate = new Carbon($request['positionstartdate']);
-        $payment->EndDate = new Carbon($request['positionenddate']);
-        $payment->PayPeriodID = $request['cityid'];
-        $payment->PayMethodID = $request['cityid'];
-        $payment->LowestPayID = $request['cityid'];
-
+        //$payment->Description = $request['description'];
+        $payment->CurrencyID = $request['currencyid'];
+        $payment->StartDate = new Carbon($request['startdate']);
+        $payment->EndDate = new Carbon($request['enddate']);
+        $payment->PayPeriodID = $request['payperiod'];
+        $payment->PayMethodID = $request['paymethod'] ? 2:1;
+        $payment->LowestPayID = $request['lowestpay'] ? 1:0;
         if ($payment->save())
             return $payment->fresh();
         else
             return false;
+    }
+
+    public static function deletePayment($id)
+    {
+        $position = PaymentModel::find($id);
+        try
+        {
+            $position->delete();
+            return true;
+        }
+        catch(\Exception $e)
+        {
+            return $e->getMessage();
+        }
+
     }
 
     public static function getSalaries($employeeId)

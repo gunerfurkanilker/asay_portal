@@ -84,6 +84,19 @@ class PaymentController extends ApiController
 
     }
 
+    public function deletePayment(Request $request)
+    {
+        $request = $request->all();
+        $status = PaymentModel::deletePayment($request['paymentid']);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $status
+        ]);
+
+    }
+
     public function saveAdditionalPayment(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);
