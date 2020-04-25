@@ -63,40 +63,25 @@ class PaymentController extends ApiController
 
     }
 
-    public function editPayment(Request $request,$employeeId)
+    public function editPayment(Request $request,$employeeId,$paymentId)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $requestData = $request->all();
+        $paymentOfEmployee = PaymentModel::where('EmployeeID',$employeeId)->where('Id',$paymentId)->first();
 
-        if (!is_null($employee))
-        {
+        $freshData = PaymentModel::editPayment($paymentOfEmployee,$requestData);
 
-            if (!is_null($employee->PaymentID))
-            {
-                $salary = PaymentModel::editSalary($request->all(),$employee->PaymentID);
-                return response([
-                    'status' => true,
-                    'message' => 'İşlem Başarılı.',
-                    'data' => $salary
-                ],200);
-            }
-
-            else
-            {
-                $salary = PaymentModel::addSalary($request->all(),$employeeId);
-                return response([
-                    'status' => true,
-                    'message' => 'İşlem Başarılı.',
-                    'data' => $salary
-                ],200);
-            }
-        }
-
-        else{
+        if ($freshData)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ]);
+        else
             return response([
                 'status' => false,
-                'message' => 'Kullanıcı Bulunamadı.'
-            ],200);
-        }
+                'message' => 'İşlem Başarısız.'
+            ]);
+
     }
 
     public function saveAdditionalPayment(Request $request,$employeeId)

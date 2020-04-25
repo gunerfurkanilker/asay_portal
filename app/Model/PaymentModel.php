@@ -38,12 +38,12 @@ class PaymentModel extends Model
             'EmployeeID' => $request['employeeid'],
             'Pay' => $request['pay'],
             'Description' => $request['description'],
-            'CurrencyID' => $request['currency'],
+            'CurrencyID' => $request['currencyid'],
             'StartDate' => new Carbon($request['startdate']),
             'EndDate' => new Carbon($request['enddate']),
             'PayPeriodID' => $request['payperiod'],
-            'PayMethodID' => $request['paymethod'],
-            'LowestPayID' => $request['lowestpay'],
+            'PayMethodID' => $request['paymethod'] ? 1:2,
+            'LowestPayID' => $request['lowestpay'] ? 1:0,
         ]);
 
         if ($request['iscurrent'])
@@ -54,20 +54,22 @@ class PaymentModel extends Model
         return $salary->fresh();
     }
 
-    public static function editSalary($request, $salaryId)
+    public static function editPayment($payment,$request)
     {
-        $salary = PaymentModel::find($salaryId);
+        $payment->EmployeeID = $request['employeeid'];
+        $payment->Pay = $request['pay'];
+        $payment->Desription = $request['description'];
+        $payment->CurrencyID = $request['cityid'];
+        $payment->StartDate = new Carbon($request['positionstartdate']);
+        $payment->EndDate = new Carbon($request['positionenddate']);
+        $payment->PayPeriodID = $request['cityid'];
+        $payment->PayMethodID = $request['cityid'];
+        $payment->LowestPayID = $request['cityid'];
 
-        $salary->Pay = $request['pay'];
-        $salary->CurrencyID = $request['currency'];
-        $salary->ExpireDate = new Carbon($request['expiredate']);
-        $salary->PayPeriodID = $request['payperiod'];
-        $salary->PayMethodID = $request['paymethod'];
-        $salary->LowestPayID = $request['lowestpay'];
-
-        $salary->save();
-
-        return $salary->fresh();
+        if ($payment->save())
+            return $payment->fresh();
+        else
+            return false;
     }
 
     public static function getSalaries($employeeId)
