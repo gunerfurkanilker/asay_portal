@@ -10,7 +10,7 @@ class PaymentModel extends Model
     protected $primaryKey = "Id";
     protected $table = "Payment";
     protected $guarded = [];
-    public $timestamps =false;
+    public $timestamps = false;
     protected $appends = [
         "AdditionalPayments",
         "Currency",
@@ -18,35 +18,43 @@ class PaymentModel extends Model
         "PayMethod"
     ];
 
-    public static function getPaymentInformationFields(){
+    public static function getPaymentInformationFields()
+    {
 
         $data = [];
-        $data['Currency'] = CurrencyModel::all();
-        $data['PayPeriod'] = PayPeriodModel::all();
-        $data['PayMethod'] = PayMethodModel::all();
+        $data['Currencies'] = CurrencyModel::all();
+        $data['PayPeriods'] = PayPeriodModel::all();
+        $data['PayMethods'] = PayMethodModel::all();
 
         return $data;
     }
 
-    public static function addSalary($request,$id)
+    public static function addPayment($request)
     {
-        $employee = EmployeeModel::find($id);
+        $employee = EmployeeModel::find($request['employeeid']);
 
-            $salary = self::create([
-                'Pay' => $request['pay'],
-                'CurrencyID' => $request['currency'],
-                'ExpireDate' => new Carbon($request['expiredate']),
-                'PayPeriodID' => $request['payperiod'],
-                'PayMethodID' => $request['paymethod'],
-                'LowestPayID' => $request['lowestpay'],
-            ]);
+        $salary = self::create([
 
+            'EmployeeID' => $request['employeeid'],
+            'Pay' => $request['pay'],
+            'Description' => $request['description'],
+            'CurrencyID' => $request['currency'],
+            'StartDate' => new Carbon($request['startdate']),
+            'EndDate' => new Carbon($request['enddate']),
+            'PayPeriodID' => $request['payperiod'],
+            'PayMethodID' => $request['paymethod'],
+            'LowestPayID' => $request['lowestpay'],
+        ]);
+
+        if ($request['iscurrent'])
+        {
             $employee->PaymentID = $salary->Id;
             $employee->save();
-            return $salary->fresh();
+        }
+        return $salary->fresh();
     }
 
-    public static function editSalary($request,$salaryId)
+    public static function editSalary($request, $salaryId)
     {
         $salary = PaymentModel::find($salaryId);
 
@@ -64,7 +72,7 @@ class PaymentModel extends Model
 
     public static function getSalaries($employeeId)
     {
-        $salariesOfEmployee = PaymentModel::where('EmployeeID',$employeeId)->get();
+        $salariesOfEmployee = PaymentModel::where('EmployeeID', $employeeId)->get();
 
         if ($salariesOfEmployee != null)
             return $salariesOfEmployee;
@@ -72,28 +80,28 @@ class PaymentModel extends Model
             return false;
     }
 
-   public function getAdditionalPaymentsAttribute()
+    public function getAdditionalPaymentsAttribute()
     {
-        $additionalPayments = $this->hasMany(AdditionalPaymentModel::class,"PaymentID","Id");
-        return $additionalPayments->where("Active","1")->get();
+        $additionalPayments = $this->hasMany(AdditionalPaymentModel::class, "PaymentID", "Id");
+        return $additionalPayments->where("Active", "1")->get();
     }
 
     public function getCurrencyAttribute()
-   {
-       $currency = $this->hasOne(CurrencyModel::class,"Id","CurrencyID");
-       return $currency->where("Active",1)->first();
-   }
+    {
+        $currency = $this->hasOne(CurrencyModel::class, "Id", "CurrencyID");
+        return $currency->where("Active", 1)->first();
+    }
 
-   public function getPayPeriodAttribute()
-   {
-       $payPeriod = $this->hasOne(PayPeriodModel::class,"Id","PayPeriodID");
-       return $payPeriod->where("Active",1)->first()->toArray();
-   }
+    public function getPayPeriodAttribute()
+    {
+        $payPeriod = $this->hasOne(PayPeriodModel::class, "Id", "PayPeriodID");
+        return $payPeriod->where("Active", 1)->first()->toArray();
+    }
 
-   public function getPayMethodAttribute()
-   {
-       $payMethod = $this->hasOne(PayMethodModel::class,"Id","PayMethodID");
-       return $payMethod->where("Active",1)->first()->toArray();
-   }
+    public function getPayMethodAttribute()
+    {
+        $payMethod = $this->hasOne(PayMethodModel::class, "Id", "PayMethodID");
+        return $payMethod->where("Active", 1)->first()->toArray();
+    }
 
 }

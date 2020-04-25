@@ -51,7 +51,19 @@ class PaymentController extends ApiController
         ],200);
     }
 
-    public function savePayment(Request $request,$employeeId)
+    public function savePayment(Request $request){
+
+        $salary = PaymentModel::addPayment($request->all());
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $salary
+        ],200);
+
+    }
+
+    public function editPayment(Request $request,$employeeId)
     {
         $employee = EmployeeModel::find($employeeId);
 
