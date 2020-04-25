@@ -41,4 +41,15 @@ class LocationController extends ApiController
         ],200);
        }
     }
+
+    public function getLocationInformationFields(){
+        $fields = LocationModel::getLocationFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
 }

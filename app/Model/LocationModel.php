@@ -59,6 +59,16 @@ class LocationModel extends Model
             return false;
     }
 
+    public static function getLocationFields()
+    {
+        $data = [];
+        $data['Countries'] = CountryModel::all();
+        $data['Cities'] = CityModel::all();
+        $data['Districts'] = DistrictModel::where('CityID',35)->get();
+
+        return $data;
+    }
+
     public function getCityAttribute()
     {
         $city = $this->hasOne(CityModel::class,"Id","CityID");

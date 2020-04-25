@@ -75,8 +75,8 @@ class EmployeeModel extends Model
 
         $employee->MobilePhone = $requestData['personalmobilephone'];
         $employee->HomePhone = $requestData['personalhomephone'];
-        $employee->REMMail = $requestData['personalemail'];
-        $employee->Email = $requestData['kepemail'];
+        $employee->Email = $requestData['personalemail'];
+        $employee->REMMail = $requestData['kepemail'];
 
 
         if ($employee->save())
