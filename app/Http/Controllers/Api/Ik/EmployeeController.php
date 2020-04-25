@@ -79,6 +79,25 @@ class EmployeeController extends ApiController
             ],200);
     }
 
+    public function getContactInformationsOfEmployee($id)
+    {
+        $employee = EmployeeModel::find($id);
+
+        if ($employee != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+                'data' => $employee
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarısız.',
+            ],200);
+
+    }
+
+
     public function saveContactInformation(Request $request,$id)
     {
 
