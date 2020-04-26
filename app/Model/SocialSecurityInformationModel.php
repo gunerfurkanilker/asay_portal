@@ -71,7 +71,7 @@ class SocialSecurityInformationModel extends Model
             return false;
     }
 
-    public static function getLocationFields()
+    public static function getSSIFields()
     {
         $data = [];
         $data['DisabledDegrees'] = DisabledDegreeModel::all();

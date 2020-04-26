@@ -63,7 +63,7 @@ class SocialSecurityInformationController extends ApiController
     }
 
     public function getSSInformationFields(){
-        $fields = SocialSecurityInformationModel::getLocationFields();
+        $fields = SocialSecurityInformationModel::getSSIFields();
 
         return response([
             'status' => true,
