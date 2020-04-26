@@ -43,8 +43,26 @@ class BodyMeasurementsController extends ApiController
         }
     }
 
+    public function getBodyMeasurements($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->BodyMeasurementID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => BodyMeasurementModel::find($employee->BodyMeasurementID)
+            ],200);
+
+    }
+
     public function getBodyMeasurementsFields(){
-        $fields = BodyMeasurementModel::getLocationFields();
+        $fields = BodyMeasurementModel::getBodyMeasurementFields();
 
         return response([
             'status' => true,
