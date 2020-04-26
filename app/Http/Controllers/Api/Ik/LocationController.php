@@ -42,6 +42,24 @@ class LocationController extends ApiController
        }
     }
 
+    public function getLocation($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->LocationID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => LocationModel::find($employee->LocationID)
+            ],200);
+
+    }
+
     public function getLocationInformationFields(){
         $fields = LocationModel::getLocationFields();
 
