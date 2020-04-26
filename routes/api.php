@@ -65,7 +65,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/location/save', "LocationController@saveLocation")->name("save_location");
             Route::post('employee/education/save', "EducationController@saveEducation")->name("save_education");
             Route::post('employee/driving-license/save/{id}', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
-            Route::post('employee/agi/save/{id}', "AGIController@saveAgi")->name("save_agi");
+            Route::post('employee/agi/save', "AGIController@saveAgi")->name("save_agi");
             Route::post('employee/emergency-field/save/{id}', "EmergencyFieldController@saveEmergencyField")->name("save_emergency_field");
             Route::post('employee/body-measurements/save/{id}', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");
             Route::post('employee/id-card/save/{id}', "IDCardController@saveIDCard")->name("save_id_card");

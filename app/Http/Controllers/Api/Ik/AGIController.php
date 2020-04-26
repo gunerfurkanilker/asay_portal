@@ -13,15 +13,16 @@ use Illuminate\Http\Request;
 class AGIController extends ApiController
 {
 
-    public function saveAgi(Request $request,$employeeId)
+    public function saveAgi(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
-        if (!is_null($employee))
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
+        /*if (!is_null($employee))
         {
             if ($employee->AGIID != null)
-                $agi = AgiModel::saveAgi($request->all(),$employee->AGIID);
+                $agi = AgiModel::saveAgi($request_data,$employee->AGIID);
             else
-                $agi = AgiModel::addAgi($request->all(),$employee);
+                $agi = AgiModel::addAgi($request_data,$employee);
 
             if ($agi)
                 return response([
@@ -41,7 +42,11 @@ class AGIController extends ApiController
                 'status' => false,
                 'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
             ],200);
-        }
+        }*/
+        return response([
+            'status' => false,
+            'message' => 'Zaa'
+        ],200);
     }
 
     public function getAgiInformations($id){
