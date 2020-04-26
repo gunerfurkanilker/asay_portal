@@ -57,8 +57,8 @@ class EducationModel extends Model
     public static function getEducationFields()
     {
         $data = [];
-        $data['EducationLevelID'] = EducationLevelModel::all();
-        $data['EducationStatusID'] = EducationStatusModel::all();
+        $data['EducationLevels'] = EducationLevelModel::all();
+        $data['EducationStatus'] = EducationStatusModel::all();
 
         return $data;
     }

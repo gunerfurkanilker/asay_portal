@@ -44,9 +44,22 @@ class EducationController extends ApiController
         }
     }
 
-    public function getEducation()
+    public function getEducationInformations($employeeid)
     {
+        $employee = EmployeeModel::find($employeeid);
 
+        if ($employee->LocationID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => LocationModel::find($employee->LocationID)
+            ],200);
     }
 
     public function getEducationInformationFields()
