@@ -11,14 +11,15 @@ use Illuminate\Http\Request;
 
 class EmployeeBankController extends ApiController
 {
-    public function saveEmployeeBank(Request $request, $employeeId)
+    public function saveEmployeeBank(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
         if (!is_null($employee)) {
             if ($employee->EmployeeBankID != null)
-                $employeeBank = EmployeeBankModel::saveEmployeeBank($request->all(), $employee->EmployeeBankID);
+                $employeeBank = EmployeeBankModel::saveEmployeeBank($request_data, $employee->EmployeeBankID);
             else
-                $employeeBank = EmployeeBankModel::addEmployeeBank($request->all(), $employee);
+                $employeeBank = EmployeeBankModel::addEmployeeBank($request_data, $employee);
 
             if ($employeeBank)
                 return response([
@@ -39,7 +40,7 @@ class EmployeeBankController extends ApiController
         }
     }
 
-    public function getLocation($id){
+    public function getSSInformations($id){
         $employee = EmployeeModel::find($id);
 
         if ($employee->EmployeeBankID == null)
