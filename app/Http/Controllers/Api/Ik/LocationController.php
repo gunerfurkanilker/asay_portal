@@ -11,15 +11,16 @@ use Illuminate\Http\Request;
 
 class LocationController extends ApiController
 {
-    public function saveLocation(Request $request,$employeeId)
+    public function saveLocation(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $requestData = $request->all();
+        $employee = EmployeeModel::find($requestData['employeeid']);
        if (!is_null($employee))
        {
             if ($employee->LocationID != null)
-                $location = LocationModel::saveLocation($request->all(),$employee->LocationID);
+                $location = LocationModel::saveLocation($requestData,$employee->LocationID);
             else
-                $location = LocationModel::addLocation($request->all(),$employee);
+                $location = LocationModel::addLocation($requestData,$employee);
 
             if ($location)
                 return response([
