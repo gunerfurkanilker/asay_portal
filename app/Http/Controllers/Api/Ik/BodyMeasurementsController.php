@@ -42,4 +42,15 @@ class BodyMeasurementsController extends ApiController
             ],200);
         }
     }
+
+    public function getBodyMeasurementsFields(){
+        $fields = BodyMeasurementModel::getLocationFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
 }

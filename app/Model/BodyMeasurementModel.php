@@ -55,6 +55,16 @@ class BodyMeasurementModel extends Model
             return false;
     }
 
+    public static function getBodyMeasurementFields()
+    {
+        $data = [];
+        $data['UpperBodies'] = UpperBodyModel::all();
+        $data['LowerBodies'] = LowerBodyModel::all();
+        $data['ShoeSizes'] = ShoeSizeModel::all();
+
+        return $data;
+    }
+
     public function getUBodyAttribute()
     {
         $upperBody = $this->hasOne(UpperBodyModel::class,"Id","UpperBody");

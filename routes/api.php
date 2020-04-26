@@ -56,6 +56,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_driving_license_fields");
             Route::get('employee/emergency-informations/{id}', "EmergencyFieldController@getEmergencyInformations")->where(['id' => '[0-9]+'])->name("get_employee_emergency_informations");
             Route::get('employee/emergency-informations/fields', "EmergencyFieldController@getEmergencyInformationFields")->name("get_emergency_fields");
+            Route::get('employee/body-measurement/fields', "BodyMeasurementsController@getBodyMeasurementsFields")->name("get_body_measuremnts_fields");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
