@@ -31,7 +31,8 @@ class LocationController extends ApiController
             else
                 return response([
                     'status' => false,
-                    'message' => "İşlem Başarısız."
+                    'message' => "İşlem Başarısız.",
+                    'data' =>''.$location
                 ],200);
        }
        else

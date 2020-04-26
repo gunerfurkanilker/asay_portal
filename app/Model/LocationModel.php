@@ -47,16 +47,16 @@ class LocationModel extends Model
             'CountryID' => $request['country'],
             'ZIPCode' => $request['zipcode']
         ]);
-
+        $location->save();
         if ($location != null)
         {
             $employee->LocationID = $location->Id;
             $employee->save();
-            return $location;
+            return $location->fresh();
         }
 
         else
-            return false;
+            return $location;
     }
 
     public static function getLocationFields()

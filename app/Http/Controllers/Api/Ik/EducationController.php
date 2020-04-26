@@ -43,4 +43,21 @@ class EducationController extends ApiController
             ],200);
         }
     }
+
+    public function getEducation()
+    {
+
+    }
+
+    public function getEducationInformationFields()
+    {
+        $fields = EducationModel::getEducationFields();
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
+
 }

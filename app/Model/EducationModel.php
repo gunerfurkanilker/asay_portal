@@ -54,6 +54,15 @@ class EducationModel extends Model
             return false;
     }
 
+    public static function getEducationFields()
+    {
+        $data = [];
+        $data['EducationLevelID'] = EducationLevelModel::all();
+        $data['EducationStatusID'] = EducationStatusModel::all();
+
+        return $data;
+    }
+
     public function getEducationLevelAttribute()
     {
         $educationLevel = $this->hasOne(EducationLevelModel::class,"Id","LevelID");
