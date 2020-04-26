@@ -12,16 +12,17 @@ use Illuminate\Http\Request;
 class SocialSecurityInformationController extends ApiController
 {
 
-    public function saveSocialSecurityInformation(Request $request,$employeeId)
+    public function saveSocialSecurityInformation(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
 
         if (!is_null($employee))
         {
             if ($employee->SocialSecurityInformationID != null)
-                $socialSecurityInformation = SocialSecurityInformationModel::saveSocialSecurityInformation($request->all(),$employee->SocialSecurityInformationID);
+                $socialSecurityInformation = SocialSecurityInformationModel::saveSocialSecurityInformation($request_data,$employee->SocialSecurityInformationID);
             else
-                $socialSecurityInformation = SocialSecurityInformationModel::addSocialSecurityInformation($request->all(),$employee);
+                $socialSecurityInformation = SocialSecurityInformationModel::addSocialSecurityInformation($request_data,$employee);
 
             if ($socialSecurityInformation)
                 return response([
