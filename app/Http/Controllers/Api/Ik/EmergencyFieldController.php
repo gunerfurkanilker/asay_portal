@@ -12,15 +12,16 @@ use Illuminate\Http\Request;
 
 class EmergencyFieldController extends ApiController
 {
-    public function saveEmergencyField(Request $request,$employeeId)
+    public function saveEmergencyField(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
         if (!is_null($employee))
         {
             if ($employee->EmergencyFieldID != null)
-                $emergencyField = EmergencyFieldModel::saveEmergencyField($request->all(),$employee->EmergencyFieldID);
+                $emergencyField = EmergencyFieldModel::saveEmergencyField($request_data,$employee->EmergencyFieldID);
             else
-                $emergencyField = EmergencyFieldModel::addEmergencyField($request->all(),$employee);
+                $emergencyField = EmergencyFieldModel::addEmergencyField($request_data,$employee);
 
             if ($emergencyField)
                 return response([

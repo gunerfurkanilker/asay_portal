@@ -25,7 +25,6 @@ class EmergencyFieldModel extends Model
             $emergencyField->EPDegree = $request['emergencypersondegree'];
             $emergencyField->EPGsm = $request['emergencypersonno'];
 
-
             $emergencyField->save();
 
             return $emergencyField->fresh();
