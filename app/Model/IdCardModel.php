@@ -42,7 +42,7 @@ class IdCardModel extends Model
             $IDCard->CoverNo = $request['coverno'];
             $IDCard->PageNo = $request['pageno'];
             $IDCard->RegisterNo = $request['registerno'];
-            $IDCard->DateOfIssue = new Carbon($request['dateofissue']);
+           // $IDCard->DateOfIssue = new Carbon($request['dateofissue']);
 
 
             $IDCard->save();
@@ -75,7 +75,7 @@ class IdCardModel extends Model
             'CoverNo' => $request['coverno'],
             'PageNo' => $request['pageno'],
             'RegisterNo' => $request['registerno'],
-            'DateOfIssue' => new Carbon($request['dateofissue'])
+           // 'DateOfIssue' => new Carbon($request['dateofissue'])
 
         ]);
 
