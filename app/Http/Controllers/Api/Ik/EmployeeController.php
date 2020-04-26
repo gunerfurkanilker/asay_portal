@@ -49,6 +49,17 @@ class EmployeeController extends ApiController
         ], 200);
     }
 
+    public function deleteEmployee(Request $request) {
+        $request_data['employeeid'] = $request->all();
+        $status = EmployeeModel::deleteEmployee($request['employeeid']);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $status
+        ]);
+    }
+
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);

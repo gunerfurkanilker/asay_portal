@@ -66,6 +66,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
 
             Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
+            Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("add_employee");
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
             Route::post('employee/job-position/edit/{id}/{positionId}', "PositionController@editJobPosition")->where(['id' => '[0-9]+'])->name("employee_edit_job_position");

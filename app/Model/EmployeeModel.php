@@ -43,6 +43,20 @@ class EmployeeModel extends Model
         return $employee->fresh();
     }
 
+    public static function deleteEmployee($id)
+    {
+        $employee = self::find($id);
+        try
+        {
+            $employee->delete();
+            return true;
+        }
+        catch(\Exception $e)
+        {
+            return $e->getMessage();
+        }
+    }
+
     public static function getGeneralInformationsFields()
     {
         $data = [];
