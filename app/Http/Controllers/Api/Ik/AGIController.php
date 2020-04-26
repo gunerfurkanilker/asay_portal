@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Ik;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\AgiModel;
 use App\Model\EmployeeModel;
+use App\Model\LocationModel;
 use Illuminate\Http\Request;
 
 class AGIController extends ApiController
@@ -42,4 +43,16 @@ class AGIController extends ApiController
             ],200);
         }
     }
+
+    public function getAGIInformationFields(){
+        $fields = AgiModel::getAGIFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
+
 }

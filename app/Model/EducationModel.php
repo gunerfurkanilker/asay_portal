@@ -22,9 +22,9 @@ class EducationModel extends Model
         if ($education != null) {
 
             $education->StatusID = $request['educationstatus'];
-            $education->Institution = $request['schoolname'];
+            $education->Institution = $request['institution'];
             $education->LevelID = $request['educationlevel'];
-            $education->DocumentID = $request['graduationdocument'];
+            $education->DocumentID = $request['documentid'];
 
             $education->save();
 
@@ -38,9 +38,9 @@ class EducationModel extends Model
     {
         $education = self::create([
             'StatusID' => $request['educationstatus'],
-            'Institution' => $request['schoolname'],
+            'Institution' => $request['institution'],
             'LevelID' => $request['educationlevel'],
-            'DocumentID' => $request['graduationdocument']
+            'DocumentID' => $request['documentid']
         ]);
 
         if ($education != null)

@@ -63,6 +63,15 @@ class AgiModel extends Model
             return false;
     }
 
+    public static function getAGIFields()
+    {
+        $data = [];
+        $data['MaritalStatus'] = CountryModel::all();
+        $data['SpouseWorkingStatus'] = CityModel::all();
+
+        return $data;
+    }
+
 
     public function getMaritalStatusAttribute()
     {
