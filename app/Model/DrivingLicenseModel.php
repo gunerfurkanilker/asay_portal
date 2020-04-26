@@ -23,12 +23,12 @@ class DrivingLicenseModel extends Model
 
             $drivingLicenseID->DrivingLicenceType = $request['licensetype'];
             $drivingLicenseID->BirthDate = new Carbon($request['birthdate']);
-            $drivingLicenseID->BirthPlace = new Carbon($request['birthplace']);
+            $drivingLicenseID->BirthPlace = $request['birthplace'];
             $drivingLicenseID->StartDate = new Carbon($request['licensebegindate']);
             $drivingLicenseID->EffectiveDate = new Carbon($request['licenseenddate']);
             $drivingLicenseID->PlaceOfIssue = $request['licenselocation'];
             $drivingLicenseID->DocumentNo = $request['licensedocumentno'];
-            $drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
+            //$drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
 
             $drivingLicenseID->save();
 
@@ -48,7 +48,7 @@ class DrivingLicenseModel extends Model
             'EffectiveDate' => new Carbon($request['licenseenddate']),
             'PlaceOfIssue' => $request['licenselocation'],
             'DocumentNo' => $request['licensedocumentno'],
-            'DrivingLicenceClass' => $request['licenseclass']
+            //'DrivingLicenceClass' => $request['licenseclass']
         ]);
 
         if ($drivingLicense != null)

@@ -52,8 +52,8 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/education-informations/{id}', "EducationController@getEducationInformations")->where(['id' => '[0-9]+'])->name("get_employee_educuation_informations");
             Route::get('employee/agi-informations/fields', "AGIController@getAGIInformationFields")->name("get_agi_fields");
             Route::get('employee/agi-informations/{id}', "AGIController@getAgiInformations")->name("get_employee_agi_informations");
-            Route::get('employee/driving-license-informations/{id}', "DrivingLicenseController@getDrivingLicense")->name("get_employee_driving_license_informations");
-            Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_agi_fields");
+            Route::get('employee/driving-license-informations/{id}', "DrivingLicenseController@getDrivingLicense")->where(['id' => '[0-9]+'])->name("get_employee_driving_license_informations");
+            Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_driving_license_fields");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
@@ -66,7 +66,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/additional-payment/save/{id}', "PaymentController@savePayment")->name("save_additional_payment");
             Route::post('employee/location/save', "LocationController@saveLocation")->name("save_location");
             Route::post('employee/education/save', "EducationController@saveEducation")->name("save_education");
-            Route::post('employee/driving-license/save/{id}', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
+            Route::post('employee/driving-license/save', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
             Route::post('employee/agi/save', "AGIController@saveAgi")->name("save_agi");
             Route::post('employee/emergency-field/save/{id}', "EmergencyFieldController@saveEmergencyField")->name("save_emergency_field");
             Route::post('employee/body-measurements/save/{id}', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");

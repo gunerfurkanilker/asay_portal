@@ -12,15 +12,16 @@ use Illuminate\Http\Request;
 
 class DrivingLicenseController
 {
-    public function saveDrivingLicense(Request $request,$employeeId)
+    public function saveDrivingLicense(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
         if (!is_null($employee))
         {
             if ($employee->DrivingLicenceID != null)
-                $drivingLicense = DrivingLicenseModel::saveDrivingLicense($request->all(),$employee->DrivingLicenceID);
+                $drivingLicense = DrivingLicenseModel::saveDrivingLicense($request_data,$employee->DrivingLicenceID);
             else
-                $drivingLicense = DrivingLicenseModel::addDrivingLicense($request->all(),$employee);
+                $drivingLicense = DrivingLicenseModel::addDrivingLicense($request_data,$employee);
 
             if ($drivingLicense)
                 return response([
