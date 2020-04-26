@@ -43,6 +43,24 @@ class EmergencyFieldController extends ApiController
         }
     }
 
+    public function getEmergencyInformations($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->EmergencyFieldID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => EmergencyFieldModel::find($employee->EmergencyFieldID)
+            ],200);
+
+    }
+
     public function getEmergencyInformationFields(){
         $fields = EmergencyFieldModel::getEmergencyFields();
 
