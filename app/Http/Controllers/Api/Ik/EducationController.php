@@ -13,15 +13,16 @@ use Illuminate\Http\Request;
 class EducationController extends ApiController
 {
 
-    public function saveEducation(Request $request,$employeeId)
+    public function saveEducation(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
         if (!is_null($employee))
         {
             if ($employee->EducationID != null)
-                $education = EducationModel::saveEducation($request->all(),$employee->EducationID);
+                $education = EducationModel::saveEducation($request_data,$employee->EducationID);
             else
-                $education = EducationModel::addEducation($request->all(),$employee);
+                $education = EducationModel::addEducation($request_data,$employee);
 
             if ($education)
                 return response([
@@ -58,7 +59,7 @@ class EducationController extends ApiController
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
-                'data' => LocationModel::find($employee->LocationID)
+                'data' => EducationModel::find($employee->EducationID)
             ],200);
     }
 
