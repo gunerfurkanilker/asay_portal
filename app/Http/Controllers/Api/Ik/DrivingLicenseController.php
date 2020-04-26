@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Ik;
 use App\Model\DrivingLicenseModel;
 use App\Model\EducationModel;
 use App\Model\EmployeeModel;
+use App\Model\LocationModel;
 use Illuminate\Http\Request;
 
 class DrivingLicenseController
@@ -41,4 +42,37 @@ class DrivingLicenseController
             ],200);
         }
     }
+
+
+    public function getDrivingLicense($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->DrivingLicenceID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => DrivingLicenseModel::find($employee->DrivingLicenceID)
+            ],200);
+
+    }
+
+    public function getDrivingLicenseFields(){
+        $fields = DrivingLicenseModel::getDrivingLicenseFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
+
+
+
 }

@@ -62,6 +62,14 @@ class DrivingLicenseModel extends Model
             return false;
     }
 
+    public static function getDrivingLicenseFields()
+    {
+        $data = [];
+        $data['DrivingLicenseTypes'] = DrivingLicenceType::all();
+
+        return $data;
+    }
+
     public function getDrivingLicenseTypeAttribute()
     {
         $drivingLicenseType = $this->hasOne(DrivingLicenceType::class,"Id","DrivingLicenceType");

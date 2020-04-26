@@ -17,7 +17,7 @@ class AGIController extends ApiController
     {
         $request_data = $request->all();
         $employee = EmployeeModel::find($request_data['employeeid']);
-        /*if (!is_null($employee))
+        if (!is_null($employee))
         {
             if ($employee->AGIID != null)
                 $agi = AgiModel::saveAgi($request_data,$employee->AGIID);
@@ -42,11 +42,7 @@ class AGIController extends ApiController
                 'status' => false,
                 'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
             ],200);
-        }*/
-        return response([
-            'status' => false,
-            'message' => 'Zaa'
-        ],200);
+        }
     }
 
     public function getAgiInformations($id){
