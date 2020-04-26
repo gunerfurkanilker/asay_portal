@@ -43,4 +43,34 @@ class SocialSecurityInformationController extends ApiController
             ],200);
         }
     }
+
+    public function getSSInformations($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->SocialSecurityInformationID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => SocialSecurityInformationModel::find($employee->SocialSecurityInformationID)
+            ],200);
+
+    }
+
+    public function getSSInformationFields(){
+        $fields = SocialSecurityInformationModel::getLocationFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
+
 }

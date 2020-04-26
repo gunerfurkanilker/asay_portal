@@ -60,6 +60,8 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/body-measurements/{id}', "BodyMeasurementsController@getBodyMeasurements")->where(['id' => '[0-9]+'])->name("get_employee_body_measurements");
             Route::get('employee/id-card/fields', "IDCardController@getIDCardFields")->name("get_id_card_fields");
             Route::get('employee/id-card/{id}', "IDCardController@getIDCard")->where(['id' => '[0-9]+'])->name("get_employee_id_card");
+            Route::get('employee/ssi/fields', "SocialSecurityInformationController@getSSInformationFields")->name("get_id_card_fields");
+            Route::get('employee/ssi/{id}', "SocialSecurityInformationController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_id_card");
 
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");

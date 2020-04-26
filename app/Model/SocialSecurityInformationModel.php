@@ -71,6 +71,14 @@ class SocialSecurityInformationModel extends Model
             return false;
     }
 
+    public static function getLocationFields()
+    {
+        $data = [];
+        $data['DisabledDegrees'] = DisabledDegreeModel::all();
+
+        return $data;
+    }
+
     public function getDisabledDegreeAttribute()
     {
         $disabledDegree = $this->hasOne(DisabledDegreeModel::class,"Id","DisabledDegreeID");

@@ -58,7 +58,7 @@ class IDCardController extends ApiController
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
-                'data' => LocationModel::find($employee->IDCardID)
+                'data' => IdCardModel::find($employee->IDCardID)
             ],200);
 
     }
