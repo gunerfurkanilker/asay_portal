@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\BloodTypeModel;
 use App\Model\EmergencyFieldModel;
 use App\Model\EmployeeModel;
 use Illuminate\Http\Request;
@@ -40,5 +41,16 @@ class EmergencyFieldController extends ApiController
                 'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
             ],200);
         }
+    }
+
+    public function getEmergencyInformationFields(){
+        $fields = EmergencyFieldModel::getEmergencyFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
     }
 }

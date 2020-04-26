@@ -54,6 +54,13 @@ class EmergencyFieldModel extends Model
             return false;
     }
 
+    public static function getEmergencyFields()
+    {
+        $data = [];
+        $data['BloodTypes'] = BloodTypeModel::all();
+        return $data;
+    }
+
     public function getBloodTypeAttribute()
     {
         $bloodType = $this->hasOne(BloodTypeModel::class,"Id","BloodTypeID");

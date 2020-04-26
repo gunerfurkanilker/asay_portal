@@ -54,6 +54,8 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/agi-informations/{id}', "AGIController@getAgiInformations")->name("get_employee_agi_informations");
             Route::get('employee/driving-license-informations/{id}', "DrivingLicenseController@getDrivingLicense")->where(['id' => '[0-9]+'])->name("get_employee_driving_license_informations");
             Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_driving_license_fields");
+            Route::get('employee/emergency-informations/{id}', "EmergencyFieldController@getEmergencyInformations")->where(['id' => '[0-9]+'])->name("get_employee_emergency_informations");
+            Route::get('employee/emergency-informations/fields', "EmergencyFieldController@getEmergencyInformationFields")->name("get_emergency_fields");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
@@ -72,7 +74,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/body-measurements/save/{id}', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");
             Route::post('employee/id-card/save/{id}', "IDCardController@saveIDCard")->name("save_id_card");
             Route::post('employee/ssi/save/{id}', "SocialSecurityInformationController@saveSocialSecurityInformation")->name("save_ssi");
-            Route::post('employee/bank/save/{id}', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
+            Route::post('employee/bank/save/{id}', "EmployeeBankController@saveEmployeeBa nk")->name("save_bank");
 
 
         });

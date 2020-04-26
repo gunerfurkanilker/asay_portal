@@ -43,7 +43,7 @@ class DrivingLicenseModel extends Model
         $drivingLicense = self::create([
             'DrivingLicenceType' => $request['licensetype'],
             'BirthDate' => new Carbon($request['birthdate']),
-            'BirthPlace' => new Carbon($request['birthplace']),
+            'BirthPlace' => $request['birthplace'],
             'StartDate' => new Carbon($request['licensebegindate']),
             'EffectiveDate' => new Carbon($request['licenseenddate']),
             'PlaceOfIssue' => $request['licenselocation'],
