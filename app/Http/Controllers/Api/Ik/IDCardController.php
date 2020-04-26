@@ -12,16 +12,17 @@ use Illuminate\Http\Request;
 
 class IDCardController extends ApiController
 {
-    public function saveIDCard(Request $request,$employeeId)
+    public function saveIDCard(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
 
         if (!is_null($employee))
         {
             if ($employee->IDCardID != null)
-                $idCard = IdCardModel::saveIDCard($request->all(),$employee->IDCardID);
+                $idCard = IdCardModel::saveIDCard($request_data,$employee->IDCardID);
             else
-                $idCard = IdCardModel::addIDCard($request->all(),$employee);
+                $idCard = IdCardModel::addIDCard($request_data,$employee);
 
             if ($idCard)
                 return response([
@@ -42,6 +43,35 @@ class IDCardController extends ApiController
                 'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
             ],200);
         }
+    }
+
+    public function getIDCard($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->IDCardID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => LocationModel::find($employee->IDCardID)
+            ],200);
+
+    }
+
+    public function getIDCardFields(){
+        $fields = IdCardModel::getIDCardFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
     }
 
 }

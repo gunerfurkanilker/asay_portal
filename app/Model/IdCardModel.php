@@ -90,6 +90,17 @@ class IdCardModel extends Model
             return false;
     }
 
+    public static function getIDCardFields()
+    {
+        $data = [];
+        $data['Nationalities'] = NationalityModel::all();
+        $data['Genders'] = GenderModel::all();
+        $data['Cities'] = CityModel::all();
+        $data['Districts'] = DistrictModel::where('CityID',35)->get();
+
+        return $data;
+    }
+
     public function getGenderAttribute()
     {
         $gender = $this->hasOne(GenderModel::class,"Id","GenderID");

@@ -11,16 +11,17 @@ use Illuminate\Http\Request;
 
 class BodyMeasurementsController extends ApiController
 {
-    public function saveBodyMeasurements(Request $request,$employeeId)
+    public function saveBodyMeasurements(Request $request)
     {
-        $employee = EmployeeModel::find($employeeId);
+        $request_data = $request->all();
+        $employee = EmployeeModel::find($request_data['employeeid']);
 
         if (!is_null($employee))
         {
             if ($employee->BodyMeasurementID != null)
-                $bodyMeasurements = BodyMeasurementModel::saveBodyMeasurements($request->all(),$employee->BodyMeasurementID);
+                $bodyMeasurements = BodyMeasurementModel::saveBodyMeasurements($request_data,$employee->BodyMeasurementID);
             else
-                $bodyMeasurements = BodyMeasurementModel::addBodyMeasurements($request->all(),$employee);
+                $bodyMeasurements = BodyMeasurementModel::addBodyMeasurements($request_data,$employee);
 
             if ($bodyMeasurements)
                 return response([
