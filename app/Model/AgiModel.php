@@ -66,8 +66,8 @@ class AgiModel extends Model
     public static function getAGIFields()
     {
         $data = [];
-        $data['MaritalStatus'] = CountryModel::all();
-        $data['SpouseWorkingStatus'] = CityModel::all();
+        $data['MaritalStatus'] = MartialStatusModel::all();
+        $data['SpouseWorkingStatus'] = WorkingStatusModel::all();
 
         return $data;
     }

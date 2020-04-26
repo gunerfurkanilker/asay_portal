@@ -44,6 +44,24 @@ class AGIController extends ApiController
         }
     }
 
+    public function getAgiInformations($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->AGIID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => AgiModel::find($employee->AGIID)
+            ],200);
+
+    }
+
     public function getAGIInformationFields(){
         $fields = AgiModel::getAGIFields();
 
