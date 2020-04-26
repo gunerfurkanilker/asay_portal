@@ -31,7 +31,7 @@ class SocialSecurityInformationModel extends Model
             $socialSecurityInformation->JobDescription = $request['jobdescription'];
             $socialSecurityInformation->CriminalRecord = $request['criminalrecord'];
             $socialSecurityInformation->ConvictRecord = $request['convictrecord'];
-            $socialSecurityInformation->TerrorismComp = $request['terrorismrecord'];
+            $socialSecurityInformation->TerrorismComp = $request['terrorismcomp'];
 
 
             $socialSecurityInformation->save();
@@ -56,7 +56,7 @@ class SocialSecurityInformationModel extends Model
             'JobDescription' => $request['jobdescription'],
             'CriminalRecord' => $request['criminalrecord'],
             'ConvictRecord' => $request['convictrecord'],
-            'TerrorismComp' => $request['terrorismrecord']
+            'TerrorismComp' => $request['terrorismcomp']
 
         ]);
 

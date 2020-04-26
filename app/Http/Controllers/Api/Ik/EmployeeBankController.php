@@ -38,4 +38,22 @@ class EmployeeBankController extends ApiController
             ], 200);
         }
     }
+
+    public function getLocation($id){
+        $employee = EmployeeModel::find($id);
+
+        if ($employee->EmployeeBankID == null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => null
+            ],200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => EmployeeBankModel::find($employee->EmployeeBankID)
+            ],200);
+
+    }
 }
