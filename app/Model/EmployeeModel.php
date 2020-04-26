@@ -21,6 +21,7 @@ class EmployeeModel extends Model
         "District",
         "Department",
         "Education",
+        "Location",
         "Title",
         "Manager",
         "WorkingType",
@@ -33,6 +34,14 @@ class EmployeeModel extends Model
         'SocialSecurityInformation',
         'EmployeeBank'
     ];
+
+    public static function addEmployee()
+    {
+
+        $employee = self::create([]);
+        $employee->save();
+        return $employee->fresh();
+    }
 
     public static function getGeneralInformationsFields()
     {
@@ -344,6 +353,19 @@ class EmployeeModel extends Model
         if ($employeeBank)
         {
             return $employeeBank->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getLocationAttribute()
+    {
+        $location = $this->hasOne(LocationModel::class,"Id","LocationID");
+        if ($location)
+        {
+            return $location->first();
         }
         else
         {

@@ -39,7 +39,7 @@ Route::namespace("Api")->group(function(){
         Route::prefix('ik')->group(function () {
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
-            Route::get('employee/{id}', "EmployeeController@getEmployeeById")->name("get_employee_byid");
+            Route::get('employee/{id}', "EmployeeController@getEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_byid");
             Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployeeById")->name("get_employee_general_informations");
             Route::get('employee/position-informations/{id}', "PositionController@getJobPositionInformations")->where(['id' => '[0-9]+'])->name("get_employee_position_informations");
             Route::get('employee/payment-informations/{id}', "PaymentController@getPaymentsOfEmployee")->where(['id' => '[0-9]+'])->name("get_employee_payment_informations");
@@ -65,7 +65,7 @@ Route::namespace("Api")->group(function(){
             //Route::get('employee/bank/fields', "EmployeeBankController@getSSInformationFields")->name("get_ssi_fields");
             Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
 
-
+            Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
             Route::post('employee/job-position/edit/{id}/{positionId}', "PositionController@editJobPosition")->where(['id' => '[0-9]+'])->name("employee_edit_job_position");
@@ -83,7 +83,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/body-measurements/save', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");
             Route::post('employee/id-card/save', "IDCardController@saveIDCard")->name("save_id_card");
             Route::post('employee/ssi/save', "SocialSecurityInformationController@saveSocialSecurityInformation")->name("save_ssi");
-            Route::post('employee/bank/save', "EmployeeBankController@saveEmployeeBa nk")->name("save_bank");
+            Route::post('employee/bank/save', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
 
 
         });
