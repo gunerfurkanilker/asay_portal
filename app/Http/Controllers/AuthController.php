@@ -24,6 +24,7 @@ class AuthController extends Controller
     }
     public function loginPost(Request $request)
     {
+
         if($request->session()->get("user"))
         {
             $user = $request->session()->get("user");
@@ -43,7 +44,6 @@ class AuthController extends Controller
         $client = new \GuzzleHttp\Client();
         $sendData["username"] = $data["username"];
         $sendData["password"] = $data["password"];
-        //dd($client);
         $rest = json_decode($client->post($this->api_url."auth/login", ["form_params"=>$sendData])->getBody());
 
         if($rest->status==true)
