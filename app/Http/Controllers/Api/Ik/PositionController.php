@@ -29,6 +29,7 @@ class PositionController extends ApiController
             ],200);
     }
 
+
     public function getJobPositionInformationFields()
     {
         return response([

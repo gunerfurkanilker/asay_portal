@@ -19,6 +19,7 @@ class EmployeePositionModel extends Model
       'City'
     ];
 
+
     public static function getPositionFields()
     {
         $data = [];

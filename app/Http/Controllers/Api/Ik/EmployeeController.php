@@ -22,6 +22,7 @@ class EmployeeController extends ApiController
         ], 200);
     }
 
+
     public function getEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
