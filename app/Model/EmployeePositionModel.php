@@ -13,7 +13,10 @@ class EmployeePositionModel extends Model
     protected $guarded = [];
     protected $appends = [
       'Title',
-      'Company'
+      'Company',
+      'WorkingType',
+      'Department',
+      'City'
     ];
 
     public static function getPositionFields()
@@ -100,6 +103,21 @@ class EmployeePositionModel extends Model
     public function getCompanyAttribute(){
         $company = $this->hasOne(CompanyModel::class,'Id','CompanyID');
         return $company->first();
+    }
+
+    public function getWorkingTypeAttribute(){
+        $workingType = $this->hasOne(WorkingTypeModel::class,'Id','WorkingTypeID');
+        return $workingType->first();
+    }
+
+    public function getDepartmentAttribute(){
+        $department = $this->hasOne(DepartmentModel::class,'Id','DepartmentID');
+        return $department->first();
+    }
+
+    public function getCityAttribute(){
+        $city = $this->hasOne(CityModel::class,'Id','CityID');
+        return $city->first();
     }
 
  }
