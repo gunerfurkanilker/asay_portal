@@ -62,6 +62,17 @@ class EmployeeController extends ApiController
         ]);
     }
 
+    public function getGeneralInformationFields(){
+        $fields = EmployeeModel::getGeneralInformationsFields();
+
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı.",
+            'data' => $fields
+        ],200);
+
+    }
+
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
