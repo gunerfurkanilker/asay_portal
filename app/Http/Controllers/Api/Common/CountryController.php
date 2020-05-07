@@ -12,6 +12,7 @@ class CountryController extends ApiController
 {
 
     public function getCitiesOfCountry(Request $request){
+
         $request_data = $request->all();
         $cities = CountryModel::getCitiesOfCountry($request_data);
         if($cities)
