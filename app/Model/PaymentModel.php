@@ -25,6 +25,7 @@ class PaymentModel extends Model
         $data['Currencies'] = CurrencyModel::all();
         $data['PayPeriods'] = PayPeriodModel::all();
         $data['PayMethods'] = PayMethodModel::all();
+        $data['AdditionalPayments'] = AdditionalPaymentModel::all();
 
         return $data;
     }
