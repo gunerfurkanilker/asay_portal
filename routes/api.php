@@ -95,7 +95,7 @@ Route::namespace("Api")->group(function(){
 
     Route::namespace('Common')->group(function (){
 
-        Route::prefix('ik')->group(function () {
+        Route::prefix('common')->group(function () {
             Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
         });
 
