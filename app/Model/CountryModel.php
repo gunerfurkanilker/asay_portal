@@ -11,7 +11,7 @@ class CountryModel extends Model
 
     public static function getCitiesOfCountry($request_data)
     {
-        $country = self::find($request_data[id]);
+        $country = self::find($request_data[countryid]);
         if ($country == null)
             return false;
         $cities = CityModel::where('CountryID',$country->Id)->get();
