@@ -88,6 +88,15 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/bank/save', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
 
 
+
+        });
+
+    });
+
+    Route::namespace('Common')->group(function (){
+
+        Route::prefix('ik')->group(function () {
+            Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
         });
 
     });
