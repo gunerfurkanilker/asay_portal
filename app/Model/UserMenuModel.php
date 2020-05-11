@@ -10,7 +10,7 @@ class UserMenuModel extends Model {
     public $appends = [];
 
 
-    public function UserMenus($UserGroup)
+    public static function UserMenus($UserGroup)
     {
         foreach ($UserGroup as $key=>$item) {
             $userGroupIds[] = $key;
