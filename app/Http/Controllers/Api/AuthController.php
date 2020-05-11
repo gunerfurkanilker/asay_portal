@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Model\UserMenuModel;
 use App\Model\UserModel;
 use Illuminate\Http\Request;
 use App\Library\Bitrix;
@@ -38,7 +39,7 @@ class AuthController extends Controller
             $provider = $ad->connect("asay.corp", $email, $data["password"]);
             $search = $provider->search();
             $user = UserModel::LdapUserCreate($search,$data["username"]);
-
+            $Menus = UserMenuModel::UserMenus($user->user_group);
             $userdata = [
                 'user_id' => $user->id,
                 'username' => $user->username,
@@ -47,7 +48,8 @@ class AuthController extends Controller
                 'full_name' => $user->full_name,
                 'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
                 'active' => $user->active,
-                'user_group' => $user->user_group
+                'user_group' => $user->user_group,
+                "user_menus" => json_encode($Menus),
             ];
             $userdata["token"] = UserModel::createToken($userdata);
         } catch (\Adldap\Auth\BindException $e) {
