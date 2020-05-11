@@ -35,9 +35,9 @@ class UserModel extends Model
 
     public function getUserGroupAttribute()
     {
-        $userGroups = $this->hasMany(UserGroupModel::class, "user_id", "id")->get();
+        $userGroups = $this->hasMany(UserHasGroupModel::class, "user_id", "id")->get();
         foreach ($userGroups as $userGroup) {
-            $group = GroupModel::find($userGroup->group_id);
+            $group = UserGroupModel::find($userGroup->group_id);
             $groups[$userGroup->group_id] = $group->name;
         }
         return $groups;
@@ -157,7 +157,7 @@ class UserModel extends Model
 
         //User Group
         foreach ($userDetail->memberof as $item) {
-            $groupQ = GroupModel::where(["ldap_code"=>$item]);
+            $groupQ = UserGroupModel::where(["ldap_code"=>$item]);
             if($groupQ->count()>0)
             {
                 $group = $groupQ->first();
@@ -165,12 +165,12 @@ class UserModel extends Model
             else
             {
                 preg_match('@^(?:CN=)?([^,]+)@i', $item,$groupName);
-                $group = new GroupModel();
+                $group = new UserGroupModel();
                 $group->name = $groupName[1];
                 $group->ldap_code = $item;
                 $group->save();
             }
-            $userGroup = UserGroupModel::firstOrNew(["user_id"=>$lUser->id,"group_id"=>$group->id]);
+            $userGroup = UserHasGroupModel::firstOrNew(["user_id"=>$lUser->id,"group_id"=>$group->id]);
             $userGroup->save();
         }
         return $lUser;
