@@ -43,6 +43,34 @@ class PaymentController extends ApiController
         }
     }
 
+    public function getAdditionalPaymentsOfPayment($paymentId)
+    {
+        $payment = PaymentModel::find($id);
+
+        if (!is_null($payment))
+        {
+            $additionalPayments = PaymentModel::getAdditionalPayments($payment->Id);
+            if ($additionalPayments)
+                return response([
+                    'status' => true,
+                    'message' => 'İşlem Başarılı.',
+                    'data' => $additionalPayments
+                ],200);
+
+            else
+                return response([
+                    'status' => false,
+                    'message' => 'İşlem Başarısız.'
+                ],200);
+        }
+        else{
+            return response([
+                'status' => false,
+                'message' => 'Kullanıcı Bulunamadı.'
+            ],200);
+        }
+    }
+
     public function getPaymentInformationFields(){
         return response([
             'status' => true,

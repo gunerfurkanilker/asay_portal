@@ -97,6 +97,16 @@ class PaymentModel extends Model
             return false;
     }
 
+    public static function getAdditionalPayments($paymentID)
+    {
+        $additionalPaymentsOfPayment = AdditionalPaymentModel::where('PaymentID', $paymentID)->get();
+
+        if ($additionalPaymentsOfPayment != null)
+            return $additionalPaymentsOfPayment;
+        else
+            return false;
+    }
+
     public function getAdditionalPaymentsAttribute()
     {
         $additionalPayments = $this->hasMany(AdditionalPaymentModel::class, "PaymentID", "Id");
