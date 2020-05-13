@@ -10,7 +10,7 @@ use App\Model\CityModel;
 class CityController extends ApiController
 {
 
-    public function getCitiesOfCountry(Request $request){
+    public function getDistrictsOfCity(Request $request){
 
         $request_data = $request->all();
         $cities = CityModel::getDistrictsOfCity($request_data);
