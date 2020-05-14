@@ -41,13 +41,13 @@ class EmployeeController extends ApiController
 
     }
 
-    public function addEmployee()
+    public function addEmployee(Request $request)
     {
-
+        $request_data = $request->all();
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => EmployeeModel::addEmployee()
+            'data' => EmployeeModel::addEmployee($request_data)
         ], 200);
     }
 

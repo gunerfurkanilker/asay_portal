@@ -64,7 +64,7 @@ class LocationModel extends Model
         $data = [];
         $data['Countries'] = CountryModel::all();
         $data['Cities'] = CityModel::all();
-        $data['Districts'] = DistrictModel::where('CityID',35)->get();
+        $data['Districts'] = DistrictModel::all();
 
         return $data;
     }

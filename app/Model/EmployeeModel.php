@@ -35,10 +35,10 @@ class EmployeeModel extends Model
         'EmployeeBank'
     ];
 
-    public static function addEmployee()
+    public static function addEmployee($request_data)
     {
 
-        $employee = self::create([]);
+        $employee = self::create($request_data);
         $employee->save();
         return $employee->fresh();
     }

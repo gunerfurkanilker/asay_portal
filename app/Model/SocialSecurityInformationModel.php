@@ -75,6 +75,7 @@ class SocialSecurityInformationModel extends Model
     {
         $data = [];
         $data['DisabledDegrees'] = DisabledDegreeModel::all();
+        $data['Jobs'] = JobModel::all();
 
         return $data;
     }
