@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Common;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\CityModel;
+use Illuminate\Http\Request;
 
 class CityController extends ApiController
 {

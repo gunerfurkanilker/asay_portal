@@ -96,7 +96,7 @@ class IdCardModel extends Model
         $data['Nationalities'] = NationalityModel::all();
         $data['Genders'] = GenderModel::all();
         $data['Cities'] = CityModel::all();
-        $data['Districts'] = DistrictModel::where('CityID',35)->get();
+        $data['Districts'] = DistrictModel::all();
 
         return $data;
     }

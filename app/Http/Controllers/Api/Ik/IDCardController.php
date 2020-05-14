@@ -28,7 +28,7 @@ class IDCardController extends ApiController
                 return response([
                     'status' => true,
                     'message' => $idCard->Id . " ID No'lu Kimlik Bilgisi Kaydedildi",
-                    'data' => $idCard
+                    'data' => $request_data
                 ],200);
             else
                 return response([

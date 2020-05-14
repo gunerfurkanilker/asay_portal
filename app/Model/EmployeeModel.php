@@ -73,6 +73,7 @@ class EmployeeModel extends Model
     public static function saveGeneralInformations($employee,$requestData)
     {
         $employee->FirstName = $requestData['firstname'];
+        $employee->UsageName = $requestData['usagename'];
         $employee->LastName = $requestData['lastname'];
         $employee->AccessTypeID = $requestData['accesstypeid'];
         $employee->Domain = $requestData['domain'];

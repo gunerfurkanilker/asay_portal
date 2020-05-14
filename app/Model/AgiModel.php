@@ -23,7 +23,7 @@ class AgiModel extends Model
         if ($agiID != null) {
 
             $agiID->MaritalStatusID = $request['maritalstatus'];
-            $agiID->SpouseWorkingStatusID = $request['spouseworkingstatus'];
+            $agiID->SpouseWorkingStatusID = isset($request['spouseworkingstatus'])  ?  $request['spouseworkingstatus']:null ;
             $agiID->TotalChildren = $request['totalchildren'];
             $agiID->PrePrimaryChild = $request['preprimarychild'];
             $agiID->PrimaryChild = $request['primarychild'];
