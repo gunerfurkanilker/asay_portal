@@ -11,6 +11,7 @@ class AdditionalPaymentModel extends Model
     protected $primaryKey = "Id";
     protected $table = "AdditionalPayment";
     protected $guarded = [];
+    public $timestamps = false;
     protected $appends =[
         "AdditionalPaymentType",
         "PayPeriod",

@@ -18,6 +18,20 @@ class PaymentModel extends Model
         "PayMethod"
     ];
 
+    public static function checkCurrentPayment($employeeID){
+
+        $payments = self::where('EmployeeID',$employeeID)->get();
+
+        foreach ($payments as $payment)
+        {
+            if ($payment->EndDate == null)
+            {
+                return $payment;
+            }
+        }
+
+    }
+
     public static function getPaymentInformationFields()
     {
 
@@ -33,30 +47,36 @@ class PaymentModel extends Model
     public static function addPayment($request)
     {
         $employee = EmployeeModel::find($request['employeeid']);
+        $currentPayment = self::checkCurrentPayment($request['employeeid']);
+
+
 
         $salary = self::create([
 
             'EmployeeID' => $request['employeeid'],
             'Pay' => $request['pay'],
-            //'Description' => $request['description'],
             'CurrencyID' => $request['currencyid'],
             'StartDate' => new Carbon($request['startdate']),
-            //'EndDate' => new Carbon($request['enddate']),
             'PayPeriodID' => $request['payperiod'],
             'PayMethodID' => $request['paymethod'] ? 2:1,
             'LowestPayID' => $request['lowestpay'] ? 1:0,
         ]);
+
+        if ($currentPayment != null)
+        {
+            $currentPayment->EndDate = $salary->StartDate;
+        }
 
         $additionalPayments = $request['additionalpayments'];
 
         foreach ($additionalPayments as $additionalPayment)
         {
             AdditionalPaymentModel::create([
-                'Pay' => $additionalPayment->Pay,
-                'PayPeriodID' => $additionalPayment->PayPeriodID,
-                'AdditionalPaymentTypeID' => $additionalPayment->AdditionalPaymentTypeID,
+                'Pay' => $additionalPayment['Pay'],
+                'PayPeriodID' => $additionalPayment['PayPeriodID'],
+                'AdditionalPaymentTypeID' => $additionalPayment['AdditionalPaymentTypeID'],
                 'PaymentID' => $salary->Id,
-                'CurrencyID' => $additionalPayment->CurrencyID
+                'CurrencyID' => $additionalPayment['CurrencyID']
             ]);
         }
 
