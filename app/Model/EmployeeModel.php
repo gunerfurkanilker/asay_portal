@@ -10,6 +10,7 @@ class EmployeeModel extends Model
 {
     protected $primaryKey = "Id";
     protected $table = "Employee";
+    protected $guarded = [];
     const CREATED_AT = 'CreateDate';
     const UPDATED_AT = 'LastUpdateDate';
     protected $appends = [
@@ -37,7 +38,7 @@ class EmployeeModel extends Model
 
     public static function addEmployee($request_data)
     {
-
+        unset($request_data['token']);
         $employee = self::create($request_data);
         $employee->save();
         return $employee->fresh();

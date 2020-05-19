@@ -41,17 +41,29 @@ class PaymentModel extends Model
             //'Description' => $request['description'],
             'CurrencyID' => $request['currencyid'],
             'StartDate' => new Carbon($request['startdate']),
-            'EndDate' => new Carbon($request['enddate']),
+            //'EndDate' => new Carbon($request['enddate']),
             'PayPeriodID' => $request['payperiod'],
             'PayMethodID' => $request['paymethod'] ? 2:1,
             'LowestPayID' => $request['lowestpay'] ? 1:0,
         ]);
 
-        if ($request['iscurrent'])
+        $additionalPayments = $request['additionalpayments'];
+
+        foreach ($additionalPayments as $additionalPayment)
         {
-            $employee->PaymentID = $salary->Id;
-            $employee->save();
+            AdditionalPaymentModel::create([
+                'Pay' => $additionalPayment->Pay,
+                'PayPeriodID' => $additionalPayment->PayPeriodID,
+                'AdditionalPaymentTypeID' => $additionalPayment->AdditionalPaymentTypeID,
+                'PaymentID' => $salary->Id,
+                'CurrencyID' => $additionalPayment->CurrencyID
+            ]);
         }
+
+
+        $employee->PaymentID = $salary->Id;
+        $employee->save();
+
         return $salary->fresh();
     }
 
