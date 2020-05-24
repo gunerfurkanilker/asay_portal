@@ -128,7 +128,7 @@ class EmployeePositionModel extends Model
     }
 
     public function getManagerAttribute(){
-        $manager = $this->hasOne(EmployeeModel::class,'Id','EmployeeID');
+        $manager = $this->hasOne(EmployeeModel::class,'Id','ManagerID');
         return $manager->first();
     }
 
