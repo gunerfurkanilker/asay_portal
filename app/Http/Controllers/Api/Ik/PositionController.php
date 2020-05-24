@@ -45,13 +45,6 @@ class PositionController extends ApiController
 
         $requestData = $request->all();
 
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $requestData
-        ]);
-
-
         $freshData = EmployeePositionModel::addJobPosition($requestData);
 
             return response([
