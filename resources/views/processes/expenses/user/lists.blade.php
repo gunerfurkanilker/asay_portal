@@ -22,14 +22,14 @@
                                     <div class="kt-widget1__info">
                                         <h3 class="kt-widget1__title">İş Avansı Hesabı</h3>
                                     </div>
-                                    <span class="kt-widget1__number kt-font-success">{{$request->Tutar->Is}}</span>
+                                    <span class="kt-widget1__number kt-font-success">{{ isset($request->Tutar->Is) ? $request->Tutar->Is : 0}}</span>
                                 </div>
 
                                 <div class="kt-widget1__item">
                                     <div class="kt-widget1__info">
                                         <h3 class="kt-widget1__title">Seyahat Avansı Hesabı</h3>
                                     </div>
-                                    <span class="kt-widget1__number kt-font-danger">{{$request->Tutar->Seyahat}}</span>
+                                    <span class="kt-widget1__number kt-font-danger">{{isset($request->Tutar->Seyahat) ? $request->Tutar->Seyahat : 0}}</span>
                                 </div>
                             </div>
                             <!--end:: Widgets/Stats2-3 -->

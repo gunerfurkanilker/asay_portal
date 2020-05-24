@@ -50,7 +50,6 @@ class PaymentModel extends Model
         $currentPayment = self::checkCurrentPayment($request['employeeid']);
 
 
-
         $salary = self::create([
 
             'EmployeeID' => $request['employeeid'],
@@ -65,6 +64,7 @@ class PaymentModel extends Model
         if ($currentPayment != null)
         {
             $currentPayment->EndDate = $salary->StartDate;
+            $currentPayment->save();
         }
 
         $additionalPayments = $request['additionalpayments'];
