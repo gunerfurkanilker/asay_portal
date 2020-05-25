@@ -52,6 +52,7 @@ class EmployeePositionModel extends Model
                 'EndDate' => new Carbon($requestData['positionenddate']),
                 'Active' => $requestData['activeposition'] ? 1 : 0
             ]);
+
             if ($requestData['actualposition'])
             {
                 $actualPosition = self::checkActualPositionExists($requestData['employeeid']);
@@ -64,9 +65,11 @@ class EmployeePositionModel extends Model
 
                 $salary->Active = 2;
             }
+
+
             $salary->save();
 
-            return $salary->fresh();
+            return self::checkActualPositionExists($requestData['employeeid']);
         }
         catch (\Exception $e){
             return $e->getMessage();
@@ -86,6 +89,20 @@ class EmployeePositionModel extends Model
         $position->WorkingTypeID = $requestData['workingtypeid'];
         $position->StartDate = new Carbon($requestData['positionstartdate']);
         $position->EndDate = new Carbon($requestData['positionenddate']);
+        $position->Active = $requestData['activeposition'] ? 1:0;
+
+        if ($requestData['actualposition'])
+        {
+            $actualPosition = self::checkActualPositionExists($requestData['employeeid']);
+
+            if ($actualPosition)
+            {
+                $actualPosition->Active = 1 ;
+                $actualPosition->save();
+            }
+
+            $position->Active = 2;
+        }
 
         if ($position->save())
             return $position->fresh();
@@ -111,7 +128,7 @@ class EmployeePositionModel extends Model
 
     public static function checkActualPositionExists($employeeID)
     {
-        $position = self::where("EmployeeID",$employeeID)->where("Active",2)->get();
+        $position = self::where("EmployeeID",$employeeID)->where("Active",2)->first();
 
         return $position ? $position : false;
 

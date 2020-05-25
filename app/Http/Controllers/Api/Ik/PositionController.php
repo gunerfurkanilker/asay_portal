@@ -44,7 +44,6 @@ class PositionController extends ApiController
     {
 
         $requestData = $request->all();
-
         $freshData = EmployeePositionModel::addJobPosition($requestData);
 
             return response([
