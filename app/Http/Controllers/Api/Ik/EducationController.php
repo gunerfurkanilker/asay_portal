@@ -9,6 +9,7 @@ use App\Model\EducationModel;
 use App\Model\EmployeeModel;
 use App\Model\LocationModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EducationController extends ApiController
 {
@@ -49,18 +50,23 @@ class EducationController extends ApiController
     {
         $employee = EmployeeModel::find($employeeid);
 
-        if ($employee->LocationID == null)
+        if ($employee->EducationID == null)
             return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
+                'status' => false,
+                'message' => 'Eğitim Bilgisi Bulunamadı!',
                 'data' => null
             ],200);
         else
+        {
+            $education = EducationModel::find($employee->EducationID);
+            $education['documentURL'] = Storage::url('dummy.pdf');
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
-                'data' => EducationModel::find($employee->EducationID)
+                'data' => $education
             ],200);
+        }
+
     }
 
     public function getEducationInformationFields()
