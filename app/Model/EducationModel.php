@@ -13,7 +13,8 @@ class EducationModel extends Model
     public $timestamps =false;
     protected $appends = [
         'EducationLevel',
-        'EducationStatus'
+        'EducationStatus',
+        'DocumentFile'
     ];
 
     public static function saveEducation($request, $educationID)
@@ -75,6 +76,12 @@ class EducationModel extends Model
     {
         $educationStatus = $this->hasOne(EducationStatusModel::class,"Id","StatusID");
         return $educationStatus->where("Active",1)->first();
+    }
+
+    public function getDocumentFileAttribute()
+    {
+        $document = $this->hasOne(EducationStatusModel::class,"Id","DocumentID");
+        return $document->where("Active",1)->where('Type',1)->first();
     }
 
 }
