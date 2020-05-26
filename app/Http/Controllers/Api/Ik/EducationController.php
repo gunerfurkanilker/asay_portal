@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\DocumentFileModel;
 use App\Model\EducationModel;
 use App\Model\EmployeeModel;
 use App\Model\LocationModel;
@@ -48,11 +49,27 @@ class EducationController extends ApiController
 
     public function saveEducationDocument(Request $request)
     {
+        $file = $request->file('blob');
+
+        $extension = $file->getClientOriginalExtension();
+
+        if ($extension != 'pdf')
+        {
+            return response([
+                'status' => false,
+                'message' => "Desteklenmeyen Dosya Formatı.",
+                'data' => $request->file('blob')->getClientOriginalExtension()
+            ],200);
+        }
+
+        $uploadFilePath = DocumentFileModel::uploadEducationDocument($file,$request->employeeID);
+
         return response([
             'status' => false,
-            'message' => "İşlem Başarısız.",
-            'data' => $request->all()
+            'message' => "Dosya Başarıyla Yüklendi",
+            'data' => $uploadFilePath
         ],200);
+
     }
 
     public function getEducationInformations($employeeid)
