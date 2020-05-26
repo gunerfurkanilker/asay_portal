@@ -95,7 +95,16 @@ class EducationController extends ApiController
 
     }
 
-    public function getGraduationDocument($pathOfFile){
+    public function downloadEducationDocument(Request $request){
+        $request = $request->all();
+
+        $employee = EmployeeModel::find($request['employeeid']);
+
+        $education = EducationModel::find($employee->EducationID);
+
+        $document = DocumentFileModel::find($education->DocumentID);
+
+        return Storage::download($document->URL,'Mezuniyet_Belgesi_'.$employee.FirstName.'_'.$employee->LastName);
 
     }
 

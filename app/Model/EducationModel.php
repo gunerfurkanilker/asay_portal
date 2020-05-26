@@ -80,8 +80,8 @@ class EducationModel extends Model
 
     public function getDocumentFileAttribute()
     {
-        $document = $this->hasOne(EducationStatusModel::class,"Id","DocumentID");
-        return $document->where("Active",1)->where('Type',1)->first();
+        $document = $this->hasOne(DocumentFileModel::class,"Id","DocumentID");
+        return $document->where("Active",1)->first();
     }
 
 }

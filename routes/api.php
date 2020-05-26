@@ -89,6 +89,7 @@ Route::namespace("Api")->group(function(){
 
             Route::post('employee/education/save', "EducationController@saveEducation")->name("save_education");
             Route::post('employee/education/document/save', "EducationController@saveEducationDocument")->name("save_education_document");
+            Route::post('employee/education/document/download', "EducationController@downloadEducationDocument")->name("download_education_document");
 
 
             Route::post('employee/driving-license/save', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
