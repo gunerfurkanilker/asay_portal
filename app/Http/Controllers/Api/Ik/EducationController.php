@@ -46,6 +46,15 @@ class EducationController extends ApiController
         }
     }
 
+    public function saveEducationDocument(Request $request)
+    {
+        return response([
+            'status' => false,
+            'message' => "İşlem Başarısız.",
+            'data' => $request->all()
+        ],200);
+    }
+
     public function getEducationInformations($employeeid)
     {
         $employee = EmployeeModel::find($employeeid);
@@ -59,13 +68,17 @@ class EducationController extends ApiController
         else
         {
             $education = EducationModel::find($employee->EducationID);
-            $education['documentURL'] = Storage::url('dummy.pdf');
+
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
                 'data' => $education
             ],200);
         }
+
+    }
+
+    public function getGraduationDocument($pathOfFile){
 
     }
 

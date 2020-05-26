@@ -68,24 +68,41 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
 
             Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
+
             Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("add_employee");
+
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
+
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
+
             Route::post('employee/job-position/edit/{id}/{positionId}', "PositionController@editJobPosition")->where(['id' => '[0-9]+'])->name("employee_edit_job_position");
             Route::post('employee/job-position/add', "PositionController@addJobPosition")->name("employee_add_job_position");
             Route::post('employee/job-position/delete', "PositionController@deleteJobPosition")->name("employee_delete_job_position");
+
             Route::post('employee/payment/edit/{id}/{paymentId}', "PaymentController@editPayment")->where(['id' => '[0-9]+'])->name("employee_edit_payment");
             Route::post('employee/payment/add', "PaymentController@addPayment")->name("add_payment");
             Route::post('employee/payment/delete', "PaymentController@deletePayment")->name("employee_delete_payment");
+
             Route::post('employee/additional-payment/save/{id}', "PaymentController@savePayment")->name("save_additional_payment");
+
             Route::post('employee/location/save', "LocationController@saveLocation")->name("save_location");
+
             Route::post('employee/education/save', "EducationController@saveEducation")->name("save_education");
+            Route::post('employee/education/document/save', "EducationController@saveEducationDocument")->name("save_education_document");
+
+
             Route::post('employee/driving-license/save', "DrivingLicenseController@saveDrivingLicense")->name("save_driving_license");
+
             Route::post('employee/agi/save', "AGIController@saveAgi")->name("save_agi");
+
             Route::post('employee/emergency-field/save', "EmergencyFieldController@saveEmergencyField")->name("save_emergency_field");
+
             Route::post('employee/body-measurements/save', "BodyMeasurementsController@saveBodyMeasurements")->name("save_body_measurements");
+
             Route::post('employee/id-card/save', "IDCardController@saveIDCard")->name("save_id_card");
+
             Route::post('employee/ssi/save', "SocialSecurityInformationController@saveSocialSecurityInformation")->name("save_ssi");
+
             Route::post('employee/bank/save', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
 
 

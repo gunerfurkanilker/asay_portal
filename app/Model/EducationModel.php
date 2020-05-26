@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class EducationModel extends Model
 {
@@ -19,12 +20,13 @@ class EducationModel extends Model
     {
         $education = self::find($educationID);
 
+
+
         if ($education != null) {
 
             $education->StatusID = $request['educationstatus'];
             $education->Institution = $request['institution'];
             $education->LevelID = $request['educationlevel'];
-            $education->DocumentID = $request['documentid'];
 
             $education->save();
 
