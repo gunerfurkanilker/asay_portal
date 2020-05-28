@@ -98,23 +98,18 @@ class EducationController extends ApiController
     public function downloadEducationDocument(Request $request){
         $request = $request->all();
 
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            // 'data' => Storage::download($document->URL,'Mezuniyet_Belgesi_'.$employee.FirstName.'_'.$employee->LastName)
-        ],200);
-
         $employee = EmployeeModel::find($request['employeeid']);
 
         $education = EducationModel::find($employee->EducationID);
 
         $document = DocumentFileModel::find($education->DocumentID);
+        //return response()->file(Storage::url($document->URL), ['Content-Type : application/pdf']);
 
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-           // 'data' => Storage::download($document->URL,'Mezuniyet_Belgesi_'.$employee.FirstName.'_'.$employee->LastName)
-        ],200);
+        return response()->file(Storage::disk('local')->getDriver()->getAdapter()->applyPathPrefix($document->URL));
+
+
+
+
 
     }
 
