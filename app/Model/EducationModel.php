@@ -42,8 +42,7 @@ class EducationModel extends Model
         $education = self::create([
             'StatusID' => $request['educationstatus'],
             'Institution' => $request['institution'],
-            'LevelID' => $request['educationlevel'],
-            'DocumentID' => $request['documentid']
+            'LevelID' => $request['educationlevel']
         ]);
 
         if ($education != null)

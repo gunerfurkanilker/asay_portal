@@ -107,10 +107,6 @@ class EducationController extends ApiController
 
         return response()->file(Storage::disk('local')->getDriver()->getAdapter()->applyPathPrefix($document->URL));
 
-
-
-
-
     }
 
     public function getEducationInformationFields()
