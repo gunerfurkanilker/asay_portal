@@ -49,8 +49,9 @@ class EmployeeModel extends Model
         $employee = self::find($id);
         try
         {
-            $employee->delete();
-            return true;
+            $employee->Active = 0;
+            $employee->save();
+            return "Çalışan İşten Çıkarıldı.";
         }
         catch(\Exception $e)
         {
