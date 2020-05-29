@@ -58,7 +58,6 @@ class EmployeeController extends ApiController
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $status
         ]);
     }
 

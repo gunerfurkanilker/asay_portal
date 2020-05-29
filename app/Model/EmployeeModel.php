@@ -49,9 +49,9 @@ class EmployeeModel extends Model
         $employee = self::find($id);
         try
         {
-            $employee->Active = 0;
+            $employee->Active == 0 ? $employee->Active = 1 : $employee->Active = 0  ;
             $employee->save();
-            return "Çalışan İşten Çıkarıldı.";
+            return true;
         }
         catch(\Exception $e)
         {
