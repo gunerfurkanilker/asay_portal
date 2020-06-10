@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Processes;
+namespace App\Http\Controllers\View\Processes;
 
-use App\Http\Controllers\AsayController;
+use App\Http\Controllers\View\AsayController;
 use Illuminate\Http\Request;
 
 class ExpenseController extends AsayController

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\View;
 
+use App\Http\Controllers\Controller;
 use App\Model\UserModel;
 use Illuminate\Http\Request;
 use App\Library\Bitrix;

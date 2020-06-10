@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Model\UserMenuModel;
 use App\Model\UserModel;
 use Illuminate\Http\Request;
-use App\Library\Bitrix;
 
 class AuthController extends Controller
 {

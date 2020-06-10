@@ -15,7 +15,7 @@ class UserMenuModel extends Model {
         foreach ($UserGroup as $key=>$item) {
             $userGroupIds[] = $key;
         }
-        $TemplatesQ = UseGroupHasTemplateModel::whereIn("group_id",$userGroupIds);
+        $TemplatesQ = UserGroupHasTemplateModel::whereIn("group_id",$userGroupIds);
         $Menus      = [];
         if($TemplatesQ->count()>0) {
             $Templates = $TemplatesQ->get();
@@ -43,7 +43,7 @@ class UserMenuModel extends Model {
         return self::CreateMenu($Menus,0);
     }
 
-    public function CreateMenu($Menus=[],$key)
+    public static function CreateMenu($Menus=[],$key)
     {
         $x = 0 ;
         if(count($Menus)>0)

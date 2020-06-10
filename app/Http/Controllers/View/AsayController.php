@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\View;
+
+use App\Http\Controllers\Controller;
 
 class AsayController extends Controller
 {

@@ -11,20 +11,20 @@
 |
 */
 
-Route::get('/', "Ik\DefaultController@index")->name("home");
-Route::get('ik/employee/list', "Ik\DefaultController@employee_list")->name("employee_list");
-Route::get('calendar', "Ik\DefaultController@calendar")->name("calendar");
-Route::get('settings', "Ik\DefaultController@settings")->name("settings");
-Route::get('processes', "Ik\DefaultController@processes")->name("processes");
-Route::get('projects', "Ik\DefaultController@projects")->name("projects");
-Route::get('structure', "Ik\DefaultController@structure")->name("structure");
+Route::get('/', "View\Ik\DefaultController@index")->name("home");
+Route::get('ik/employee/list', "View\Ik\DefaultController@employee_list")->name("employee_list");
+Route::get('calendar', "View\Ik\DefaultController@calendar")->name("calendar");
+Route::get('settings', "View\Ik\DefaultController@settings")->name("settings");
+Route::get('processes', "View\Ik\DefaultController@processes")->name("processes");
+Route::get('projects', "View\Ik\DefaultController@projects")->name("projects");
+Route::get('structure', "View\Ik\DefaultController@structure")->name("structure");
 
-Route::get('login', "AuthController@login")->name("login");
-Route::get('logout', "AuthController@logout")->name("logout");
-Route::post('login', "AuthController@loginPost")->name("loginPost");
+Route::get('login', "View\AuthController@login")->name("login");
+Route::get('logout', "View\AuthController@logout")->name("logout");
+Route::post('login', "View\AuthController@loginPost")->name("loginPost");
 
 //Employee Route
-Route::namespace("Ik")->group(function(){
+Route::namespace("View\Ik")->group(function(){
     Route::prefix("ik/employee")->group(function(){
         Route::get('add', "DefaultController@employee_add")->name("employee_add");
         Route::get('edit/general/{id}', "DefaultController@employee_edit")->name("employee_edit");
@@ -40,7 +40,7 @@ Route::namespace("Ik")->group(function(){
 
 
 //Processes Route
-Route::namespace("Processes")->group(function(){
+Route::namespace("View\Processes")->group(function(){
 
     //Expense User
     Route::prefix("processes/expense")->group(function(){

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Ik;
+namespace App\Http\Controllers\View\Ik;
 
-use App\Http\Controllers\AsayController;
+use App\Http\Controllers\View\AsayController;
 use App\Model\Ik\Employee\City;
 use App\Model\Ik\Employee\Country;
 use App\Model\Ik\Employee\EducationLevel;
