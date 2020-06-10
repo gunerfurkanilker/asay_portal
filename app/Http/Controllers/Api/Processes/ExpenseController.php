@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Model\AsayCariModel;
-use App\Model\ExpenseDocumentElementModel;
-use App\Model\ExpenseDocumentModel;
-use App\Model\ExpenseModel;
+use App\Model\AsayExpenseDocumentElementModel;
+use App\Model\AsayExpenseDocumentModel;
 use App\Model\AsayProjeModel;
 use App\Model\UserModel;
+use App\Model\AsayExpenseModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,14 +19,14 @@ class ExpenseController extends ApiController
    public function expenseList(Request $request)
    {
        $status = ($request->input("status")===false) ? "" : $request->input("status");
-       $user = UserModel::find($request->userId);
-       $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
-           ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
-           ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-           ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id])
-           ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
+       $user = UserModel::find(UserTokensModel::where(["user_token"=>$request->input("token")])->first()->user_id);
+       $expenseQ = AsayExpenseModel::select("asay_expense.*",DB::raw("SUM(asay_expense_document_element.TUTAR) AS TUTAR"))
+           ->leftJoin("asay_expense_document","asay_expense_document.EXPENSE_ID","=","asay_expense.ID")
+           ->leftJoin("asay_expense_document_element","asay_expense_document_element.DOCUMENT_ID","=","asay_expense_document.ID")
+           ->where(["asay_expense.ACTIVE"=>1,"asay_expense.USER_ID"=>$user->id])
+           ->groupBy("asay_expense.ID")->orderBy("asay_expense.DATE_CREATE","DESC");
        if($status<>0)
-           $expenseQ->where(["Expense.status"=>$status]);
+           $expenseQ->where(["asay_expense.STATUS"=>$status]);
 
        $data["manager"] = $user->user_property->manager;
        $data["expenses"] = $expenseQ->get();
@@ -68,7 +68,7 @@ class ExpenseController extends ApiController
 
    public function getAccountBalance(Request $request)
    {
-       $user = UserModel::find($request->userId);
+       $user = UserModel::find(UserTokensModel::where(["user_token"=>$request->input("token")])->first()->user_id);
 
        $CariKod = DB::connection('sqlsrvn')->select("SELECT CARI_KOD FROM TBLCASABIT WHERE CARI_KOD LIKE 'P%' AND CARI_KOD NOT LIKE 'PS%' and EMAIL= :email",["email"=>$user->email]);
        if(count($CariKod)>0)
@@ -132,16 +132,16 @@ class ExpenseController extends ApiController
    {
        $user = UserModel::find(UserTokensModel::where(["user_token"=>$request->input("token")])->first()->user_id);
        $post["type"]                = $request->input("type");
-       $post["name"]                = $request->input("name");
-       $post["expense_type"]        = $request->input("expense_type");
-       $post["project_id"]          = $request->input("project_id");
-       $post["category_id"]         = $request->input("category_id")!==null ? $request->input("category_id") : "";
-       $post["description"]         = $request->input("description");
+       $post["NAME"]                = $request->input("NAME");
+       $post["EXPENSE_TYPE"]        = $request->input("EXPENSE_TYPE");
+       $post["EXPENSE_TYPE_VALUE"]  = $request->input("EXPENSE_TYPE_VALUE");
+       $post["MASRAF_SEKLI"]        = $request->input("MASRAF_SEKLI");
+       $post["CONTENT"]             = $request->input("CONTENT");
        $post["expense_id"]          = $request->input("expense_id");
        $expense_id                  = $post["expense_id"];
        if($post["type"]=="onay")
        {
-           $expenseDocument = ExpenseDocumentModel::where(["expense_id"=>$expense_id,"active"=>1]);
+           $expenseDocument = AsayExpenseDocumentModel::where(["EXPENSE_ID"=>$expense_id,"ACTIVE"=>1]);
            if($expenseDocument->count()==0)
            {
                return response([
@@ -149,11 +149,11 @@ class ExpenseController extends ApiController
                    'message' => "Masrafa Belge Eklemeden Onaya Gönderilemez."
                ], 200);
            }
-           $documentCari = ExpenseDocumentModel::where(["expense_id"=>$expense_id,"active"=>1,"document_type"=>"Faturalı"])
+           $documentCari = AsayExpenseDocumentModel::where(["EXPENSE_ID"=>$expense_id,"ACTIVE"=>1,"BELGE_TYPE"=>"Faturalı"])
                ->where(function ($query) {
-                   $query->where('netsis_carikod', '=', "0")
-                       ->orWhere('netsis_carikod', '=', "")
-                       ->orWhere('netsis_carikod', '=', null);
+                   $query->where('CARIKOD', '=', "0")
+                       ->orWhere('CARIKOD', '=', "")
+                       ->orWhere('CARIKOD', '=', null);
                });
            if($documentCari->count()>0)
            {
@@ -166,36 +166,35 @@ class ExpenseController extends ApiController
 
 
        if($expense_id=="")
-           $AsayExpense = new ExpenseModel();
+           $AsayExpense = new AsayExpenseModel();
        else
-           $AsayExpense = ExpenseModel::find($expense_id);
-
-       $AsayExpense->name               = $post["name"];
-       $AsayExpense->project_id         = $post["project_id"]!==null ? $post["project_id"] : "";
-       $AsayExpense->category_id        = $post["category_id"]!==null ? $post["category_id"] : "";
-       $AsayExpense->expense_type       = $post["expense_type"];
-       $AsayExpense->description        = $post["description"];
-       $AsayExpense->user_id            = $user->id;
+           $AsayExpense = AsayExpenseModel::find($expense_id);
+       $AsayExpense->NAME               = $post["NAME"];
+       $AsayExpense->EXPENSE_TYPE_VALUE = (isset($post["EXPENSE_TYPE_VALUE"])) ? $post["EXPENSE_TYPE_VALUE"] : "";
+       $AsayExpense->EXPENSE_TYPE       = $post["EXPENSE_TYPE"];
+       $AsayExpense->MASRAF_SEKLI       = $post["MASRAF_SEKLI"];
+       $AsayExpense->CONTENT            = $post["CONTENT"];
+       $AsayExpense->USER_ID            = $user->id;
        if($post["type"]=="kaydet")
        {
-           $AsayExpense->status = 0;
+           $AsayExpense->STATUS = 0;
        }
        elseif($post["type"]=="onay")
        {
-           $AsayExpense->status = 1;
+           $AsayExpense->STATUS = 1;
        }
 
        if($AsayExpense->save())
        {
            if($post["type"]=="onay")
            {
-               ExpenseDocumentModel::update(["status"=>1])->where(["expense_id"=>$expense_id]);
+               AsayExpenseDocumentModel::update(["STATUS"=>1])->where(["EXPENSE_ID"=>$expense_id]);
            }
            return response([
                'status' => true,
                'type' => $post["type"],
                'data' => [
-                   "expense_id"=>$AsayExpense->id
+                   "expense_id"=>$AsayExpense->ID
                ]
            ], 200);
        }
@@ -210,18 +209,12 @@ class ExpenseController extends ApiController
 
    public function getExpense(Request $request)
    {
-        $user_id = $request->userId;
-        $expenseId = $request->input("expense_id");
-        $asayExpense = ExpenseModel::find($expenseId);
 
-        if($asayExpense===null)
-        {
-            return response([
-                'status' => false,
-                'message' => "Harcama Belgesi Bulunamadı"
-            ], 200);
-        }
-        else if($asayExpense->user_id==$user_id)
+        $user_id = UserTokensModel::where(["user_token"=>$request->input("token")])->first()->user_id;
+        $expenseId = $request->input("expense_id");
+        $asayExpense = AsayExpenseModel::find($expenseId);
+
+        if($asayExpense->USER_ID==$user_id)
         {
             return response([
                 'status' => true,
@@ -240,23 +233,23 @@ class ExpenseController extends ApiController
    public function getExpenseDocuments(Request $request)
    {
        $expenseId = $request->input("expense_id");
-       $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
-           ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId])
-           ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-           ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
-           ->groupBy("ExpenseDocument.id");
+       $expenseDocumentsQ = AsayExpenseDocumentModel::select("asay_expense_document.*",DB::raw("SUM(asay_expense_document_element.TUTAR) TTUTAR"))
+           ->where(["asay_expense_document.ACTIVE"=>1,"asay_expense_document.EXPENSE_ID"=>$expenseId,"asay_expense.USER_ID"=>$request->userId])
+           ->leftJoin("asay_expense_document_element","asay_expense_document_element.DOCUMENT_ID","=","asay_expense_document.ID")
+           ->leftJoin("asay_expense","asay_expense_document.EXPENSE_ID","=","asay_expense.ID")
+           ->groupBy("asay_expense_document.ID");
 
        $SumTutar = 0;
        if($expenseDocumentsQ->count()>0)
        {
            $expenseDocuments = $expenseDocumentsQ->get();
            foreach ($expenseDocuments as $expenseDocument) {
-               if($expenseDocument->cari_tip==1)
+               if($expenseDocument->CARI_TIP==1)
                {
-                   $Cari = AsayCariModel::find($expenseDocument->netsis_carikod);
+                   $Cari = AsayCariModel::find($expenseDocument->CARIKOD);
                    $expenseDocument->CARI_ISIM = $Cari->CariIsim;
                }
-               elseif($expenseDocument->document_type=="Faturalı" && $expenseDocument->cari_tip<>1)
+               elseif($expenseDocument->BELGE_TYPE=="Faturalı" && $expenseDocument->CARI_TIP<>1)
                {
                    $CariIsim = DB::connection('sqlsrvn')->select("SELECT CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE CARI_KOD= :cari_kod",["cari_kod"=>$expenseDocument->CARIKOD]);
                    if(count($CariIsim)>0)
