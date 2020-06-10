@@ -10,6 +10,7 @@ class ExpenseModel extends Model
     protected $primaryKey = "id";
     protected $appends = [
         'Project',
+        'Category'
     ];
 
     public $timestamps = false;
@@ -32,4 +33,20 @@ class ExpenseModel extends Model
         }
 
     }
+
+    public function getCategoryAttribute()
+    {
+
+        $category = $this->hasOne(ProjectCategoriesModel::class,"id","category_id");
+        if ($category)
+        {
+            return $category->first();
+        }
+        else
+        {
+            return null;
+        }
+
+    }
+
 }

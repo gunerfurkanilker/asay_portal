@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserModel;
 use App\Model\UserProjectsModel;
@@ -35,8 +36,12 @@ class ProjectController extends ApiController
         {
 
             $prj = ProjectsModel::find($project->project_id);
+
             if($prj)
+            {
                 array_push($projectList,$prj);
+            }
+
 
 
         }
@@ -45,6 +50,24 @@ class ProjectController extends ApiController
 
         return response([
             'status' => true,
+            'data' => $data
+        ], 200);
+
+    }
+
+    public function categoryListOfProject(Request $request) {
+
+        $data = [];
+
+        $project_id = $request->input('project_id');
+
+        $categories = ProjectCategoriesModel::where('project_id',$project_id)->get();
+
+        $data['categories'] = $categories;
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
             'data' => $data
         ], 200);
 
