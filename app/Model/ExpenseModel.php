@@ -10,7 +10,6 @@ class ExpenseModel extends Model
     protected $primaryKey = "id";
     protected $appends = [
         'Project',
-        'ProjectCategory',
     ];
 
     public $timestamps = false;
