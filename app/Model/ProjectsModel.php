@@ -23,6 +23,7 @@ class ProjectsModel extends Model
     {
 
         $manager = $this->hasOne(UserModel::class,"id","manager_id");
+
         if ($manager)
         {
             return $manager->first();
