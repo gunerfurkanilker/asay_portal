@@ -208,6 +208,64 @@ class ExpenseController extends ApiController
         }
     }
 
+    public function documentSave(Request $request)
+    {
+        $documentId = $request->document_id!==null ? $request->document_id : "";
+        if($documentId!="")
+        {
+            $expenseDocument    = ExpenseDocumentModel::find($documentId);
+            if($expenseDocument===null)
+                $expenseDocument = new ExpenseDocumentModel();
+        }
+        else
+        {
+            $expenseDocument = new ExpenseDocumentModel();
+        }
+        $expenseDocument->expense_id        = $request->expense_id;
+        $expenseDocument->cari_tip          = $request->cari_tip;
+        $expenseDocument->document_date     = date("Y-m-d",strtotime($request->document_date));
+        $expenseDocument->document_number   = $request->document_number;
+        $expenseDocument->document_type     = $request->document_type;
+        $expenseDocument->currency          = $request->currency;
+        $expenseDocument->netsis_carikod    = $request->netsis_carikod;
+        $expenseDocument->active            = 1;
+        $expenseDocument->save();
+        $documentId = $expenseDocument->id;
+
+        ExpenseDocumentElementModel::where(["document_id"=>$documentId])->update(["active"=>0]);
+        if(count($request->element))
+        {
+            foreach ($request->element as $element) {
+                $elementId = isset($element["element_id"]) ? $element["element_id"] : "";
+                if($elementId!="")
+                {
+                    $expenseDocumentElement    = ExpenseDocumentElementModel::find($elementId);
+                    if($expenseDocumentElement===null)
+                        $expenseDocumentElement = new ExpenseDocumentElementModel();
+                }
+                else
+                {
+                    $expenseDocumentElement = new ExpenseDocumentElementModel();
+                }
+                $expenseDocumentElement->document_id        = $documentId;
+                $expenseDocumentElement->expense_account    = $element["expense_account"];
+                $expenseDocumentElement->content            = $element["content"];
+                $expenseDocumentElement->quantity           = $element["quantity"];
+                $expenseDocumentElement->kdv                = $element["kdv"];
+                $expenseDocumentElement->price              = $element["price"];
+                $expenseDocumentElement->amount             = number_format(($element["quantity"]*$element["price"])*(($element["kdv"]/100)+1), 2, '.', '');
+                $expenseDocumentElement->active             = 1;
+                $expenseDocumentElement->save();
+            }
+        }
+
+        return response([
+            'status' => true,
+            'message' => "Belge Kaydı Yapıldı",
+        ], 200);
+
+    }
+
     public function getExpense(Request $request)
     {
         $user_id = $request->userId;
@@ -237,7 +295,46 @@ class ExpenseController extends ApiController
         }
     }
 
-    public function getExpenseDocuments(Request $request)
+    public function getExpenseDocument(Request $request)
+    {
+        $user_id = $request->userId;
+        $documentId = $request->input("document_id");
+        $asayExpenseDocument = ExpenseDocumentModel::find($documentId);
+
+        if($asayExpenseDocument===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Bulunamadı"
+            ], 200);
+        }
+        else
+        {
+            $asayExpense = ExpenseModel::find($asayExpenseDocument->expense_id);
+            if($asayExpense->user_id==$user_id)
+            {
+                $documentElement = ExpenseDocumentElementModel::where(["document_id"=>$asayExpenseDocument->id])->get();
+
+                return response([
+                    'status' => true,
+                    'data' =>
+                    [
+                        "document"          =>  $asayExpenseDocument,
+                        "documentElement"   => $documentElement
+                    ]
+                ], 200);
+            }
+            else
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Yetkisiz İşlem"
+                ], 200);
+            }
+        }
+    }
+
+    public function expenseDocumentList(Request $request)
     {
         $expenseId = $request->input("expense_id");
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
@@ -314,9 +411,45 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
-    public function cariEkle()
+    public function currentSave(Request $request)
     {
-
+        $currentId = $request->CariID!==null ? $request->CariID : "";
+        if($currentId!="")
+        {
+            $expenseCurrentCount      = AsayCariModel::where(["id"=>$currentId])->count();
+            if($expenseCurrentCount>0)
+                $expenseCurrent = AsayCariModel::find($currentId);
+            else
+                $expenseCurrent = new AsayCariModel();
+        }
+        else
+        {
+            $expenseCurrent = new AsayCariModel();
+        }
+        $expenseCurrent->CariIsim		    = $request->CariIsim;
+        $expenseCurrent->CariUlkeKodu	    = $request->CariUlkeKodu;
+        $expenseCurrent->CariIl			    = $request->CariIl;
+        $expenseCurrent->CariIlce		    = $request->CariIlce;
+        $expenseCurrent->CariAdres		    = $request->CariAdres;
+        $expenseCurrent->CariVergiDairesi   = $request->CariVergiDairesi;
+        $expenseCurrent->CariVergiNo		= $request->CariVergiNo;
+        $expenseCurrent->CariTelefon		= $request->CariTelefon;
+        $expenseCurrent->CariFax			= $request->CariFax;
+        $expenseCurrent->Netsis			    = 0;
+        if($expenseCurrent->save())
+        {
+            return response([
+                'status' => true,
+                'data' => ["cariId"=>$expenseCurrent->ID]
+            ], 200);
+        }
+        else
+        {
+            return response([
+                'status' => false,
+                'message' => "Kayıt Yapılırken Hata Oluştu",
+            ], 200);
+        }
     }
 
 }

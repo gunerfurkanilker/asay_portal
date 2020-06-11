@@ -25,11 +25,12 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/usersProject/list', "Processes\ProjectController@projectListOfUser")->name("project_projectListOfUser");
 
     Route::post('processes/expense/expenseSave', "Processes\ExpenseController@expenseSave")->name("expense_expenseSave");
+    Route::post('processes/expense/documentSave', "Processes\ExpenseController@documentSave")->name("expense_documentSave");
     Route::get('processes/expense/getExpense', "Processes\ExpenseController@getExpense")->name("expense_getExpense");
-    Route::post('processes/expense/addDocument', "Processes\ExpenseController@addDocument")->name("expense_addDocument");
-    Route::get('processes/expense/getExpenseDocuments', "Processes\ExpenseController@getExpenseDocuments")->name("expense_getExpenseDocuments");
+    Route::get('processes/expense/getExpenseDocument', "Processes\ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
+    Route::get('processes/expense/expenseDocumentList', "Processes\ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
 
-    Route::post('processes/expense/cariEkle', "Processes\ExpenseController@cariEkle")->name("expense_cariEkle");
+    Route::post('processes/expense/currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
 
 
     Route::get('processes/expense/getCrmProjectCode', "Processes\ExpenseController@getCrmProjectCode")->name("expense_getCrmProjectCode");
