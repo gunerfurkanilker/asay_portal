@@ -9,6 +9,8 @@ use App\Model\ExpenseDocumentElementModel;
 use App\Model\ExpenseDocumentModel;
 use App\Model\ExpenseModel;
 use App\Model\AsayProjeModel;
+use App\Model\ProjectCategoriesModel;
+use App\Model\ProjectsModel;
 use App\Model\UserModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
@@ -450,6 +452,77 @@ class ExpenseController extends ApiController
                 'message' => "Kayıt Yapılırken Hata Oluştu",
             ], 200);
         }
+    }
+
+    public function listNetsisCurrent(Request $request)
+    {
+        $search = $request->input("search");
+        $currents = DB::connection('sqlsrvn')->select("SELECT TOP 10 CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE (CARI_KOD LIKE 'D%' OR (CARI_KOD LIKE 'S%' AND CARI_KOD NOT LIKE 'S%D' AND CARI_KOD NOT LIKE 'S%E')) AND CARI_ISIM LIKE N'%".$search."%'");
+        foreach ($currents as $current) {
+            $current->netsis = 1;
+            $cariler[] = $current;
+        }
+
+        $currents = AsayCariModel::where(["Netsis"=>0])->where('CariIsim', 'like', '%' . $search . '%')->get();
+        foreach ($currents as $current) {
+            $current->netsis = 0;
+            $cariler[] = $current;
+        }
+
+        foreach($cariler as $key => $cari) {
+            if ($cari->netsis == 0) {
+                $array[$key]["id"] = $cari->ID;
+                $array[$key]["value"] = $cari->CariIsim;
+                $array[$key]["netsis"] = 1;
+            } else {
+                $array[$key]["id"] = $cari->CARI_KOD;
+                $array[$key]["value"] = $cari->CARI_ISIM;
+                $array[$key]["netsis"] = 0;
+            }
+        }
+        return response([
+            'status' => true,
+            'data' => $array
+        ], 200);
+    }
+
+
+    public function expensePendingList(Request $request)
+    {
+        //1:Proje Yönetici, 2:Muhasebe
+        $status = ($request->input("status")!==null) ? $request->input("status") : 1;
+        $status = $status==0 ? 1 : $status;
+        $user = UserModel::find($request->userId);
+        $projects   = ProjectsModel::where(["manager_id"=>$user->id])->pluck("id");
+        $categories = ProjectCategoriesModel::where(["manager_id"=>$user->id])->pluck("id");
+        if(count($projects)==0 && count($categories)==0)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yöneticisi Olduğunuz Proje Yok.",
+            ], 200);
+        }
+
+        $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
+            ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
+            ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
+            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id]);
+        if($status==1)
+        {
+            $expenseQ->where(function($query) use($projects,$categories){
+                $query->whereIn("project_id",$projects);
+                $query->whereIn("category_id",$categories,"OR");
+            });
+        }
+        $expenseQ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
+            $expenseQ->where(["Expense.status"=>$status]);
+
+        $data["expenses"] = $expenseQ->get();
+
+        return response([
+            'status' => true,
+            'data' => $data
+        ], 200);
     }
 
 }
