@@ -30,6 +30,7 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getExpense', "Processes\ExpenseController@getExpense")->name("expense_getExpense");
     Route::get('processes/expense/getExpenseDocument', "Processes\ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
     Route::get('processes/expense/expenseDocumentList', "Processes\ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
+    Route::get('processes/expense/expensePendingList', "Processes\ExpenseController@expensePendingList")->name("expense_expensePendingList");
 
     Route::post('processes/expense/currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
 
@@ -38,6 +39,7 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getParaBirimleri', "Processes\ExpenseController@getParaBirimleri")->name("expense_getParaBirimleri");
     Route::get('processes/expense/getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
     Route::get('processes/expense/getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
+    Route::get('processes/expense/listNetsisCurrent', "Processes\ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
 
     Route::namespace("Ik")->group(function(){
 
