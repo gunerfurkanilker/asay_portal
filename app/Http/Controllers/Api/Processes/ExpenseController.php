@@ -388,15 +388,17 @@ class ExpenseController extends ApiController
 
     public function getParaBirimleri()
     {
-        $parabirimleri["00"] = "TRY";
+        $parabirimleri = array(
+            'ISIM' => 'TRY',
+            'SIRA' => '00'
+        );
+
         $ParaQ = DB::connection('sqlsrv_net')->select("SELECT SIRA,dbo.TO_ENG(ISIM) as ISIM FROM KUR");
-        foreach ($ParaQ as $item) {
-            $parabirimleri[$item->SIRA] = $item->ISIM;
-        }
+        array_unshift($ParaQ,$parabirimleri);
 
         return response([
             'status' => true,
-            'data' => $parabirimleri
+            'data' => $ParaQ
         ], 200);
     }
 
@@ -457,6 +459,8 @@ class ExpenseController extends ApiController
     public function listNetsisCurrent(Request $request)
     {
         $search = $request->input("search");
+        $cariler = [];
+
         $currents = DB::connection('sqlsrvn')->select("SELECT TOP 10 CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE (CARI_KOD LIKE 'D%' OR (CARI_KOD LIKE 'S%' AND CARI_KOD NOT LIKE 'S%D' AND CARI_KOD NOT LIKE 'S%E')) AND CARI_ISIM LIKE N'%".$search."%'");
         foreach ($currents as $current) {
             $current->netsis = 1;
@@ -468,7 +472,7 @@ class ExpenseController extends ApiController
             $current->netsis = 0;
             $cariler[] = $current;
         }
-
+        $array = [];
         foreach($cariler as $key => $cari) {
             if ($cari->netsis == 0) {
                 $array[$key]["id"] = $cari->ID;
