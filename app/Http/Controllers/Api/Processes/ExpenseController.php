@@ -565,6 +565,46 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
+
+    public function deleteDocument(Request $request)
+    {
+        $documentId = $request->documentId;
+        if($documentId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Id Boş Olamaz"
+            ], 200);
+        }
+        $document = ExpenseDocumentModel::find($documentId);
+        $expense = ExpenseModel::find($document->expense_id);
+        if($expense->user_id!=$request->userId)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+        ExpenseDocumentElementModel::where(["document_id"=>$documentId])->update(["active"=>0]);
+        $document->active=0;
+        $documentResult = $document->save();
+        if($documentResult){
+            return response([
+                'status' => true,
+                'message' => "Belge Silme Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Silme Başarısız"
+            ], 200);
+        }
+
+    }
+
+
+
     public function userTakeBack(Request $request)
     {
         $expenseId = $request->expenseId;
