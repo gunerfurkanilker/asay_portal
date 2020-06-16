@@ -25,7 +25,7 @@ class ExpenseController extends ApiController
         $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id,"active"=>1])
+            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id])
             ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
         if($status<>0)
             $expenseQ->where(["Expense.status"=>$status]);
@@ -340,7 +340,7 @@ class ExpenseController extends ApiController
     {
         $expenseId = $request->input("expense_id");
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
-            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId,"active"=>1])
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId])
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
             ->groupBy("ExpenseDocument.id");
