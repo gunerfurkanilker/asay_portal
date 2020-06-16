@@ -25,7 +25,7 @@ class ExpenseController extends ApiController
         $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id])
+            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id,"active"=>1])
             ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
         if($status<>0)
             $expenseQ->where(["Expense.status"=>$status]);
@@ -315,7 +315,7 @@ class ExpenseController extends ApiController
             $asayExpense = ExpenseModel::find($asayExpenseDocument->expense_id);
             if($asayExpense->user_id==$user_id)
             {
-                $documentElement = ExpenseDocumentElementModel::where(["document_id"=>$asayExpenseDocument->id])->get();
+                $documentElement = ExpenseDocumentElementModel::where(["document_id"=>$asayExpenseDocument->id,"active"=>1])->get();
 
                 return response([
                     'status' => true,
@@ -340,7 +340,7 @@ class ExpenseController extends ApiController
     {
         $expenseId = $request->input("expense_id");
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
-            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId])
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId,"active"=>1])
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
             ->groupBy("ExpenseDocument.id");
@@ -529,4 +529,200 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
+    public function expenseDelete(Request $request)
+    {
+        $expenseId = $request->expenseId;
+        if($expenseId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Masraf Id Boş Olamaz"
+            ], 200);
+        }
+
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"user_id"=>$request->userId,"status"=>0]);
+        if($expenseQ->count()==0)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+        $expense = $expenseQ->update(["active"=>0]);
+
+        $documentsQ = ExpenseDocumentModel::where(["expense_id"=>$expenseId]);
+        foreach ($documentsQ->get() as $document) {
+            ExpenseDocumentElementModel::where(["document_id"=>$document->id])->update(["active"=>0]);
+        }
+        $documentsQ->update(["active"=>0]);
+        return response([
+            'status' => true,
+            'message' => "Kayıt Silindi"
+        ], 200);
+    }
+
+    public function userTakeBack(Request $request)
+    {
+        $expenseId = $request->expenseId;
+        if($expenseId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Masraf Id Boş Olamaz"
+            ], 200);
+        }
+
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"user_id"=>$request->userId,"active"=>1])->where("status","<=",1);
+        if($expenseQ->count()==0)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+        $expense = $expenseQ->update(["status"=>0]);
+
+        $documentsQ = ExpenseDocumentModel::where(["expense_id"=>$expenseId]);
+        $documentsQ->update(["manager_status"=>0,"accounting_status"=>0]);
+        return response([
+            'status' => true,
+            'message' => "Geri Alındı"
+        ], 200);
+    }
+
+    public function expenseDocumentConfirm(Request $request)
+    {
+        $documentId = $request->documentId;
+        if($documentId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Id Boş Olamaz"
+            ], 200);
+        }
+        $document = ExpenseDocumentModel::find($documentId);
+        $expense = ExpenseModel::find($document->expense_id);
+        if($expense->status!==$request->column)
+        {
+            return response([
+                'status' => false,
+                'message' => "Masraf Uygun Statüde Değil"
+            ], 200);
+        }
+
+        if($request->confirm==1)
+            $confirm = 1;
+        else{
+            $confirm = 2;
+            $document->netsis=2;
+            $document->accounting_status = 2;
+        }
+
+        if($request->column==1)
+            $document->manager_status = $confirm;
+        else if($request->column==2)
+            $document->accounting_status = $confirm;
+
+        $documentResult = $document->save();
+        if($documentResult){
+            return response([
+                'status' => true,
+                'message' => "Onay Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Onaylama Başarısız"
+            ], 200);
+        }
+
+    }
+
+
+    public function documentConfirmTakeBack(Request $request)
+    {
+        $documentId = $request->documentId;
+        if($documentId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Id Boş Olamaz"
+            ], 200);
+        }
+        $document = ExpenseDocumentModel::find($documentId);
+        $expense = ExpenseModel::find($document->expense_id);
+        if($expense->status!==$request->column)
+        {
+            return response([
+                'status' => false,
+                'message' => "Masraf Uygun Statüde Değil"
+            ], 200);
+        }
+
+        if($request->column==1){
+            $document->manager_status = 0;
+            $document->accounting_status = 0;
+            $document->netsis=0;
+        }
+        else if($request->column==2)
+        {
+            $document->accounting_status = 0;
+            $document->netsis=0;
+        }
+        $documentResult = $document->save();
+
+        if($documentResult){
+            return response([
+                'status' => true,
+                'message' => "Geri Alma Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Geri Alma Başarısız"
+            ], 200);
+        }
+
+    }
+
+    public function expenseComplete(Request $request)
+    {
+        $expenseId = $request->expenseId;
+        if($expenseId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Masraf Id Boş Olamaz"
+            ], 200);
+        }
+
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"active"=>1])->whereIn("status",[1]);
+        $expenseDocumentCount = ExpenseDocumentModel::where(["expense_id"=>$expenseId,"active"=>1,"manager_status"=>0])->count();
+
+        if($expenseQ->count()==0 || $expenseDocumentCount>0)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
+        $expenseResult = $expenseQ->update(["status"=>2]);
+        //TODO Mail gönderilecek
+
+        if($expenseResult){
+            return response([
+                'status' => true,
+                'message' => "Tamamlandı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Tamamlama Başarısız"
+            ], 200);
+        }
+    }
 }

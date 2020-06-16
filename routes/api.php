@@ -32,6 +32,11 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getExpenseDocument', "Processes\ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
     Route::get('processes/expense/expenseDocumentList', "Processes\ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
     Route::get('processes/expense/expensePendingList', "Processes\ExpenseController@expensePendingList")->name("expense_expensePendingList");
+    Route::delete('processes/expense/expenseDelete', "Processes\ExpenseController@expenseDelete")->name("expense_expenseDelete");
+    Route::put('processes/expense/userTakeBack', "Processes\ExpenseController@userTakeBack")->name("expense_userTakeBack");
+    Route::put('processes/expense/expenseDocumentConfirm', "Processes\ExpenseController@expenseDocumentConfirm")->name("expense_expenseDocumentConfirm");
+    Route::put('processes/expense/documentConfirmTakeBack', "Processes\ExpenseController@documentConfirmTakeBack")->name("expense_documentConfirmTakeBack");
+    Route::put('processes/expense/expenseComplete', "Processes\ExpenseController@expenseComplete")->name("expense_expenseComplete");
 
     Route::post('processes/expense/currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
 
