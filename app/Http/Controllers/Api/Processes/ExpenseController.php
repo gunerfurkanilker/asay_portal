@@ -496,21 +496,25 @@ class ExpenseController extends ApiController
         //1:Proje Yönetici, 2:Muhasebe
         $status = ($request->input("status")!==null) ? $request->input("status") : 1;
         $status = $status==0 ? 1 : $status;
-        $user = UserModel::find($request->userId);
-        $projects   = ProjectsModel::where(["manager_id"=>$user->id])->pluck("id");
-        $categories = ProjectCategoriesModel::where(["manager_id"=>$user->id])->pluck("id");
-        if(count($projects)==0 && count($categories)==0)
+        if($status==1)
         {
-            return response([
-                'status' => false,
-                'message' => "Yöneticisi Olduğunuz Proje Yok.",
-            ], 200);
+            $user = UserModel::find($request->userId);
+            $projects   = ProjectsModel::where(["manager_id"=>$user->id])->pluck("id");
+            $categories = ProjectCategoriesModel::where(["manager_id"=>$user->id])->pluck("id");
+            if(count($projects)==0 && count($categories)==0)
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Yöneticisi Olduğunuz Proje Yok.",
+                ], 200);
+            }
+
         }
 
         $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id]);
+            ->where(["Expense.active"=>1]);
         if($status==1)
         {
             $expenseQ->where(function($query) use($projects,$categories){
