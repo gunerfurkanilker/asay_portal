@@ -40,6 +40,7 @@ Route::namespace("Api")->group(function(){
     Route::put('processes/expense/expenseComplete', "Processes\ExpenseController@expenseComplete")->name("expense_expenseComplete");
 
     Route::post('processes/expense/currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
+    Route::post('processes/expense/SendCurrentToNetsis', "Processes\ExpenseController@SendCurrentToNetsis")->name("expense_SendCurrentToNetsis");
 
 
     Route::get('processes/expense/getCrmProjectCode', "Processes\ExpenseController@getCrmProjectCode")->name("expense_getCrmProjectCode");

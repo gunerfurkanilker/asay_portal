@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
+use App\Library\Cari;
 use App\Model\AsayCariModel;
 use App\Model\ExpenseDocumentElementModel;
 use App\Model\ExpenseDocumentModel;
@@ -15,6 +16,7 @@ use App\Model\UserModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use SoapClient;
 
 class ExpenseController extends ApiController
 {
@@ -189,10 +191,6 @@ class ExpenseController extends ApiController
 
         if($AsayExpense->save())
         {
-            if($post["type"]=="onay")
-            {
-                ExpenseDocumentModel::update(["status"=>1])->where(["expense_id"=>$expense_id]);
-            }
             return response([
                 'status' => true,
                 'type' => $post["type"],
@@ -766,6 +764,122 @@ class ExpenseController extends ApiController
             return response([
                 'status' => false,
                 'message' => "Tamamlama Başarısız"
+            ], 200);
+        }
+    }
+
+    public function SendCurrentToNetsis(Request $request)
+    {
+        $Cari = new \stdClass();
+        $Cari->CariAdres			 = $request->input("CariAdres");
+        $Cari->CariEmail			 = "";
+        $Cari->CariFax				 = $request->input("CariFax");
+        $Cari->CariHesapTipi		 = "K";
+        $Cari->CariIl				 = $request->input("CariIl");
+        $Cari->CariIlce				 = $request->input("CariIlce");
+        $Cari->CariIsim				 = $request->input("CariIsim");
+        $Cari->CariKodCRM			 = "";
+        $Cari->CariKodNetsis		 = "";
+        $Cari->CariMusteriTipi		 = "S";
+        $Cari->CariPostaKodu		 = "";
+        $Cari->CariTCKN				 = $request->input("CariTCKN");
+        $Cari->CariTelefon			 = $request->input("CariTelefon");
+        $Cari->CariUlkeKodu			 = $request->input("CariUlkeKodu");
+        $Cari->CariVergiDairesi		 = $request->input("CariVergiDairesi");
+        $Cari->CariVergiNo			 = $request->input("CariVergiNo");
+        $Cari->CariWebAdresi		 = "";
+        $Cari->DovizliCari			 = "true";
+        $Cari->Isletme 				 = "Asay_Iletisim";
+
+
+        $set = array();
+        $set["CariIsim"] 			= $request->input("CariIsim");
+        $set["CariUlkeKodu"] 		= $request->input("CariUlkeKodu");
+        $set["CariIl"] 				= $request->input("CariIl");
+        $set["CariIlce"] 			= $request->input("CariIlce");
+        $set["CariAdres"] 			= $request->input("CariAdres");
+        $set["CariVergiDairesi"] 	= $request->input("CariVergiDairesi");
+        $set["CariVergiNo"] 		= $request->input("CariVergiNo");
+        $set["CariTelefon"] 		= $request->input("CariTelefon");
+        $set["CariFax"] 			= $request->input("CariFax");
+        if($request->input("NetsisKod")!="0")
+        {
+            $set["NetsisCariKod"] 	= $request->input("NetsisKod");
+            $set["Netsis"] 			= 1;
+        }
+        else
+        {
+            $set["Netsis"] 		= 0;
+        }
+        AsayCariModel::where(["ID"=>$request->input("CariId")])->update($set);
+
+        if($set["Netsis"]==0)
+        {
+            $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+            ini_set('soap.wsdl_cache_enabled', 0);
+            ini_set('soap.wsdl_cache_ttl', 900);
+            ini_set('default_socket_timeout', 15);
+
+            $options = array(
+                'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+                'style'             =>SOAP_RPC,
+                'use'               =>SOAP_ENCODED,
+                'soap_version'      =>SOAP_1_1,
+                'cache_wsdl'        =>WSDL_CACHE_NONE,
+                'connection_timeout'=>15,
+                'trace'             =>true,
+                'encoding'          =>'UTF-8',
+                'exceptions'        =>true,
+                "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+            );
+            try
+            {
+                $soap = new SoapClient($wsdl, $options);
+                $data = $soap->CariEkle(array("_cari"=>$Cari));
+            }
+            catch(Exception $e)
+            {
+                die($e->getMessage());
+            }
+
+            $sonuc["CariKod"]	= $data->CariEkleResult->Aciklama;
+            $sonuc["Sonuc"]		= $data->CariEkleResult->Sonuc;
+
+
+
+            if($sonuc["Sonuc"]==false):
+                return response([
+                    'status' => false,
+                    'message' => $data->CariEkleResult->Aciklama
+                ], 200);
+            else:
+                $set = array();
+                $set["Netsis"] 			= 1;
+                $set["NetsisCariKod"] 	= $sonuc["CariKod"];
+                AsayCariModel::where(["ID"=>$request->input("CariId")])->update($set);
+
+                $set2["netsis_carikod"] = $sonuc["CariKod"];
+                $set2["cari_tip"] 	    = "0";
+                ExpenseDocumentModel::where(["id"=>$request->input("DocumentId")])->update($set2);
+                return response([
+                    'status' => true,
+                    'data' => $sonuc
+                ], 200);
+            endif;
+        }
+        else
+        {
+            $sonuc["netsis_carikod"]	= $request->input("NetsisKod");
+            $sonuc["Sonuc"]		        = true;
+            $set2 = array();
+            $set2["netsis_carikod"] 	= $request->input("NetsisKod");
+            $set2["cari_tip"] 	    = "0";
+            ExpenseDocumentModel::where(["id"=>$request->input("DocumentId")])->update($set2);
+
+            return response([
+                'status' => true,
+                'data' => $sonuc
             ], 200);
         }
     }
