@@ -14,9 +14,9 @@ use Illuminate\Http\Request;
 class ProjectController extends ApiController
 {
 
-    public function getProject($id)
+    public function getProject(Request $request)
     {
-        $project = ProjectsModel::find($id);
+        $project = ProjectsModel::find($request->project_id);
 
         if ($project != null)
             return response([
