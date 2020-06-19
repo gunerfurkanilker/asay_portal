@@ -268,19 +268,19 @@ class ExpenseController extends ApiController
 
     }
 
-    public function expenseAuthority($asayExpense)
+    public function expenseAuthority($asayExpense,$user_id)
     {
         $status = false;
         if($asayExpense->status==1)
         {
             if($asayExpense->category_id<>""){
                 $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
-                if($asayExpense->user_id==$projetCategories->manager_id)
+                if($user_id==$projetCategories->manager_id)
                     $status = true;
             }
             else {
                 $project = ProjectsModel::find($asayExpense->project_id);
-                if($asayExpense->user_id==$project->manager_id)
+                if($user_id==$project->manager_id)
                     $status = true;
             }
         }
@@ -321,7 +321,7 @@ class ExpenseController extends ApiController
         }
         else
         {
-            $status = self::expenseAuthority($asayExpense);
+            $status = self::expenseAuthority($asayExpense,$user_id);
             if($status==false)
             {
                 return response([
@@ -369,7 +369,7 @@ class ExpenseController extends ApiController
             }
             else
             {
-                $status = self::expenseAuthority($asayExpense);
+                $status = self::expenseAuthority($asayExpense,$user_id);
                 if($status==false)
                 {
                     return response([
@@ -716,6 +716,7 @@ class ExpenseController extends ApiController
 
     public function expenseDocumentConfirm(Request $request)
     {
+        $user_id = $request->userId;
         $documentId = $request->documentId;
         if($documentId===null)
         {
@@ -733,7 +734,7 @@ class ExpenseController extends ApiController
                 'message' => "Masraf Uygun Statüde Değil"
             ], 200);
         }
-        $status = self::expenseAuthority($expense);
+        $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
             return response([
@@ -785,6 +786,7 @@ class ExpenseController extends ApiController
 
     public function documentConfirmTakeBack(Request $request)
     {
+        $user_id = $request->userId;
         $documentId = $request->documentId;
         if($documentId===null)
         {
@@ -803,7 +805,7 @@ class ExpenseController extends ApiController
             ], 200);
         }
 
-        $status = self::expenseAuthority($expense);
+        $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
             return response([
@@ -846,6 +848,7 @@ class ExpenseController extends ApiController
 
     public function expenseComplete(Request $request)
     {
+        $user_id = $request->userId;
         $expenseId = $request->expenseId;
         if($expenseId===null)
         {
@@ -855,7 +858,7 @@ class ExpenseController extends ApiController
             ], 200);
         }
         $expense = ExpenseModel::find($expenseId);
-        $status = self::expenseAuthority($expense);
+        $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
             return response([
@@ -1014,11 +1017,12 @@ class ExpenseController extends ApiController
 
     public function SendExpenseToNetsis(Request $request)
     {
+        $user_id = $request->userId;
         $expenseId = $request->input("expenseId");
 
         //MASRAF DETAYLARI
         $expense = ExpenseModel::find($expenseId);
-        $status = self::expenseAuthority($expense);
+        $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
             return response([
