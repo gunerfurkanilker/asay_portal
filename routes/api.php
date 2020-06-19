@@ -23,6 +23,7 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/list', "Processes\ExpenseController@expenseList")->name("expense_expenseList");
 
     Route::get('processes/usersProject/list', "Processes\ProjectController@projectListOfUser")->name("project_projectListOfUser");
+    Route::get('processes/project', "Processes\ProjectController@getProject")->name("project_by_id");
     Route::get('processes/categoriesOfProject/list', "Processes\ProjectController@categoryListOfProject")->name("categories_categoriesOfProjects");
 
 

@@ -14,7 +14,25 @@ use Illuminate\Http\Request;
 class ProjectController extends ApiController
 {
 
-    public function projectListOfUser(Request $request) {
+    public function getProject(Request $request)
+    {
+        $project = ProjectsModel::find($request->project_id);
+
+        if ($project != null)
+            return response([
+                'status' => true,
+                'data' => $project
+            ], 200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'Proje Bulunamadı.'
+            ], 200);
+
+    }
+
+    public function projectListOfUser(Request $request)
+    {
 
         $requestArray = $request->all();
 
@@ -24,24 +42,20 @@ class ProjectController extends ApiController
         $projectsRelationsOfUser = UserProjectsModel::where('user_id', $user->id)->get();
         $projectList = [];
 
-        if (count($projectsRelationsOfUser) < 1)
-        {
+        if (count($projectsRelationsOfUser) < 1) {
             return response([
                 'status' => false,
                 'message' => 'Kullanıcı herhangi bir projede görev almıyor.'
             ], 200);
         }
 
-        foreach ($projectsRelationsOfUser as  $project)
-        {
+        foreach ($projectsRelationsOfUser as $project) {
 
             $prj = ProjectsModel::find($project->project_id);
 
-            if($prj)
-            {
-                array_push($projectList,$prj);
+            if ($prj) {
+                array_push($projectList, $prj);
             }
-
 
 
         }
@@ -55,13 +69,14 @@ class ProjectController extends ApiController
 
     }
 
-    public function categoryListOfProject(Request $request) {
+    public function categoryListOfProject(Request $request)
+    {
 
         $data = [];
 
         $project_id = $request->input('project_id');
 
-        $categories = ProjectCategoriesModel::where('project_id',$project_id)->get();
+        $categories = ProjectCategoriesModel::where('project_id', $project_id)->get();
 
         $data['categories'] = $categories;
 
