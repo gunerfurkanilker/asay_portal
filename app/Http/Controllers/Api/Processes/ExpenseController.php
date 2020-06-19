@@ -268,6 +268,37 @@ class ExpenseController extends ApiController
 
     }
 
+    public function expenseAuthority($asayExpense)
+    {
+        $status = false;
+        if($asayExpense->status==1)
+        {
+            if($asayExpense->category_id<>""){
+                $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
+                if($asayExpense->user_id==$projetCategories->manager_id)
+                    $status = true;
+            }
+            else {
+                $project = ProjectsModel::find($asayExpense->project_id);
+                if($asayExpense->user_id==$project->manager_id)
+                    $status = true;
+            }
+        }
+        else if($asayExpense->status==2) {
+            //TODO arge userları yapıldı şimdilik sonrasında cost onaylatıcı grup id ile değiştirilecek
+            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
+            if($userGroupCount>0)
+                $status = true;
+        }
+        else if($asayExpense->status==3 || $asayExpense->status==4) {
+            //TODO vf-bireysel userları yapıldı şimdilik sonrasında muhasebe grubu için değiştirilecek için değiştirilecek
+            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>149])->count();
+            if($userGroupCount>0)
+                $status = true;
+        }
+        return $status;
+    }
+
     public function getExpense(Request $request)
     {
         $user_id = $request->userId;
@@ -290,33 +321,7 @@ class ExpenseController extends ApiController
         }
         else
         {
-            $status = false;
-            if($asayExpense->status==1)
-            {
-                if($asayExpense->category_id<>""){
-                    $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
-                    if($asayExpense->user_id==$projetCategories->manager_id)
-                        $status = true;
-                }
-                else {
-                    $project = ProjectsModel::find($asayExpense->project_id);
-                    if($asayExpense->user_id==$project->manager_id)
-                        $status = true;
-                }
-            }
-            else if($asayExpense->status==2) {
-                //TODO arge userları yapıldı şimdilik sonrasında cost onaylatıcı grup id ile değiştirilecek
-                $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
-                if($userGroupCount>0)
-                    $status = true;
-            }
-            else if($asayExpense->status==3 || $asayExpense->status==4) {
-                //TODO vf-bireysel userları yapıldı şimdilik sonrasında muhasebe grubu için değiştirilecek için değiştirilecek
-                $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>149])->count();
-                if($userGroupCount>0)
-                    $status = true;
-            }
-
+            $status = self::expenseAuthority($asayExpense);
             if($status==false)
             {
                 return response([
@@ -364,33 +369,7 @@ class ExpenseController extends ApiController
             }
             else
             {
-                $status = false;
-                if($asayExpense->status==1)
-                {
-                    if($asayExpense->category_id<>""){
-                        $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
-                        if($asayExpense->user_id==$projetCategories->manager_id)
-                            $status = true;
-                    }
-                    else {
-                        $project = ProjectsModel::find($asayExpense->project_id);
-                        if($asayExpense->user_id==$project->manager_id)
-                            $status = true;
-                    }
-                }
-                else if($asayExpense->status==2) {
-                    //TODO arge userları yapıldı şimdilik sonrasında cost onaylatıcı grup id ile değiştirilecek
-                    $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
-                    if($userGroupCount>0)
-                        $status = true;
-                }
-                else if($asayExpense->status==3 || $asayExpense->status==4) {
-                    //TODO vf-bireysel userları yapıldı şimdilik sonrasında muhasebe grubu için değiştirilecek için değiştirilecek
-                    $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>149])->count();
-                    if($userGroupCount>0)
-                        $status = true;
-                }
-
+                $status = self::expenseAuthority($asayExpense);
                 if($status==false)
                 {
                     return response([
@@ -754,6 +733,14 @@ class ExpenseController extends ApiController
                 'message' => "Masraf Uygun Statüde Değil"
             ], 200);
         }
+        $status = self::expenseAuthority($expense);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
 
         if($request->confirm==1)
             $confirm = 1;
@@ -816,6 +803,15 @@ class ExpenseController extends ApiController
             ], 200);
         }
 
+        $status = self::expenseAuthority($expense);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
         if($request->column==1){
             $document->manager_status       = 0;
             $document->amount_status        = 0;
@@ -858,6 +854,16 @@ class ExpenseController extends ApiController
                 'message' => "Masraf Id Boş Olamaz"
             ], 200);
         }
+        $expense = ExpenseModel::find($expenseId);
+        $status = self::expenseAuthority($expense);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
         if($request->column==1)
             $column = "manager_status";
         else if($request->column==2)
@@ -1012,6 +1018,14 @@ class ExpenseController extends ApiController
 
         //MASRAF DETAYLARI
         $expense = ExpenseModel::find($expenseId);
+        $status = self::expenseAuthority($expense);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
 
         //Personel bilgileri kontrol ediliyor.
         $user = UserModel::find($request->userId);
