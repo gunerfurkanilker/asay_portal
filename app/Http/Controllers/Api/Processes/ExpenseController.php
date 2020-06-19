@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Library\Cari;
 use App\Model\AsayCariModel;
+use App\Model\AsayExpenseLogModel;
 use App\Model\ExpenseDocumentElementModel;
 use App\Model\ExpenseDocumentModel;
 use App\Model\ExpenseModel;
@@ -456,20 +457,44 @@ class ExpenseController extends ApiController
 
     public function listNetsisCurrent(Request $request)
     {
-        $search = $request->input("search");
-        $cariler = [];
+        $netsisCariKod = $request->input("netsisCariKod")!==null ? $request->input("netsisCariKod") : "";
+        if($netsisCariKod=="") {
+            $cariTip = $request->input("cariTip")!==null ? $request->input("cariTip") : "";
+            $cariler = [];
+            if($cariTip==0)
+            {
+                $currents = DB::connection('sqlsrvn')->select("SELECT CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE CARI_KOD= :cari_kod",["cari_kod"=>$netsisCariKod]);
+                foreach ($currents as $current) {
+                    $current->netsis = 1;
+                    $cariler[] = $current;
+                }
+            }
+            else
+            {
+                $currents = AsayCariModel::where(["id"=>$netsisCariKod])->get();
+                foreach ($currents as $current) {
+                    $current->netsis = 0;
+                    $cariler[] = $current;
+                }
+            }
+        }
+        else{
+            $search = $request->input("search");
+            $cariler = [];
 
-        $currents = DB::connection('sqlsrvn')->select("SELECT TOP 10 CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE (CARI_KOD LIKE 'D%' OR (CARI_KOD LIKE 'S%' AND CARI_KOD NOT LIKE 'S%D' AND CARI_KOD NOT LIKE 'S%E')) AND CARI_ISIM LIKE N'%".$search."%'");
-        foreach ($currents as $current) {
-            $current->netsis = 1;
-            $cariler[] = $current;
+            $currents = DB::connection('sqlsrvn')->select("SELECT TOP 10 CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM FROM TBLCASABIT WHERE (CARI_KOD LIKE 'D%' OR (CARI_KOD LIKE 'S%' AND CARI_KOD NOT LIKE 'S%D' AND CARI_KOD NOT LIKE 'S%E')) AND CARI_ISIM LIKE N'%".$search."%'");
+            foreach ($currents as $current) {
+                $current->netsis = 1;
+                $cariler[] = $current;
+            }
+
+            $currents = AsayCariModel::where(["Netsis"=>0])->where('CariIsim', 'like', '%' . $search . '%')->get();
+            foreach ($currents as $current) {
+                $current->netsis = 0;
+                $cariler[] = $current;
+            }
         }
 
-        $currents = AsayCariModel::where(["Netsis"=>0])->where('CariIsim', 'like', '%' . $search . '%')->get();
-        foreach ($currents as $current) {
-            $current->netsis = 0;
-            $cariler[] = $current;
-        }
         $array = [];
         foreach($cariler as $key => $cari) {
             if ($cari->netsis == 0) {
@@ -880,6 +905,231 @@ class ExpenseController extends ApiController
             return response([
                 'status' => true,
                 'data' => $sonuc
+            ], 200);
+        }
+    }
+
+    public function SendExpenseToNetsis(Request $request)
+    {
+        $expenseId = $request->input("expenseId");
+
+        //MASRAF DETAYLARI
+        $expense = ExpenseModel::find($expenseId);
+
+        //Personel bilgileri kontrol ediliyor.
+        $user = UserModel::find($request->userId);
+
+        //Çalışan İşletme Belirlenmesi
+        if($user->user_property->company=="Elektronik"){
+            $company = "Asay_Elektronik";
+        }
+        elseif($user->user_property->company=="Enerji"){
+            $company = "Asay_Enerji";
+        }
+        elseif($user->user_property->company=="iletisim"){
+            $company = "Asay_Iletisim";
+        }
+        elseif($user->user_property->company=="VAD"){
+            $company = "Asay_Vad_Otomasyon";
+        }
+
+
+        if($expense->expense_type=="İş Avansı")
+        {
+            $Query = "CARI_KOD LIKE 'P%' AND CARI_KOD NOT LIKE 'PS%'";
+        }
+        elseif($expense->expense_type=="Seyahat Avansı")
+        {
+            $Query = "CARI_KOD LIKE 'PS%'";
+        }
+
+        //CARİ KOD ÖĞREN
+        $PersonelCariKodu = "";
+        $CariKod = DB::connection('sqlsrvn')->select("SELECT CARI_KOD FROM TBLCASABIT WHERE ".$Query." and EMAIL= :email",["email"=>$user->email]);
+        if(count($CariKod)>0)
+            $PersonelCariKodu= $CariKod[0]->CARI_KOD;
+
+
+        if($PersonelCariKodu=="")
+        {
+            $setLog["EXPENSE_ID"]   = $expenseId;
+            $setLog["LOG"]		    = "Personel Cari Kodu Netsisde Bulunamadı. Mail adresini kontrol ediniz.<br>Mail Adresi:".$user->email;
+            AsayExpenseLogModel::insert($setLog);
+            return response([
+                'status' => false,
+                'message' => $setLog["LOG"]
+            ], 200);
+        }
+
+        //MASRAF BELGELERİ
+        $documents = ExpenseDocumentModel::where(["active"=>1,"netsis"=>0,"accounting_status"=>1,"expense_id"=>$expenseId])->get();
+        if($documents->count()==0){
+            return response([
+                'status' => false,
+                'data' => "Aktarılacak Belge Bulunamadı"
+            ], 200);
+        }
+        //MASRAF BELGE KALEMLERİ
+        $document_element = new \stdClass();
+        foreach($documents as $key => $value)
+        {
+            $document_elements[$value->id] = ExpenseDocumentElementModel::where(["active"=>1,"document_id"=>$value->id])->get();
+        }
+        $DurumHataSay = 0;
+
+        //Proje kodu ve plasiyer kodu belirleniyor
+
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+        try
+        {
+            $soap = new SoapClient($wsdl, $options);
+        }
+        catch(Exception $e)
+        {
+            return response([
+                'status' => false,
+                'data' => $e->getMessage()
+            ], 200);
+        }
+        $project = ProjectsModel::find($expense->project_id);
+
+        foreach($documents as $key => $value)
+        {
+            $MasrafFormu = new \stdClass();
+            $MasrafFormu->ProjeKodu 	= $project->project_code;;
+            $MasrafFormu->PlasiyerKodu 	= $project->plasiyer_code;;
+            $Silindi = 0;
+            if($value->document_type=="Fişli")
+            {
+                $MasrafKalem = array();
+                $MasrafFormu->Fisli 	= "E";
+                $MasrafFormu->Belgeli 	= "H";
+
+                $kdvoran 		= 0;
+                $TutarToplam 	= 0;
+                $MatrahToplam	= 0;
+                foreach($document_elements[$value->id] as $key2 => $value2)
+                {
+                    $KdvOran 	= $value2->kdv;
+                    $Matrah 	= $value2->price*$value2->quantity;
+                    $Adet 		= $value2->quantity;
+                    $Tutar 		= $value2->amount;
+
+                    $MatrahToplam 	+= $Matrah;
+                    $TutarToplam 	+= $Tutar;
+
+                    //kdv dahil ise matrah=tutar
+                    $MasrafKalem[0]["Aciklama"] 	= $value2->content;
+                    $MasrafKalem[0]["FisNo"]		= $value->document_number;
+                    $MasrafKalem[0]["GiderKodu"]	= $value2->expense_account;
+                    $MasrafKalem[0]["KdvMatrahi"]	= $MatrahToplam;
+                    $MasrafKalem[0]["KdvOran"]		= $KdvOran;
+                    $MasrafKalem[0]["Miktar"]		= $Adet;
+                    $MasrafKalem[0]["Tutar"]		= $TutarToplam;
+                    /*if($value2["MSTATUS"]==2)
+                        $Silindi++;*/
+                }
+                $CariAciklama = $MasrafKalem[0]["Aciklama"];
+            }
+            elseif($value->document_type=="Faturalı")
+            {
+                $MasrafKalem = array();
+                $MasrafFormu->Fisli 	= "H";
+                $MasrafFormu->Belgeli 	= "E";
+
+                foreach($document_element[$value->id] as $key2 => $value2)
+                {
+                    //kdv dahil ise matrah=tutar
+                    $MasrafKalem[$key2]["Aciklama"] 	= $value2->content;
+                    $MasrafKalem[$key2]["FisNo"]		= $value->document_number;
+                    $MasrafKalem[$key2]["GiderKodu"]	= $value2->expense_account;
+                    $MasrafKalem[$key2]["KdvMatrahi"]	= $value2->price*$value2->quantity;
+                    $MasrafKalem[$key2]["KdvOran"]		= $value2->kdv;
+                    $MasrafKalem[$key2]["Miktar"]		= $value2->quantity;
+                    $MasrafKalem[$key2]["Tutar"]		= $value2->amount;
+                    /*if($value2["MSTATUS"]==2)
+                        $Silindi++;
+                    */
+                }
+                $CariAciklama = $value->document_number." NOLU ".$expense->description;
+            }
+            //if($Silindi>0 && $Silindi==count($MasrafKalem)) continue;
+
+            $MasrafFormu->Aciklama 	= $CariAciklama;
+            $MasrafFormu->BelgeNo 	= $value->document_number;
+            $MasrafFormu->CariKod 	= $value->netsis_carikod;
+            $MasrafFormu->Kalemler 	= $MasrafKalem;
+
+            $MasrafFormu->Tarih 	= $value->document_date;
+            $MasrafFormu->PersonelCariKodu 	= $PersonelCariKodu;
+            $MasrafFormu->KdvDahil 	= "E";
+
+            $dbA = date("Y",strtotime($value->document_date));
+            try
+            {
+                $data = $soap->MasrafFormuKaydet(array("_MasrafForm"=>$MasrafFormu,"_IsletmeKodu"=>$company,"SirketAdi"=>"ASAYGROUP".$dbA));
+            }
+            catch(Exception $e)
+            {
+                return response([
+                    'status' => false,
+                    'data' => $e->getMessage()
+                ], 200);
+            }
+
+            if($data->MasrafFormuKaydetResult->Sonuc==1)
+            {
+                $set["netsis"] 			= 1;
+                $set["netsis_document_number"] 	= "'".str_replace(" numaralı masraf dekontu kaydedildi","",$data->MasrafFormuKaydetResult->Aciklama)."'";
+                ExpenseDocumentModel::where(["id"=>$value->id])->update($set);
+
+                $aktar[$value->id]["sonuc"]     = true;
+                $aktar[$value->id]["aciklama"]  = $data->MasrafFormuKaydetResult->Aciklama;
+                $aktar[$value->id]["belgeno"]   = $value->document_number;
+            }
+            else
+            {
+                $aktar[$value->id]["sonuc"]     = false;
+                $aktar[$value->id]["aciklama"]  = $data->MasrafFormuKaydetResult->Aciklama;
+                $aktar[$value->id]["belgeno"]   = $value->document_number;
+                $DurumHataSay++;
+            }
+            $setLog["EXPENSE_ID"] = $expenseId;
+            $setLog["DOCUMENT_ID"] = $value->id;
+            $setLog["BELGE_NO"] = $value->document_number;
+            $setLog["LOG"]		= trim($data->MasrafFormuKaydetResult->Aciklama);
+            AsayExpenseLogModel::insert($setLog);
+        }
+        if($DurumHataSay==0)
+        {
+            ExpenseModel::where(["id"=>$expenseId])->update(["status"=>3]);
+            return response([
+                'status' => true,
+                'data' => "Masraf Belgeleri Netsise Aktarıldı"
+            ], 200);
+        }
+        else
+        {
+            return response([
+                'status' => false,
+                'data' => "Belgelerin Tamamı Netsise Aktarılamadı"
             ], 200);
         }
     }
