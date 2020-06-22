@@ -707,7 +707,7 @@ class ExpenseController extends ApiController
         $expense = $expenseQ->update(["status"=>0]);
 
         $documentsQ = ExpenseDocumentModel::where(["expense_id"=>$expenseId]);
-        $documentsQ->update(["manager_status"=>0,"amount_status"=>0,"accounting_status"=>0]);
+        $documentsQ->update(["manager_status"=>0,"pm_status"=>0,"accounting_status"=>0]);
         return response([
             'status' => true,
             'message' => "Geri Alındı"
@@ -727,13 +727,6 @@ class ExpenseController extends ApiController
         }
         $document = ExpenseDocumentModel::find($documentId);
         $expense = ExpenseModel::find($document->expense_id);
-        if($expense->status!==$request->column)
-        {
-            return response([
-                'status' => false,
-                'message' => "Masraf Uygun Statüde Değil"
-            ], 200);
-        }
         $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
@@ -750,21 +743,21 @@ class ExpenseController extends ApiController
             $document->netsis = 2;
         }
 
-        if($request->column==1)
+        if($expense->status==1)
         {
             $document->manager_status = $confirm;
             if($confirm==2){
                 $document->accounting_status = 2;
-                $document->amount_status = 2;
+                $document->pm_status = 2;
             }
         }
-        else if($request->column==2){
-            $document->amount_status = $confirm;
+        else if($expense->status==2){
+            $document->pm_status = $confirm;
             if($confirm==2){
                 $document->accounting_status = 2;
             }
         }
-        else if($request->column==3)
+        else if($expense->status==3)
             $document->accounting_status = $confirm;
 
         $documentResult = $document->save();
@@ -797,13 +790,6 @@ class ExpenseController extends ApiController
         }
         $document = ExpenseDocumentModel::find($documentId);
         $expense = ExpenseModel::find($document->expense_id);
-        if($expense->status!==$request->column)
-        {
-            return response([
-                'status' => false,
-                'message' => "Masraf Uygun Statüde Değil"
-            ], 200);
-        }
 
         $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
@@ -814,18 +800,18 @@ class ExpenseController extends ApiController
             ], 200);
         }
 
-        if($request->column==1){
+        if($expense->status==1){
             $document->manager_status       = 0;
-            $document->amount_status        = 0;
+            $document->pm_status        = 0;
             $document->accounting_status    = 0;
             $document->netsis=0;
         }
-        else if($request->column==2){
-            $document->amount_status        = 0;
+        else if($expense->status==2){
+            $document->pm_status        = 0;
             $document->accounting_status    = 0;
             $document->netsis=0;
         }
-        else if($request->column==3){
+        else if($expense->status==3){
             $document->accounting_status    = 0;
             $document->netsis               = 0;
         }
@@ -867,11 +853,11 @@ class ExpenseController extends ApiController
             ], 200);
         }
 
-        if($request->column==1)
+        if($expense->status==1)
             $column = "manager_status";
-        else if($request->column==2)
-            $column = "amount_status";
-        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"active"=>1])->whereIn("status",[$request->column]);
+        else if($expense->status==2)
+            $column = "pm_status";
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"active"=>1])->whereIn("status",[$expense->status]);
         $expenseDocumentCount = ExpenseDocumentModel::where(["expense_id"=>$expenseId,"active"=>1,$column=>0])->count();
 
         if($expenseQ->count()==0 || $expenseDocumentCount>0)
