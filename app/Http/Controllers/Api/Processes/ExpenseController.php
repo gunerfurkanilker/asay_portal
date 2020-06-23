@@ -581,54 +581,31 @@ class ExpenseController extends ApiController
         //1:Proje Yönetici, 2:Muhasebe
         $status = ($request->input("status")!==null) ? $request->input("status") : 1;
         $status = $status==0 ? 1 : $status;
-        if($status==1)
-        {
-            $user = UserModel::find($request->userId);
-            $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
+        $user = UserModel::find($request->userId);
+        $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
+        $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
+        $categories = ProjectCategoriesModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
 
-            if(count($employeeManagers)==0)
-            {
-                return response([
-                    'status' => false,
-                    'message' => "Yöneticisi Olduğunuz Personel Yok.",
-                ], 200);
-            }
-
-        }
-        else if($status==2)
-        {
-            $user = UserModel::find($request->userId);
-            $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
-            $categories = ProjectCategoriesModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
-            if(count($projects)==0 && count($categories)==0)
-            {
-                return response([
-                    'status' => false,
-                    'message' => "Yöneticisi Olduğunuz Proje Yok.",
-                ], 200);
-            }
-
-        }
 
         $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->where(["Expense.active"=>1]);
-        if($status==1)
-        {
-            $expenseQ->where(function($query) use($employeeManagers){
-                $query->whereIn("EmployeeID",$employeeManagers);
+
+            $expenseQ->where(function($query) use($projects,$categories,$employeeManagers){
+                if(count($projects)>0)
+                    $query->whereIn("project_id",$projects);
+                if(count($categories)>0)
+                    $query->whereIn("category_id",$categories,"OR");
+                if(count($employeeManagers)>0)
+                    $query->whereIn("EmployeeID",$employeeManagers,"OR");
             });
-        }
-        if($status==2)
-        {
-            $expenseQ->where(function($query) use($projects,$categories){
-                $query->whereIn("project_id",$projects);
-                $query->whereIn("category_id",$categories,"OR");
-            });
-        }
         $expenseQ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
-            $expenseQ->where(["Expense.status"=>$status]);
+        $statusArray = [1,2];
+        $userGroupCount = UserHasGroupModel::where(["user_id"=>$request->userId,"group_id"=>58])->count();
+        if($userGroupCount>0)
+            $statusArray[] = 3;
+        $expenseQ->whereIn("Expense.status",$statusArray);
 
         $data["expenses"] = $expenseQ->get();
 
