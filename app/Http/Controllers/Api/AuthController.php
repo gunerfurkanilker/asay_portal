@@ -41,6 +41,7 @@ class AuthController extends Controller
             $Menus = UserMenuModel::UserMenus($user->user_group);
             $userdata = [
                 'user_id' => $user->id,
+                'EmployeeID' => $user->EmployeeID,
                 'username' => $user->username,
                 'email' => $user->email,
                 'photo' => "http://portal.asay.com.tr/".$user->photo,

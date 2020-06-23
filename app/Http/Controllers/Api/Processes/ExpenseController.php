@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Library\Cari;
 use App\Model\AsayCariModel;
 use App\Model\AsayExpenseLogModel;
+use App\Model\EmployeePositionModel;
 use App\Model\ExpenseDocumentElementModel;
 use App\Model\ExpenseDocumentModel;
 use App\Model\ExpenseModel;
@@ -29,7 +30,7 @@ class ExpenseController extends ApiController
         $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
-            ->where(["Expense.active"=>1,"Expense.user_id"=>$user->id])
+            ->where(["Expense.active"=>1,"Expense.EmployeeID"=>$user->EmployeeID])
             ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
         if($status<>0)
             $expenseQ->where(["Expense.status"=>$status]);
@@ -136,7 +137,7 @@ class ExpenseController extends ApiController
 
     public function expenseSave(Request $request)
     {
-        $user = UserModel::find(UserTokensModel::where(["user_token"=>$request->input("token")])->first()->user_id);
+        $user = UserModel::find($request->userId);
         $post["type"]                = $request->input("type");
         $post["name"]                = $request->input("name");
         $post["expense_type"]        = $request->input("expense_type");
@@ -181,7 +182,7 @@ class ExpenseController extends ApiController
         $AsayExpense->category_id        = $post["category_id"]!==null ? $post["category_id"] : "";
         $AsayExpense->expense_type       = $post["expense_type"];
         $AsayExpense->description        = $post["description"];
-        $AsayExpense->user_id            = $user->id;
+        $AsayExpense->EmployeeID         = $user->EmployeeID;
         if($post["type"]=="kaydet")
         {
             $AsayExpense->status = 0;
@@ -271,28 +272,29 @@ class ExpenseController extends ApiController
     public function expenseAuthority($asayExpense,$user_id)
     {
         $status = false;
+        $user = UserModel::find($user_id);
         if($asayExpense->status==1)
         {
+            $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$asayExpense->EmployeeID])->first();
+            if($employeePosition->ManagerID==$user->EmployeeID)
+                $status = true;
+        }
+        else if($asayExpense->status==2) {
             if($asayExpense->category_id<>""){
                 $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
-                if($user_id==$projetCategories->manager_id)
+                if($user->EmployeeID==$projetCategories->manager_id)
                     $status = true;
             }
             else {
                 $project = ProjectsModel::find($asayExpense->project_id);
-                if($user_id==$project->manager_id)
+                if($user->EmployeeID==$project->manager_id)
                     $status = true;
             }
-        }
-        else if($asayExpense->status==2) {
-            //TODO arge userları yapıldı şimdilik sonrasında cost onaylatıcı grup id ile değiştirilecek
-            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
-            if($userGroupCount>0)
-                $status = true;
+
         }
         else if($asayExpense->status==3 || $asayExpense->status==4) {
-            //TODO vf-bireysel userları yapıldı şimdilik sonrasında muhasebe grubu için değiştirilecek için değiştirilecek
-            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>149])->count();
+            //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
+            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
             if($userGroupCount>0)
                 $status = true;
         }
@@ -301,7 +303,8 @@ class ExpenseController extends ApiController
 
     public function getExpense(Request $request)
     {
-        $user_id = $request->userId;
+        $user_id    = $request->userId;
+        $user       = UserModel::find($user_id);
         $expenseId = $request->input("expense_id");
         $asayExpense = ExpenseModel::find($expenseId);
 
@@ -312,7 +315,7 @@ class ExpenseController extends ApiController
                 'message' => "Harcama Belgesi Bulunamadı"
             ], 200);
         }
-        else if($asayExpense->user_id==$user_id)
+        else if($asayExpense->EmployeeID==$user->EmployeeID)
         {
             return response([
                 'status' => true,
@@ -342,6 +345,7 @@ class ExpenseController extends ApiController
     public function getExpenseDocument(Request $request)
     {
         $user_id = $request->userId;
+        $user = UserModel::find($user_id);
         $documentId = $request->input("document_id");
         $asayExpenseDocument = ExpenseDocumentModel::find($documentId);
 
@@ -356,7 +360,7 @@ class ExpenseController extends ApiController
         {
             $asayExpense = ExpenseModel::find($asayExpenseDocument->expense_id);
             $documentElement = ExpenseDocumentElementModel::where(["document_id"=>$asayExpenseDocument->id,"active"=>1])->get();
-            if($asayExpense->user_id==$user_id)
+            if($asayExpense->EmployeeID==$user->EmployeeID)
             {
                 return response([
                     'status' => true,
@@ -394,9 +398,10 @@ class ExpenseController extends ApiController
 
     public function expenseDocumentList(Request $request)
     {
+        $user = UserModel::find($request->userId);
         $expenseId = $request->input("expense_id");
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
-            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.user_id"=>$request->userId])
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.EmployeeID"=>$user->EmployeeID])
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
             ->groupBy("ExpenseDocument.id");
@@ -579,8 +584,22 @@ class ExpenseController extends ApiController
         if($status==1)
         {
             $user = UserModel::find($request->userId);
-            $projects   = ProjectsModel::where(["manager_id"=>$user->id])->pluck("id");
-            $categories = ProjectCategoriesModel::where(["manager_id"=>$user->id])->pluck("id");
+            $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
+
+            if(count($employeeManagers)==0)
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Yöneticisi Olduğunuz Personel Yok.",
+                ], 200);
+            }
+
+        }
+        else if($status==2)
+        {
+            $user = UserModel::find($request->userId);
+            $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
+            $categories = ProjectCategoriesModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
             if(count($projects)==0 && count($categories)==0)
             {
                 return response([
@@ -596,6 +615,12 @@ class ExpenseController extends ApiController
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->where(["Expense.active"=>1]);
         if($status==1)
+        {
+            $expenseQ->where(function($query) use($employeeManagers){
+                $query->whereIn("EmployeeID",$employeeManagers);
+            });
+        }
+        if($status==2)
         {
             $expenseQ->where(function($query) use($projects,$categories){
                 $query->whereIn("project_id",$projects);
@@ -623,8 +648,8 @@ class ExpenseController extends ApiController
                 'message' => "Masraf Id Boş Olamaz"
             ], 200);
         }
-
-        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"user_id"=>$request->userId,"status"=>0]);
+        $user = UserModel::find($request->userId);
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"EmployeeID"=>$user->EmployeeID,"status"=>0]);
         if($expenseQ->count()==0)
         {
             return response([
@@ -656,9 +681,12 @@ class ExpenseController extends ApiController
                 'message' => "Belge Id Boş Olamaz"
             ], 200);
         }
+
+        $user = UserModel::find($request->userId);
+
         $document = ExpenseDocumentModel::find($documentId);
         $expense = ExpenseModel::find($document->expense_id);
-        if($expense->user_id!=$request->userId)
+        if($expense->EmployeeID!=$user->EmployeeID)
         {
             return response([
                 'status' => false,
@@ -696,7 +724,8 @@ class ExpenseController extends ApiController
             ], 200);
         }
 
-        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"user_id"=>$request->userId,"active"=>1])->where("status","<=",1);
+        $user = UserModel::find($request->userId);
+        $expenseQ = ExpenseModel::where(["id"=>$expenseId,"EmployeeID"=>$user->EmployeeID,"active"=>1])->where("status","<=",1);
         if($expenseQ->count()==0)
         {
             return response([
