@@ -579,8 +579,8 @@ class ExpenseController extends ApiController
     public function expensePendingList(Request $request)
     {
         //1:Proje Yönetici, 2:Muhasebe
-        $status = ($request->input("status")!==null) ? $request->input("status") : 1;
-        $status = $status==0 ? 1 : $status;
+        $status = ($request->input("status")!==null) ? $request->input("status") : "";
+        $status = $status=="0" ? "1" : $status;
         $user = UserModel::find($request->userId);
         $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
         $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID])->pluck("id");
@@ -592,18 +592,21 @@ class ExpenseController extends ApiController
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->where(["Expense.active"=>1]);
 
-            $expenseQ->where(function($query) use($projects,$categories,$employeeManagers){
-                if(count($projects)>0)
+            $expenseQ->where(function($query) use($projects,$categories,$employeeManagers,$status){
+                if(count($projects)>0 && ($status==2 || $status==""))
                     $query->whereIn("project_id",$projects);
-                if(count($categories)>0)
+                if(count($categories)>0 && ($status==2 || $status==""))
                     $query->whereIn("category_id",$categories,"OR");
-                if(count($employeeManagers)>0)
+                if(count($employeeManagers)>0 && ($status==1 || $status==""))
                     $query->whereIn("EmployeeID",$employeeManagers,"OR");
             });
         $expenseQ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
-        $statusArray = [1,2];
+        if($status=="")
+            $statusArray = [1,2];
+        else if($status<>3)
+            $statusArray[] = $status;
         $userGroupCount = UserHasGroupModel::where(["user_id"=>$request->userId,"group_id"=>58])->count();
-        if($userGroupCount>0)
+        if($userGroupCount>0 && ($status==3 || $status==""))
             $statusArray[] = 3;
         $expenseQ->whereIn("Expense.status",$statusArray);
 
