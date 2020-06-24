@@ -21,7 +21,7 @@ class ProjectsModel extends Model
     public function getManagerAttribute()
     {
 
-        $manager = $this->hasOne(UserModel::class,"id","manager_id");
+        $manager = $this->hasOne(EmployeeModel::class,"Id","manager_id");
 
         if ($manager)
         {

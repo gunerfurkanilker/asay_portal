@@ -876,8 +876,10 @@ class ExpenseController extends ApiController
                 'message' => "Yetkisiz İşlem"
             ], 200);
         }
-
-        $expenseResult = $expenseQ->update(["status"=>2]);
+        if ($column == "manager_status")
+            $expenseResult = $expenseQ->update(["status"=>2]);
+        if ($column == "pm_status")
+            $expenseResult = $expenseQ->update(["status"=>3]);
         //TODO Mail gönderilecek
 
         if($expenseResult){
