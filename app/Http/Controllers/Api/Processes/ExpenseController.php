@@ -226,7 +226,7 @@ class ExpenseController extends ApiController
         }
         $expenseDocument->expense_id        = $request->expense_id;
         $expenseDocument->cari_tip          = $request->cari_tip;
-        $expenseDocument->document_date     = date("Y-m-d",strtotime($request->document_date));
+        $expenseDocument->document_date     = date("Y-m-d H:i:s",strtotime($request->document_date));
         $expenseDocument->document_number   = $request->document_number;
         $expenseDocument->document_type     = $request->document_type;
         $expenseDocument->currency          = $request->currency;
