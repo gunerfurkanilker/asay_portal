@@ -1280,7 +1280,7 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
-    public function getTypes(Request $request)
+    public function getType(Request $request)
     {
         $type = ExpenseTypesModel::find($request->expense_type);
 
