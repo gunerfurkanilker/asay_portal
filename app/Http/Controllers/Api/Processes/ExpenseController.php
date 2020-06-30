@@ -1260,6 +1260,16 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
+    public function getDocumentType(Request $request)
+    {
+        $documentType = ExpenseDocumentTypesModel::find($request->document_type);
+
+        return response([
+            'status' => true,
+            'data' => $documentType
+        ], 200);
+    }
+
     public function listTypes(Request $request)
     {
         $types = ExpenseTypesModel::where(["active"=>1])->get();
@@ -1267,6 +1277,16 @@ class ExpenseController extends ApiController
         return response([
             'status' => true,
             'data' => $types
+        ], 200);
+    }
+
+    public function getTypes(Request $request)
+    {
+        $type = ExpenseTypesModel::find($request->expense_type);
+
+        return response([
+            'status' => true,
+            'data' => $type
         ], 200);
     }
 
