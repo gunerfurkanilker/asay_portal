@@ -53,6 +53,8 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/listDocumentTypes', "Processes\ExpenseController@listDocumentTypes")->name("expense_listDocumentTypes");
     Route::get('processes/expense/listTypes', "Processes\ExpenseController@listTypes")->name("expense_listTypes");
     Route::get('processes/expense/listExpenseAccountCodes', "Processes\ExpenseController@listExpenseAccountCodes")->name("expense_listExpenseAccountCodes");
+    Route::get('processes/expense/getDocumentType', "Processes\ExpenseController@getDocumentType")->name("expense_getDocumentType");
+    Route::get('processes/expense/getType', "Processes\ExpenseController@getType")->name("expense_getType");
 
     Route::namespace("Ik")->group(function(){
 
