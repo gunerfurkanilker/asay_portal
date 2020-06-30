@@ -12,17 +12,17 @@ class ApiController extends Controller
     function __construct()
     {
         $this->middleware(function ($request,$next) {
-            $token = $request->input("token");
+            $token = $request->token;
 
             if (!isset($token) || empty($token)) {
-                $token = $request->input("token");
+                $token = $request->token;
             }
 
             if (!isset($token) || empty($token) || !UserModel::tokenControl($token)) {
                 return response([
                     'status' => false,
                     'message' => "Yetkisiz işlem",
-                    'error' => "unauthorized",
+                    'error' => "unauthorized"
                 ], 200);
             }
 

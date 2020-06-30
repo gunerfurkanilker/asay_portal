@@ -50,6 +50,9 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
     Route::get('processes/expense/getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
     Route::get('processes/expense/listNetsisCurrent', "Processes\ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
+    Route::get('processes/expense/listDocumentTypes', "Processes\ExpenseController@listDocumentTypes")->name("expense_listDocumentTypes");
+    Route::get('processes/expense/listTypes', "Processes\ExpenseController@listTypes")->name("expense_listTypes");
+    Route::get('processes/expense/listExpenseAccountCodes', "Processes\ExpenseController@listExpenseAccountCodes")->name("expense_listExpenseAccountCodes");
 
     Route::namespace("Ik")->group(function(){
 

@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Api\Common\DocumentTypeController;
 use App\Http\Controllers\Controller;
 use App\Library\Cari;
 use App\Model\AsayCariModel;
 use App\Model\AsayExpenseLogModel;
 use App\Model\EmployeePositionModel;
+use App\Model\ExpenseAccountCodesModel;
 use App\Model\ExpenseDocumentElementModel;
 use App\Model\ExpenseDocumentModel;
+use App\Model\ExpenseDocumentTypesModel;
 use App\Model\ExpenseModel;
 use App\Model\AsayProjeModel;
+use App\Model\ExpenseTypesModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserHasGroupModel;
@@ -1245,4 +1249,44 @@ class ExpenseController extends ApiController
             ], 200);
         }
     }
+
+    public function listDocumentTypes(Request $request)
+    {
+        $documentTypes = ExpenseDocumentTypesModel::where(["active"=>1])->get();
+
+        return response([
+            'status' => true,
+            'data' => $documentTypes
+        ], 200);
+    }
+
+    public function listTypes(Request $request)
+    {
+        $types = ExpenseTypesModel::where(["active"=>1])->get();
+
+        return response([
+            'status' => true,
+            'data' => $types
+        ], 200);
+    }
+
+    public function listExpenseAccountCodes(Request $request)
+    {
+        $responseQ = ExpenseAccountCodesModel::where(["active"=>1]);
+        if($request->document_type!==null)
+            $responseQ->where(["document_type"=>$request->document_type]);
+        if($request->expense_type!==null)
+            $responseQ->where(["expense_type"=>$request->expense_type]);
+        if($request->project!==null)
+            $responseQ->where(["project"=>$request->project]);
+        if($request->project_category!==null)
+            $responseQ->where(["project_category"=>$request->project_category]);
+
+        $response = $responseQ->get();
+        return response([
+            'status' => true,
+            'data' => $response
+        ], 200);
+    }
+
 }
