@@ -524,7 +524,7 @@ class ExpenseController extends ApiController
     public function listNetsisCurrent(Request $request)
     {
         $netsisCariKod = $request->input("netsisCariKod")!==null ? $request->input("netsisCariKod") : "";
-        if($netsisCariKod=="") {
+        if($netsisCariKod!="") {
             $cariTip = $request->input("cariTip")!==null ? $request->input("cariTip") : "";
             $cariler = [];
             if($cariTip==0)
