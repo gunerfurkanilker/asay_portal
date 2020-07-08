@@ -608,6 +608,9 @@ class ExpenseController extends ApiController
         exit;
         $netsisCariKod = $request->input("netsisCariKod")!==null ? $request->input("netsisCariKod") : "";
         if($netsisCariKod!="") {
+            return response([
+                'status' => true,
+            ], 200);
             $cariTip = $request->input("cariTip")!==null ? $request->input("cariTip") : "";
             $cariler = [];
             if($cariTip==0)
@@ -661,7 +664,6 @@ class ExpenseController extends ApiController
             'data' => $array
         ], 200);
     }
-
 
     public function expensePendingList(Request $request)
     {
@@ -737,7 +739,6 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
-
     public function deleteDocument(Request $request)
     {
         $documentId = $request->documentId;
@@ -777,8 +778,6 @@ class ExpenseController extends ApiController
         }
 
     }
-
-
 
     public function userTakeBack(Request $request)
     {
@@ -871,7 +870,6 @@ class ExpenseController extends ApiController
         }
 
     }
-
 
     public function documentConfirmTakeBack(Request $request)
     {

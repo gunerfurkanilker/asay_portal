@@ -58,6 +58,10 @@ Route::namespace("Api")->group(function(){
 
     Route::get('processes/expense/listTaxOffice', "Processes\ExpenseController@listTaxOffice")->name("expense_listTaxOffice");
 
+    Route::post('processes/permit/createNewPermit','Processes\PermitController@createPermit')->name('new_permit');
+    Route::get('processes/permit/getPermitTypes','Processes\PermitController@permitTypes')->name('permit_types');
+
+
     Route::namespace("Ik")->group(function(){
 
         Route::prefix('ik')->group(function () {

@@ -75,9 +75,13 @@ class ProjectController extends ApiController
         $data = [];
 
         $project_id = $request->input('project_id');
+        $expenseType = $request->input('expense_type') ? $request->input('expense_type') : null;
 
-        $categories = ProjectCategoriesModel::where('project_id', $project_id)->get();
-
+        if (!$expenseType)
+            $categories = ProjectCategoriesModel::where('project_id', $project_id)->get();
+        else
+            $categories = ProjectCategoriesModel::where('project_id', $project_id)->where('expense_type',$expenseType)->get();
+        // Expense Type geldi ise ilgili expense Type'ın alt kategorilerini seçiyorum.
         $data['categories'] = $categories;
 
         return response([
