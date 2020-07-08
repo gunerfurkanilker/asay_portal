@@ -18,12 +18,15 @@ use App\Model\AsayProjeModel;
 use App\Model\ExpenseTypesModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
+use App\Model\TaxOfficesModel;
 use App\Model\UserHasGroupModel;
 use App\Model\UserModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use SoapClient;
+
+use Illuminate\Support\Facades\Validator;
 
 class ExpenseController extends ApiController
 {
@@ -521,8 +524,88 @@ class ExpenseController extends ApiController
         }
     }
 
+    public function listTaxOffice(Request $request)
+    {
+        $parent = $request->parent!==null ? $request->parent : 0 ;
+        $taxOffices = TaxOfficesModel::where(["parent"=>$parent])->get();
+
+        return response([
+            'status' => false,
+            'data' => $taxOffices
+        ], 200);
+    }
+
+
+    public function getCurrent(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'taxNumber' => 'required',
+            'taxCityCode' => 'required',
+            'taxOfficeCode' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response([
+                "status" => false,
+                "message" => $validator->messages()],200);
+        }
+
+        $taxNumber      = $request->taxNumber;
+        $taxCityCode    = $request->taxCityCode;
+        $taxOfficeCode  = $request->taxOfficeCode;
+
+        $taxCity = TaxOfficesModel::where(["code"=>$taxCityCode])->first();
+        $taxOffice = TaxOfficesModel::where(["code"=>$taxOfficeCode])->first();
+
+        $cariler = [];
+        $currents = [];
+        $currents = DB::connection('sqlsrvn')->select("SELECT CARI_KOD,dbo.TRK2(CARI_ISIM) as CARI_ISIM,CARI_TEL,dbo.TRK2(CARI_IL) AS CARI_IL,dbo.TRK2(CARI_ILCE) AS CARI_ILCE,dbo.TRK2(CARI_ADRES) AS CARI_ADRES,dbo.TRK2(VERGI_DAIRESI) AS VERGI_DAIRESI,VERGI_NUMARASI FROM TBLCASABIT WHERE VERGI_DAIRESI= :vergi_dairesi AND VERGI_NUMARASI= :vergi_numarasi",["vergi_dairesi"=>$taxOffice->name,"vergi_numarasi"=>$taxNumber]);
+        if(count($currents)>0)
+        {
+            $currents[0]->netsis = 1;
+            $cariler = $currents[0];
+        }
+        else
+        {
+            $sendData = [
+                'body' => http_build_query([
+                    "cmd" => "vergiNoIslemleri_vergiNumarasiSorgulama",
+                    "callid" => "434fda15eda09-10",
+                    "pageName" => "R_INTVRG_INTVD_VERGINO_DOGRULAMA",
+                    "token" => "d1078f5e3dc646b78d5d4e5842f21e97feb48d366bc7617458b6679dec12675154a01fccc42292bb04d926bc259dbc75e39dd8e202535fd70a7098396c74a6f7",
+                    "jp" => '{"dogrulama":{"vkn1":"'.$taxNumber.'","tckn1":"","iller":"'.$taxCityCode.'","vergidaireleri":"'.$taxOfficeCode.'"}}'
+                ]),
+                'headers' => [
+                    'Content-Type'  => "application/x-www-form-urlencoded; charset=UTF-8",
+                ]
+            ];
+
+            $client = new \GuzzleHttp\Client();
+            $current = json_decode($client->post("https://ivd.gib.gov.tr/tvd_server/dispatch", $sendData)->getBody());
+
+            $cariler = [
+                "CARI_KOD"      => "",
+                "CARI_ISIM"     => $current->data->unvan,
+                "CARI_TEL"      => "",
+                "CARI_IL"       => "",
+                "CARI_ILCE"     => "",
+                "CARI_ADRES"    => "",
+                "VERGI_DAIRESI" => $taxOffice->name,
+                "VERGI_NUMARASI"=> $taxNumber,
+                "netsis"        => 0
+            ];
+        }
+
+        return response([
+            'status' => true,
+            'data' => $cariler,
+        ], 200);
+    }
+
+
     public function listNetsisCurrent(Request $request)
     {
+        //Servis kapatıldı #serkan
+        exit;
         $netsisCariKod = $request->input("netsisCariKod")!==null ? $request->input("netsisCariKod") : "";
         if($netsisCariKod!="") {
             $cariTip = $request->input("cariTip")!==null ? $request->input("cariTip") : "";
@@ -905,115 +988,72 @@ class ExpenseController extends ApiController
         $Cari = new \stdClass();
         $Cari->CariAdres			 = $request->input("CariAdres");
         $Cari->CariEmail			 = "";
-        $Cari->CariFax				 = $request->input("CariFax");
+        $Cari->CariFax				 = $request->input("CariFax")!==null ? $request->input("CariFax") : "";
         $Cari->CariHesapTipi		 = "K";
-        $Cari->CariIl				 = $request->input("CariIl");
-        $Cari->CariIlce				 = $request->input("CariIlce");
-        $Cari->CariIsim				 = $request->input("CariIsim");
+        $Cari->CariIl				 = $request->input("CariIl")!==null ? $request->input("CariIl") : "";
+        $Cari->CariIlce				 = $request->input("CariIlce")!==null ? $request->input("CariIlce") : "";
+        $Cari->CariIsim				 = $request->input("CariIsim")!==null ? $request->input("CariIsim") : "";
         $Cari->CariKodCRM			 = "";
         $Cari->CariKodNetsis		 = "";
         $Cari->CariMusteriTipi		 = "S";
         $Cari->CariPostaKodu		 = "";
-        $Cari->CariTCKN				 = $request->input("CariTCKN");
-        $Cari->CariTelefon			 = $request->input("CariTelefon");
-        $Cari->CariUlkeKodu			 = $request->input("CariUlkeKodu");
-        $Cari->CariVergiDairesi		 = $request->input("CariVergiDairesi");
+        $Cari->CariTCKN				 = $request->input("CariTCKN")!==null ? $request->input("CariIsim") : "";;;
+        $Cari->CariTelefon			 = $request->input("CariTelefon")!==null ? $request->input("CariIsim") : "";;;
+        $Cari->CariUlkeKodu			 = "TR";
+        $Cari->CariVergiDairesi		 = TaxOfficesModel::where(["code"=>$request->input("CariVergiDairesi")])->first()->name;
         $Cari->CariVergiNo			 = $request->input("CariVergiNo");
         $Cari->CariWebAdresi		 = "";
         $Cari->DovizliCari			 = "true";
         $Cari->Isletme 				 = "Asay_Iletisim";
 
 
-        $set = array();
-        $set["CariIsim"] 			= $request->input("CariIsim");
-        $set["CariUlkeKodu"] 		= $request->input("CariUlkeKodu");
-        $set["CariIl"] 				= $request->input("CariIl");
-        $set["CariIlce"] 			= $request->input("CariIlce");
-        $set["CariAdres"] 			= $request->input("CariAdres");
-        $set["CariVergiDairesi"] 	= $request->input("CariVergiDairesi");
-        $set["CariVergiNo"] 		= $request->input("CariVergiNo");
-        $set["CariTelefon"] 		= $request->input("CariTelefon");
-        $set["CariFax"] 			= $request->input("CariFax");
-        if($request->input("NetsisKod")!="0")
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+        try
         {
-            $set["NetsisCariKod"] 	= $request->input("NetsisKod");
-            $set["Netsis"] 			= 1;
+            $soap = new SoapClient($wsdl, $options);
+            $data = $soap->CariEkle(array("_cari"=>$Cari));
         }
-        else
+        catch(Exception $e)
         {
-            $set["Netsis"] 		= 0;
+            return response([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 200);
         }
-        AsayCariModel::where(["ID"=>$request->input("CariId")])->update($set);
 
-        if($set["Netsis"]==0)
-        {
-            $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
-
-            ini_set('soap.wsdl_cache_enabled', 0);
-            ini_set('soap.wsdl_cache_ttl', 900);
-            ini_set('default_socket_timeout', 15);
-
-            $options = array(
-                'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
-                'style'             =>SOAP_RPC,
-                'use'               =>SOAP_ENCODED,
-                'soap_version'      =>SOAP_1_1,
-                'cache_wsdl'        =>WSDL_CACHE_NONE,
-                'connection_timeout'=>15,
-                'trace'             =>true,
-                'encoding'          =>'UTF-8',
-                'exceptions'        =>true,
-                "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
-            );
-            try
-            {
-                $soap = new SoapClient($wsdl, $options);
-                $data = $soap->CariEkle(array("_cari"=>$Cari));
-            }
-            catch(Exception $e)
-            {
-                die($e->getMessage());
-            }
-
-            $sonuc["CariKod"]	= $data->CariEkleResult->Aciklama;
-            $sonuc["Sonuc"]		= $data->CariEkleResult->Sonuc;
+        $sonuc["CariKod"]	= $data->CariEkleResult->Aciklama;
+        $sonuc["Sonuc"]		= $data->CariEkleResult->Sonuc;
 
 
 
-            if($sonuc["Sonuc"]==false):
-                return response([
-                    'status' => false,
-                    'message' => $data->CariEkleResult->Aciklama
-                ], 200);
-            else:
-                $set = array();
-                $set["Netsis"] 			= 1;
-                $set["NetsisCariKod"] 	= $sonuc["CariKod"];
-                AsayCariModel::where(["ID"=>$request->input("CariId")])->update($set);
-
-                $set2["netsis_carikod"] = $sonuc["CariKod"];
-                $set2["cari_tip"] 	    = "0";
-                ExpenseDocumentModel::where(["id"=>$request->input("DocumentId")])->update($set2);
-                return response([
-                    'status' => true,
-                    'data' => $sonuc
-                ], 200);
-            endif;
-        }
-        else
-        {
-            $sonuc["netsis_carikod"]	= $request->input("NetsisKod");
-            $sonuc["Sonuc"]		        = true;
-            $set2 = array();
-            $set2["netsis_carikod"] 	= $request->input("NetsisKod");
-            $set2["cari_tip"] 	    = "0";
-            ExpenseDocumentModel::where(["id"=>$request->input("DocumentId")])->update($set2);
-
+        if($sonuc["Sonuc"]==false):
+            return response([
+                'status' => false,
+                'message' => $data->CariEkleResult->Aciklama
+            ], 200);
+        else:
             return response([
                 'status' => true,
                 'data' => $sonuc
             ], 200);
-        }
+        endif;
     }
 
     public function SendExpenseToNetsis(Request $request)

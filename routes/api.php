@@ -40,21 +40,23 @@ Route::namespace("Api")->group(function(){
     Route::put('processes/expense/documentConfirmTakeBack', "Processes\ExpenseController@documentConfirmTakeBack")->name("expense_documentConfirmTakeBack");
     Route::put('processes/expense/expenseComplete', "Processes\ExpenseController@expenseComplete")->name("expense_expenseComplete");
 
+    Route::get('processes/expense/getCurrent', "Processes\ExpenseController@getCurrent")->name("expense_getCurrent");
     Route::post('processes/expense/currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
     Route::post('processes/expense/SendCurrentToNetsis', "Processes\ExpenseController@SendCurrentToNetsis")->name("expense_SendCurrentToNetsis");
     Route::post('processes/expense/SendExpenseToNetsis', "Processes\ExpenseController@SendExpenseToNetsis")->name("expense_SendExpenseToNetsis");
-
+    Route::get('processes/expense/listNetsisCurrent', "Processes\ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
 
     Route::get('processes/expense/getCrmProjectCode', "Processes\ExpenseController@getCrmProjectCode")->name("expense_getCrmProjectCode");
     Route::get('processes/expense/getParaBirimleri', "Processes\ExpenseController@getParaBirimleri")->name("expense_getParaBirimleri");
     Route::get('processes/expense/getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
     Route::get('processes/expense/getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
-    Route::get('processes/expense/listNetsisCurrent', "Processes\ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
     Route::get('processes/expense/listDocumentTypes', "Processes\ExpenseController@listDocumentTypes")->name("expense_listDocumentTypes");
     Route::get('processes/expense/listTypes', "Processes\ExpenseController@listTypes")->name("expense_listTypes");
     Route::get('processes/expense/listExpenseAccountCodes', "Processes\ExpenseController@listExpenseAccountCodes")->name("expense_listExpenseAccountCodes");
     Route::get('processes/expense/getDocumentType', "Processes\ExpenseController@getDocumentType")->name("expense_getDocumentType");
     Route::get('processes/expense/getType', "Processes\ExpenseController@getType")->name("expense_getType");
+
+    Route::get('processes/expense/listTaxOffice', "Processes\ExpenseController@listTaxOffice")->name("expense_listTaxOffice");
 
     Route::namespace("Ik")->group(function(){
 
