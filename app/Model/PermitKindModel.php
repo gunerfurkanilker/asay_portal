@@ -11,7 +11,7 @@ class PermitKindModel extends Model
     protected $primaryKey = 'id';
 
     public static function getPermitKinds(){
-        return PermitModel::all();
+        return self::all();
     }
 
 

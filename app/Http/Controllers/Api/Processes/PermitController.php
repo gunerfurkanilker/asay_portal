@@ -27,7 +27,7 @@ class PermitController extends ApiController
 
     }
 
-    public function permitTypes(){
+    public function permitTypes(Request $request){
         return response([
             'status' => true,
             'message' => "İşlem Başarılı",
