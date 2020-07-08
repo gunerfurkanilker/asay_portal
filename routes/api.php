@@ -56,6 +56,9 @@ Route::namespace("Api")->group(function(){
     Route::get('processes/expense/getDocumentType', "Processes\ExpenseController@getDocumentType")->name("expense_getDocumentType");
     Route::get('processes/expense/getType', "Processes\ExpenseController@getType")->name("expense_getType");
 
+    Route::post('processes/permit/createNewPermit','Processes\PermitController@createPermit')->name('new_permit');
+
+
     Route::namespace("Ik")->group(function(){
 
         Route::prefix('ik')->group(function () {
