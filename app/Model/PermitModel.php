@@ -12,18 +12,11 @@ class PermitModel extends Model
 
     public static function createPermit($req){
 
-        $insertData = [];
-        $insertData['kind']             = $req['kind'];
-        $insertData['description']      = $req['description'];
-        $insertData['start_date']       = $req['startDate'];
-        $insertData['end_date']         = $req['endDate'];
-        $insertData['total_day']        = $req['totalDay'];
-        $insertData['duty_transferee']  = $req['dutyTransferee'];
-        $insertData['transfer_date']    = $req['transferDate'];
+        $user = UserModel::find( UserTokensModel::where('user_token',$req['token']) -> first() -> user_id );
 
         $newPermit = new PermitModel();
 
-        $newPermit->EmployeeID = $req['employeeId'];
+        $newPermit->EmployeeID = $user->EmployeeID;
         $newPermit->kind = $req['kind'];
         $newPermit->description = $req['description'];
         $newPermit->start_date = $req['startDate'];
