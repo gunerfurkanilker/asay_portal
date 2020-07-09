@@ -589,7 +589,7 @@ class ExpenseController extends ApiController
             $client = new \GuzzleHttp\Client();
             $current = json_decode($client->post("https://ivd.gib.gov.tr/tvd_server/dispatch", $sendData)->getBody());
 
-            if ($current->error == '1' || count((array)$current->data) == 0)
+            if (count((array)$current->data) == 0)
                 return response([
                     'status' => false,
                     'message' => 'Veri bulunamadı.'
