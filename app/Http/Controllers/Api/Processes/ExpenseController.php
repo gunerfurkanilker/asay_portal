@@ -233,6 +233,9 @@ class ExpenseController extends ApiController
         }
         $expenseDocument->expense_id        = $request->expense_id;
         $expenseDocument->cari_tip          = $request->cari_tip;
+        $expenseDocument->cari_province     = $request->cari_province;
+        $expenseDocument->cari_tax_office   = $request->cari_tax_office;
+        $expenseDocument->cari_tax_number   = $request->cari_tax_number;
         $expenseDocument->document_date     = date("Y-m-d H:i:s",strtotime($request->document_date));
         $expenseDocument->document_number   = $request->document_number;
         $expenseDocument->document_type     = $request->document_type;
@@ -356,6 +359,7 @@ class ExpenseController extends ApiController
         $documentId = $request->input("document_id");
         $asayExpenseDocument = ExpenseDocumentModel::find($documentId);
 
+
         if($asayExpenseDocument===null)
         {
             return response([
@@ -365,6 +369,10 @@ class ExpenseController extends ApiController
         }
         else
         {
+            $cariProvince   = $asayExpenseDocument->cari_province != null ? TaxOfficesModel::where('code',$asayExpenseDocument->cari_province)->first() : null;
+            $cariTaxOffice  = $asayExpenseDocument->cari_tax_office != null ? TaxOfficesModel::where('code',$asayExpenseDocument->cari_tax_office)->first() : null;
+            $asayExpenseDocument->CariProvince = $cariProvince;
+            $asayExpenseDocument->TaxOffice = $cariTaxOffice;
             $asayExpense = ExpenseModel::find($asayExpenseDocument->expense_id);
             $documentElement = ExpenseDocumentElementModel::where(["document_id"=>$asayExpenseDocument->id,"active"=>1])->get();
             if($asayExpense->EmployeeID==$user->EmployeeID)
@@ -535,7 +543,6 @@ class ExpenseController extends ApiController
         ], 200);
     }
 
-
     public function getCurrent(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -582,6 +589,12 @@ class ExpenseController extends ApiController
             $client = new \GuzzleHttp\Client();
             $current = json_decode($client->post("https://ivd.gib.gov.tr/tvd_server/dispatch", $sendData)->getBody());
 
+            if ($current->error == '1' || count((array)$current->data) == 0)
+                return response([
+                    'status' => false,
+                    'message' => 'Veri bulunamadı.'
+                ], 200);
+
             $cariler = [
                 "CARI_KOD"      => "",
                 "CARI_ISIM"     => $current->data->unvan,
@@ -600,7 +613,6 @@ class ExpenseController extends ApiController
             'data' => $cariler,
         ], 200);
     }
-
 
     public function listNetsisCurrent(Request $request)
     {
