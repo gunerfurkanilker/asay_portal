@@ -25,7 +25,7 @@ Route::namespace("Api")->group(function(){
 
     Route::prefix('processes/expense')->group(function () {
         Route::get('processes/expense/list', "Processes\ExpenseController@expenseList")->name("expense_expenseList");
-        Route::post('/expenseSave', "Processes\ExpenseController@expenseSave")->name("expense_expenseSave");
+        Route::post('expenseSave', "Processes\ExpenseController@expenseSave")->name("expense_expenseSave");
         Route::post('documentSave', "Processes\ExpenseController@documentSave")->name("expense_documentSave");
         Route::get('getExpense', "Processes\ExpenseController@getExpense")->name("expense_getExpense");
         Route::get('getExpenseDocument', "Processes\ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
