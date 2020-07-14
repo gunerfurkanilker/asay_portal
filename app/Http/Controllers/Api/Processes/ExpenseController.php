@@ -249,7 +249,7 @@ class ExpenseController extends ApiController
         if(count($request->element))
         {
             foreach ($request->element as $element) {
-                $elementId = isset($element["element_id"]) ? $element["element_id"] : "";
+                $elementId = isset($element["id"]) ? $element["id"] : "";
                 if($elementId!="")
                 {
                     $expenseDocumentElement    = ExpenseDocumentElementModel::find($elementId);

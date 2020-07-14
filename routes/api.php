@@ -60,6 +60,7 @@ Route::namespace("Api")->group(function(){
     Route::prefix('processes/permit/')->group(function () {
         Route::post('createNewPermit', 'Processes\PermitController@createPermit')->name('new_permit');
         Route::get('getPermitTypes', 'Processes\PermitController@permitTypes')->name('permit_types');
+        Route::post('savePermit', 'Processes\PermitController@savePermit')->name('save_permit');
     });
 
     Route::namespace("Ik")->group(function(){
