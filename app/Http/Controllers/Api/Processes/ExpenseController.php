@@ -575,11 +575,11 @@ class ExpenseController extends ApiController
         {
             $sendData = [
                 'body' => http_build_query([
-                    "cmd" => "vergiNoIslemleri_vergiNumarasiSorgulama",
+                    "cmd" => "vergiLevhasiDetay_sorgula",
                     "callid" => "434fda15eda09-10",
-                    "pageName" => "R_INTVRG_INTVD_VERGINO_DOGRULAMA",
+                    "pageName" => "P_INTVRG_INTVD_E_VERGI_LEVHA_SORGULA",
                     "token" => "d1078f5e3dc646b78d5d4e5842f21e97feb48d366bc7617458b6679dec12675154a01fccc42292bb04d926bc259dbc75e39dd8e202535fd70a7098396c74a6f7",
-                    "jp" => '{"dogrulama":{"vkn1":"'.$taxNumber.'","tckn1":"","iller":"'.$taxCityCode.'","vergidaireleri":"'.$taxOfficeCode.'"}}'
+                    "jp" => '{"sorgulayanTckn":"","sorgulanacakVkn":"'.$taxNumber.'","sorgulanacakTckn":"","sorgulanacakVDIl":"'.$taxCityCode.'","sorgulanacakVDAd":"'.$taxOfficeCode.'","islemTip":"0"}'
                 ]),
                 'headers' => [
                     'Content-Type'  => "application/x-www-form-urlencoded; charset=UTF-8",
@@ -592,7 +592,7 @@ class ExpenseController extends ApiController
             if (count((array)$current->data) == 0)
                 return response([
                     'status' => false,
-                    'message' => 'Veri bulunamadı.'
+                    'message' => 'Vergi Dairesi Kayıtlarında Vergi Numarası Bulunamadı. Muhasebe Departmanı İle İletişime Geçiniz.'
                 ], 200);
 
             $cariler = [
@@ -601,7 +601,7 @@ class ExpenseController extends ApiController
                 "CARI_TEL"      => "",
                 "CARI_IL"       => "",
                 "CARI_ILCE"     => "",
-                "CARI_ADRES"    => "",
+                "CARI_ADRES"    => $current->data->adres,
                 "VERGI_DAIRESI" => $taxOffice->name,
                 "VERGI_NUMARASI"=> $taxNumber,
                 "netsis"        => 0
@@ -1358,5 +1358,61 @@ class ExpenseController extends ApiController
             'data' => $response
         ], 200);
     }
+    /*
+    public function test()
+    {
+        //SMM Sorgulama
+        exit;
+        $wsdl    = 'http://smmmservis.tnb.org.tr/NPSKimlikDogrulamaServisi/Service.asmx?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://smmmservis.tnb.org.tr/NPSKimlikDogrulamaServisi/Service.asmx??singleWsdl",
+        );
+        try
+        {
+            $disKullaniciKimlik = new \stdClass();
+            $disKullaniciKimlik->ID = 1;
+            $disKullaniciKimlik->KayitDurumu = "Added";
+            $disKullaniciKimlik->ProgramAdi = "Belirtilmemis";
+            $disKullaniciKimlik->KimlikNO = "2650132174";
+            $disKullaniciKimlik->KimlikNOTipi = "VKN";
+            $disKullaniciKimlik->NoterlikKodu = "";
+            $disKullaniciKimlik->NoterlikKullaniciAdi = "";
+            $disKullaniciKimlik->DisKullaniciTipi = "Belirtilmemis";
+            $disKullaniciKimlik->Sifre = "";
+            $soap = new SoapClient($wsdl, $options);
+            $data = $soap->DisKullaniciKimlikDogrula([
+                "disKullaniciKimlik" => $disKullaniciKimlik,
+                "islemTipi" => "Belirtilmemis",
+                "istemciTarihi" => date("Y-m-d H:i:s"),
+            ]);
+            dd($data);
+            return response([
+                'status' => false,
+                'message' => $data
+            ], 200);
+
+        }
+        catch(Exception $e)
+        {
+            return response([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 200);
+        }
+    }*/
 
 }

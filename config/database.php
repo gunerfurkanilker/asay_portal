@@ -95,7 +95,7 @@ return [
             'url' => '',
             'host' => 'netsis.asay.corp',
             'port' => '1433',
-            'database' =>'ASAYGROUP2019',
+            'database' =>'ASAYGROUP2020',
             'username' => 'bitrix',
             'password' => 'Om8200230*',
             'charset' => 'utf8',

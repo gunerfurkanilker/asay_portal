@@ -28,7 +28,7 @@ class AuthController extends Controller
         $error = false;
         $connections = [
             'asay.corp' => [
-                'hosts' => ['asay.corp'],
+                'hosts' => ['10.34.42.11','10.35.42.5'],
             ],
         ];
 

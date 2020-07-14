@@ -55,6 +55,7 @@ Route::namespace("Api")->group(function(){
         Route::get('getType', "Processes\ExpenseController@getType")->name("expense_getType");
 
         Route::get('listTaxOffice', "Processes\ExpenseController@listTaxOffice")->name("expense_listTaxOffice");
+        //Route::get('test', "Processes\ExpenseController@test")->name("expense_test");
     });
 
     Route::prefix('processes/permit/')->group(function () {
