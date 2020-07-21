@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\EducationLevelModel;
 use App\Model\Employee;
 use App\Model\EmployeeModel;
+use App\Model\EmployeesChildModel;
+use App\Model\GenderModel;
+use App\Model\RelationshipDegreeModel;
 use Illuminate\Http\Request;
 
 
@@ -39,6 +43,20 @@ class EmployeeController extends ApiController
                 'message' => 'İşlem Başarısız.',
             ], 200);
 
+    }
+
+    public function getEmployeesChildren(Request $request)
+    {
+        $children = EmployeesChildModel::where($request->employeeID)->get();
+        $fields['genders'] = GenderModel::all();
+        $fields['relationships'] = RelationshipDegreeModel::all();
+        $fields['educationLevel'] = EducationLevelModel::all();
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı.',
+            'data' => $children,
+            'fields' => $fields
+        ], 200);
     }
 
     public function addEmployee(Request $request)
@@ -97,6 +115,26 @@ class EmployeeController extends ApiController
         $employee = EmployeeModel::where('Id', $id)->first();
 
         $freshData = EmployeeModel::saveGeneralInformations($employee, $requestData);
+
+        if ($freshData)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $freshData
+            ], 200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.'
+            ], 200);
+    }
+
+    public function saveOtherGeneralInformations(Request $request, $id)
+    {
+        $requestData = $request->all();
+        $employee = EmployeeModel::where('Id', $id)->first();
+
+        $freshData = EmployeeModel::saveOtherInformations($employee, $requestData);
 
         if ($freshData)
             return response([

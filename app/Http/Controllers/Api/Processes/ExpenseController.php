@@ -34,7 +34,7 @@ class ExpenseController extends ApiController
     {
         $status = ($request->input("status")===false) ? "" : $request->input("status");
         $user = UserModel::find($request->userId);
-        $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.price) AS price"))
+        $expenseQ = ExpenseModel::select("Expense.*",DB::raw("SUM(ExpenseDocumentElement.amount) AS price"))
             ->leftJoin("ExpenseDocument","ExpenseDocument.expense_id","=","Expense.id")
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->where(["Expense.active"=>1,"Expense.EmployeeID"=>$user->EmployeeID])
@@ -232,6 +232,8 @@ class ExpenseController extends ApiController
             $expenseDocument = new ExpenseDocumentModel();
         }
         $expenseDocument->expense_id        = $request->expense_id;
+        $expenseDocument->cari_name         = $request->cari_name;
+        $expenseDocument->cari_address      = $request->cari_address;
         $expenseDocument->cari_tip          = $request->cari_tip;
         $expenseDocument->cari_province     = $request->cari_province;
         $expenseDocument->cari_tax_office   = $request->cari_tax_office;

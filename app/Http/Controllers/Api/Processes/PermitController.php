@@ -56,7 +56,7 @@ class PermitController extends ApiController
         $requestedPermitDays =(int) $interval->format('%a');
         $requestedPermitHours =(int) $interval->format('%h');
 
-        if ($requestedPermitDays > $remainingDays['daysLeft'])
+        /*if ($requestedPermitDays > $remainingDays['daysLeft'])
         {
             return response([
                 'status' => false,
@@ -69,7 +69,9 @@ class PermitController extends ApiController
                 'status' => false,
                 'message' => "Yıllık izin hakkınızdan fazla bir izin talep ettiniz.\n Kullandığınız izin miktarı : "
                     .$remainingDays['daysUsed'].' gün, '.$remainingDays['hoursUsed'].'saat.'.'\n Kalan İzin Miktarı : ' .$remainingDays['daysLeft'].' gün, '.$remainingDays['hoursLeft'].' saat.',
-            ], 200);
+            ], 200);*/
+
+
 
 
 
@@ -78,7 +80,7 @@ class PermitController extends ApiController
             'status' => true,
             'message' => "İşlem Başarılı",
             'data' => $remainingDays,
-            'elapsed' => $elapsed,
+            'elapsed' => PermitModel::calculateTotalDayHourCount($request->startDate,$request->endDate),
             'requestedPermitDays' => $requestedPermitDays,
             'requestedPermitHours' => $requestedPermitHours
         ], 200);

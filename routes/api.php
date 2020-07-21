@@ -105,12 +105,14 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/ssi/{id}', "SocialSecurityInformationController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
             //Route::get('employee/bank/fields', "EmployeeBankController@getSSInformationFields")->name("get_ssi_fields");
             Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
+            Route::get('employee/children', "EmployeeController@getEmployeesChildren")->where(['id' => '[0-9]+'])->name("get_employees_children");
 
             Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
 
             Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("delete_employee");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
+            Route::post('employee/general-informations/other/save/{id}', "EmployeeController@saveOtherGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_other_general_informations");
 
             Route::post('employee/contact-information/save', "EmployeeController@saveContactInformation")->name("employee_contact_information");
 

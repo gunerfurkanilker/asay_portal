@@ -30,7 +30,7 @@ class EmployeePositionModel extends Model
         $data['Departments'] = DepartmentModel::all();
         $data['Titles'] = TitleModel::all();
         $data['Managers'] = EmployeeModel::all();
-        $data['WorkingTypes'] = WorkingTypeModel::all();
+        $data['WorkingTypes'] = WorkingTypeModel::where('Active',1)->get();
 
         return $data;
 

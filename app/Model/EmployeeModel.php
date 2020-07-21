@@ -33,14 +33,27 @@ class EmployeeModel extends Model
         "BodyMeasurements",
         'IDCard',
         'SocialSecurityInformation',
-        'EmployeeBank'
+        'EmployeeBank',
+        'Domain'
     ];
 
-    public static function addEmployee($request_data)
+    public static function addEmployee($requestData)
     {
-        unset($request_data['token']);
-        $employee = self::create($request_data);
+        $employee = new EmployeeModel();
+
+        $employee->StaffID              = $requestData['staffId'];
+        $employee->FirstName            = $requestData['firstname'];
+        $employee->UsageName            = $requestData['usagename'];
+        $employee->LastName             = $requestData['lastname'];
+        $employee->AccessTypeID         = $requestData['accesstypeid'];
+        $employee->DomainID             = $requestData['domain'];
+        $employee->JobEmail             = $requestData['jobemail'];
+        $employee->JobMobilePhone       = $requestData['jobphone'];
+        $employee->InterPhone           = $requestData['internalphone'];
+        $employee->ContractTypeID       = $requestData['contracttypeid'];
+
         $employee->save();
+
         return $employee->fresh();
     }
 
@@ -62,9 +75,10 @@ class EmployeeModel extends Model
     public static function getGeneralInformationsFields()
     {
         $data = [];
-        $data['accesstypefield'] = AccessTypeModel::all();
-        $data['contractypefield'] = ContractTypeModel::all();
+        $data['accesstypefield'] = AccessTypeModel::where('Active',1)->get();
+        $data['contractypefield'] = ContractTypeModel::where('Active',1)->get();
         $data['workingschedulefield'] = WorkingScheduleModel::all();
+        $data['domainfield'] = DomainModel::where('active', 1)->get();
 
         return $data;
 
@@ -74,18 +88,17 @@ class EmployeeModel extends Model
 
     public static function saveGeneralInformations($employee,$requestData)
     {
-        $employee->FirstName = $requestData['firstname'];
-        $employee->UsageName = $requestData['usagename'];
-        $employee->LastName = $requestData['lastname'];
-        $employee->AccessTypeID = $requestData['accesstypeid'];
-        $employee->Domain = $requestData['domain'];
-        $employee->JobEmail = $requestData['jobemail'];
-        $employee->JobMobilePhone = $requestData['jobphone'];
-        $employee->InterPhone = $requestData['internalphone'];
-        $employee->ContractTypeID = $requestData['contracttypeid'];
-        $employee->StartDate = new Carbon($requestData['jobbegindate']);
-        $employee->ContractFinishDate = new Carbon($requestData['contractfinishdate']);
-        $employee->WorkingScheduleID = $requestData['workingscheduleid'];
+
+        $employee->StaffID              = $requestData['staffId'];
+        $employee->FirstName            = $requestData['firstname'];
+        $employee->UsageName            = $requestData['usagename'];
+        $employee->LastName             = $requestData['lastname'];
+        $employee->AccessTypeID         = $requestData['accesstypeid'];
+        $employee->DomainID             = $requestData['domain'];
+        $employee->JobEmail             = $requestData['jobemail'];
+        $employee->JobMobilePhone       = $requestData['jobphone'];
+        $employee->InterPhone           = $requestData['internalphone'];
+        $employee->ContractTypeID       = $requestData['contracttypeid'];
 
         if ($employee->save())
             return $employee->fresh();
@@ -94,7 +107,17 @@ class EmployeeModel extends Model
 
     }
 
+    public static function saveOtherInformations($employee,$requestData)
+    {
+        $employee->StartDate            = new Carbon($requestData['jobbegindate']);
+        $employee->ContractFinishDate   = $requestData['contractfinishdate'] ? new Carbon($requestData['contractfinishdate']) : null;
+        $employee->WorkingScheduleID    = $requestData['workingscheduleid'];
 
+        if ($employee->save())
+            return $employee->fresh();
+        else
+            return false;
+    }
 
     public static function saveContactInformation($employee,$requestData)
     {
@@ -383,6 +406,19 @@ class EmployeeModel extends Model
         if ($location)
         {
             return $location->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getDomainAttribute()
+    {
+        $domain = $this->hasOne(DomainModel::class,"id","DomainID");
+        if ($domain)
+        {
+            return $domain->first();
         }
         else
         {
