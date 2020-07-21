@@ -63,6 +63,15 @@ Route::namespace("Api")->group(function(){
         Route::get('getPermitTypes', 'Processes\PermitController@permitTypes')->name('permit_types');
         Route::post('savePermit', 'Processes\PermitController@savePermit')->name('save_permit');
     });
+    Route::prefix('processes/AdvancePayment/')->group(function () {
+        Route::post('save', 'Processes\AdvancePaymentController@save')->name('AdvancePayment_save');
+        Route::get('list', 'Processes\AdvancePaymentController@list')->name('AdvancePayment_list');
+        Route::get('getAdvance', 'Processes\AdvancePaymentController@getAdvance')->name('AdvancePayment_getAdvance');
+        Route::get('listPending', 'Processes\AdvancePaymentController@listPending')->name('AdvancePayment_listPending');
+        Route::put('confirmTakeBack', 'Processes\AdvancePaymentController@confirmTakeBack')->name('AdvancePayment_confirmTakeBack');
+        Route::put('confirm', 'Processes\AdvancePaymentController@confirm')->name('AdvancePayment_confirm');
+        Route::delete('deleteAdvance', 'Processes\AdvancePaymentController@deleteAdvance')->name('AdvancePayment_deleteAdvance');
+    });
 
     Route::namespace("Ik")->group(function(){
 
