@@ -26,6 +26,15 @@ class AdvancePaymentController extends ApiController
         $post["AdvancePaymentId"]   = $request->input("AdvancePaymentId")!==null ? $request->input("AdvancePaymentId") : "";;
         $post["RequirementDate"]    = $request->input("RequirementDate");
         $post["Amount"]             = $request->input("Amount");
+        $post['Code']               = $request->input('Code');
+        $post['TravelBy']           = $post['ExpenseType'] == 2 ? $request->input('TravelBy') : null;
+        $post['TravelTo']           = $post['ExpenseType'] == 2 ? $request->input('TravelTo') : null;
+        $post['TravelDate']         = $post['ExpenseType'] == 2 ? $request->input('TravelDate') : null;
+        $post['TravelNight']        = $post['ExpenseType'] == 2 ? $request->input('TravelNight') :null;
+        $post['TravelDay']          = $post['ExpenseType'] == 2 ? $request->input('TravelDay') :null;
+        $post['TravelAccommodation']= $post['ExpenseType'] == 2 ? $request->input('TravelAccommodation') : null;
+        $post['ToApproval']         = $request->input('ToApproval');
+        $post['TakeBack']           = $request->input('TakeBack');
         $AdvancePaymentId           = $post["AdvancePaymentId"];
 
         if($AdvancePaymentId==""){
@@ -35,14 +44,24 @@ class AdvancePaymentController extends ApiController
         else
             $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
 
-        $AdvancePayment->Name              = $post["Name"];
-        $AdvancePayment->Description       = $post["Description"];
-        $AdvancePayment->EmployeeID        = $user->EmployeeID;
-        $AdvancePayment->ExpenseType       = $post["ExpenseType"];
-        $AdvancePayment->ProjectId         = $post["ProjectId"]!==null ? $post["ProjectId"] : "";
-        $AdvancePayment->CategoryId        = $post["CategoryId"]!==null ? $post["CategoryId"] : "";
-        $AdvancePayment->RequirementDate   = $post["RequirementDate"];
-        $AdvancePayment->Amount            = $post["Amount"];
+        $AdvancePayment->Name                   = $post["Name"];
+        $AdvancePayment->Code                   = $post['Code'];
+        $AdvancePayment->Description            = $post["Description"];
+        $AdvancePayment->EmployeeID             = $user->EmployeeID;
+        $AdvancePayment->ExpenseType            = $post["ExpenseType"];
+        $AdvancePayment->ProjectId              = $post["ProjectId"]!==null ? $post["ProjectId"] : "";
+        $AdvancePayment->CategoryId             = $post["CategoryId"]!==null ? $post["CategoryId"] : "";
+        $AdvancePayment->RequirementDate        = $post["RequirementDate"];
+        $AdvancePayment->Amount                 = $post["Amount"];
+        $AdvancePayment->TravelBy               = $post['TravelBy'];
+        $AdvancePayment->TravelTo               = $post['TravelTo'];
+        $AdvancePayment->TravelDate             = $post['TravelDate'];
+        $AdvancePayment->TravelDay              = $post['TravelDay'];
+        $AdvancePayment->TravelNight            = $post['TravelNight'];
+        $AdvancePayment->TravelAccommodation    = $post['TravelAccommodation'];
+
+        $post['ToApproval'] != null ? $AdvancePayment->Status = 1 : '';
+        $post['TakeBack'] != null ? $AdvancePayment->Status = 0 : '';
 
         if($AdvancePayment->save())
         {
@@ -178,7 +197,7 @@ class AdvancePaymentController extends ApiController
         }
         $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
 
-        $status = self::expenseAuthority($AdvancePayment,$user_id);
+        $status = self::advanceAuthority($AdvancePayment,$user_id);
         if($status==false)
         {
             return response([
@@ -219,7 +238,6 @@ class AdvancePaymentController extends ApiController
 
     }
 
-
     public function confirm(Request $request)
     {
         $user_id            = $request->userId;
@@ -232,7 +250,7 @@ class AdvancePaymentController extends ApiController
             ], 200);
         }
         $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
-        $status = self::expenseAuthority($AdvancePayment,$user_id);
+        $status = self::advanceAuthority($AdvancePayment,$user_id);
         if($status==false)
         {
             return response([
@@ -264,8 +282,37 @@ class AdvancePaymentController extends ApiController
         }
         else if($AdvancePayment->Status==3)
             $AdvancePayment->AccountingStatus = $confirm;
-
+        //TODO Netsise aktardıktan sonra status 4 mü olacak ?
         //TODO Netsise Aktarım eklenecek
+
+        $AdvancePaymentResult = $AdvancePayment->save();
+        if($AdvancePaymentResult){
+            return response([
+                'status' => true,
+                'message' => "Onay Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Onaylama Başarısız"
+            ], 200);
+        }
+
+    }
+
+    public function complete(Request $request){
+
+        $AdvancePaymentId   = $request->AdvancePaymentId;
+        if($AdvancePaymentId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Avans Numarası Boş Olamaz"
+            ], 200);
+        }
+        $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
+        $AdvancePayment->Status = $AdvancePayment->Status +1;
 
         $AdvancePaymentResult = $AdvancePayment->save();
         if($AdvancePaymentResult){
@@ -324,26 +371,26 @@ class AdvancePaymentController extends ApiController
     {
         $status = false;
         $user = UserModel::find($user_id);
-        if($advancePayment->status==1)
+        if($advancePayment->Status==1)
         {
             $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$advancePayment->EmployeeID])->first();
             if($employeePosition->ManagerID==$user->EmployeeID)
                 $status = true;
         }
-        else if($advancePayment->status==2) {
-            if($advancePayment->category_id<>""){
-                $projetCategories = ProjectCategoriesModel::find($advancePayment->category_id);
+        else if($advancePayment->Status==2) {
+            if($advancePayment->CategoryId<>""){
+                $projetCategories = ProjectCategoriesModel::find($advancePayment->CategoryId);
                 if($user->EmployeeID==$projetCategories->manager_id)
                     $status = true;
             }
             else {
-                $project = ProjectsModel::find($advancePayment->project_id);
+                $project = ProjectsModel::find($advancePayment->ProjectId);
                 if($user->EmployeeID==$project->manager_id)
                     $status = true;
             }
 
         }
-        else if($advancePayment->status==3 || $advancePayment->status==4) {
+        else if($advancePayment->Status==3 || $advancePayment->Status==4) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
             $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
             if($userGroupCount>0)

@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use Carbon\Carbon;
 use Cassandra\Date;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -15,19 +16,20 @@ class PermitModel extends Model
 
     public static function createPermit($req)
     {
-
+        $totalPermitDayHour = self::calculateTotalDayHourCount($req->start_date,$req->end_date);
         $user = UserModel::find(UserTokensModel::where('user_token', $req['token'])->first()->user_id);
 
         $newPermit = new PermitModel();
 
         $newPermit->EmployeeID = $user->EmployeeID;
-        $newPermit->kind = $req['kind'];
-        $newPermit->description = $req['description'];
-        $newPermit->start_date = $req['startDate'];
-        $newPermit->end_date = $req['endDate'];
-        $newPermit->total_day = $req['totalDay'];
-        $newPermit->duty_transferee = $req['dutyTransferee'];
-        $newPermit->transfer_date = $req['transferDate'];
+        $newPermit->kind = $req->kind;
+        $newPermit->description = $req->description;
+        $newPermit->start_date = new Carbon($req->start_date);
+        $newPermit->end_date = new Carbon($req->end_date);
+        $newPermit->total_day = $totalPermitDayHour['usedDays'];
+        $newPermit->total_hours = $totalPermitDayHour['inheritHours'];
+        $newPermit->duty_transferee = $req->duty_transferee;
+        $newPermit->transfer_date = new Carbon($req->transfer_date);
         return $newPermit->save() ? true : false;
     }
 
@@ -69,14 +71,14 @@ class PermitModel extends Model
         $data=[];
         $clearHourCount = 0;
         $clearDayCount = 0;
-        $remainingPermitHours = 0;
+        $usedPermitHours = 0;
         $weekendDays = 0;
         $publicHolidaysCount = 0;
         $publicHolidays = [];
         $dayCount = 0;
 
 
-        $startDateTime = new DateTime(  $startDateTimeParam);
+        $startDateTime = new DateTime($startDateTimeParam);
         $endDateTime = new DateTime($endDateTimeParam);
         $interval = $endDateTime->diff($startDateTime);
 
@@ -122,18 +124,23 @@ class PermitModel extends Model
 
         if ((int) $startDateTime->format('H') > 9 && (int) $startDateTime->format('H') < 18)
         {
-            $remainingPermitHours += (int) $startDateTime->format('H') - 9 ;
-            if ((int) $startDateTime->format('H') >= 12 || (int) $startDateTime->format('H') >= 13) // Öğle arasından sonra izni başlıyor ise öğle arasında geçen zamanı çalışıyor saymıyorum.
-                $remainingPermitHours--;
+            $usedPermitHours += 18 - (int) $startDateTime->format('H')  ;
+            if ((int) $startDateTime->format('H') <= 12 || (int) $startDateTime->format('H') < 13)
+                $usedPermitHours--;
 
         }
 
         if ((int) $endDateTime->format('H') < 18 && (int) $endDateTime->format('H') > 9)
         {
-            $remainingPermitHours +=  18 - (int) $endDateTime->format('H') ;
-            if ((int) $endDateTime->format('H') <= 12) //Öğle arasından önce izni bitiyor ise öğle arasında olan saati çıkarıyorum.
-                $remainingPermitHours--;
+            $usedPermitHours += (int) $endDateTime->format('H') -9 ;
+            if ((int) $endDateTime->format('H') >= 12) //Öğle arasından önce izni bitiyor ise öğle arasında olan saati çıkarıyorum.
+                $usedPermitHours--;
 
+        }
+
+        if((int) $endDateTime->format('H') == 9) //Bittiği gün saati 9 ise o gün hiç izin kullanılmamış demektir.
+        {
+            $clearDayCount--;
         }
 
         ((int) $startDateTime->format('H') > 9 && (int) $startDateTime->format('H') < 18) || ((int) $endDateTime->format('H') < 18 && (int) $endDateTime->format('H') > 9)
@@ -150,30 +157,29 @@ class PermitModel extends Model
             {
                 //$publicHolidaysCount--;
                 if ((int) $itemStartDate->format('H') >= 13)
-                    $remainingPermitHours +=((int) $itemStartDate->format('H') - 9) - 1; // Öğle arasını çıkarıyorum.
+                    $usedPermitHours +=((int) $itemStartDate->format('H') - 9) - 1; // Öğle arasını çıkarıyorum.
                 else
-                    $remainingPermitHours += (int) $itemStartDate->format('H') - 9; // Öğle arasından önce ise -1 saat öğle arasını çıkarmama gerek yok.
+                    $usedPermitHours += (int) $itemStartDate->format('H') - 9; // Öğle arasından önce ise -1 saat öğle arasını çıkarmama gerek yok.
             }
             if ((int) $itemEndDate->format('H') > 9)
             {
                 //$publicHolidaysCount--;
                 if ((int) $itemEndDate->format('H') >= 13)
-                    $remainingPermitHours +=((int) $itemEndDate->format('H') - 9) - 1; // Öğle arasını çıkarıyorum.
+                    $usedPermitHours +=((int) $itemEndDate->format('H') - 9) - 1; // Öğle arasını çıkarıyorum.
                 else
-                    $remainingPermitHours += (int) $itemEndDate->format('H') - 9; // Öğle arasından önce ise -1 saat öğle arasını çıkarmama gerek yok.
+                    $usedPermitHours += (int) $itemEndDate->format('H') - 9; // Öğle arasından önce ise -1 saat öğle arasını çıkarmama gerek yok.
             }
         }
 
 
-        $clearHourCount = $remainingPermitHours >= 8 ? $remainingPermitHours - 8 : $remainingPermitHours;
-        $remainingPermitHours > 8 ? $clearDayCount += floor($remainingPermitHours / 8) :'';
-        $remainingPermitHours == 8 ? $clearDayCount++ : '';
+        $clearHourCount = $usedPermitHours >= 8 ? $usedPermitHours - 8 : $usedPermitHours;
+        $usedPermitHours > 8 ? $clearDayCount += floor($usedPermitHours / 8) :'';
+        $usedPermitHours == 8 ? $clearDayCount++ : '';
 
-        $data['clearDayCount'] = $clearDayCount;
-        $data['clearHourCount'] = $clearHourCount;
-        $data['publicHolidaysCount'] = $publicHolidaysCount;
-        $data['weekendDays'] = $weekendDays;
-        $data['remainingHours'] = $remainingPermitHours;
+        $data['usedDays'] = $clearDayCount;
+        $data['inheritHours'] = $clearHourCount;
+        $data['weekendsHolidays'] = $weekendDays + $publicHolidaysCount;
+
         return $data;
 
     }

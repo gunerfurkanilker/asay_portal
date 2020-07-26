@@ -14,4 +14,21 @@ class AdvancePaymentModel extends Model
 
     protected $hidden = [];
     protected $casts = [];
+    protected $appends = [
+        'Category'
+    ];
+
+    public function getCategoryAttribute()
+    {
+
+        $category = $this->hasOne(ProjectCategoriesModel::class,"id","CategoryId");
+        if ($category)
+        {
+            return $category->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
 }

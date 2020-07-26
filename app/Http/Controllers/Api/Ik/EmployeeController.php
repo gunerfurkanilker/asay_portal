@@ -45,9 +45,45 @@ class EmployeeController extends ApiController
 
     }
 
+    public function saveEmployeesChild(Request $request)
+    {
+        $result = EmployeesChildModel::saveEmployeesChild($request);
+
+        if ($result)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+            ], 200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.',
+            ], 200);
+
+
+    }
+
+    public function deleteEmployeesChild(Request $request)
+    {
+        if(EmployeesChildModel::where('id',$request->childId)->update(['active' => 0]))
+        {
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+            ], 200);
+        }
+        else{
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız.',
+            ], 200);
+        }
+
+    }
+
     public function getEmployeesChildren(Request $request)
     {
-        $children = EmployeesChildModel::where($request->employeeID)->get();
+        $children = EmployeesChildModel::where('EmployeeID',$request->employeeID)->where('active',1)->get();
         $fields['genders'] = GenderModel::all();
         $fields['relationships'] = RelationshipDegreeModel::all();
         $fields['educationLevel'] = EducationLevelModel::all();

@@ -150,6 +150,7 @@ class ExpenseController extends ApiController
         $post["expense_type"]        = $request->input("expense_type");
         $post["project_id"]          = $request->input("project_id");
         $post["category_id"]         = $request->input("category_id")!==null ? $request->input("category_id") : "";
+        $post['code']                = $request->input('code');
         $post["description"]         = $request->input("description");
         $post["expense_id"]          = $request->input("expense_id");
         $expense_id                  = $post["expense_id"];
@@ -188,6 +189,7 @@ class ExpenseController extends ApiController
         $AsayExpense->project_id         = $post["project_id"]!==null ? $post["project_id"] : "";
         $AsayExpense->category_id        = $post["category_id"]!==null ? $post["category_id"] : "";
         $AsayExpense->expense_type       = $post["expense_type"];
+        $AsayExpense->code               = $post['code'];
         $AsayExpense->description        = $post["description"];
         $AsayExpense->EmployeeID         = $user->EmployeeID;
         if($post["type"]=="kaydet")

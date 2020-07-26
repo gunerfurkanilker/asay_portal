@@ -42,15 +42,15 @@ class EmployeeModel extends Model
         $employee = new EmployeeModel();
 
         $employee->StaffID              = $requestData['staffId'];
-        $employee->FirstName            = $requestData['firstname'];
-        $employee->UsageName            = $requestData['usagename'];
-        $employee->LastName             = $requestData['lastname'];
-        $employee->AccessTypeID         = $requestData['accesstypeid'];
-        $employee->DomainID             = $requestData['domain'];
-        $employee->JobEmail             = $requestData['jobemail'];
-        $employee->JobMobilePhone       = $requestData['jobphone'];
-        $employee->InterPhone           = $requestData['internalphone'];
-        $employee->ContractTypeID       = $requestData['contracttypeid'];
+        $employee->FirstName            = $requestData['FirstName'];
+        $employee->UsageName            = $requestData['UsageName'];
+        $employee->LastName             = $requestData['LastName'];
+        $employee->AccessTypeID         = $requestData['AccessTypeID'];
+        $employee->DomainID             = $requestData['DomainID'];
+        $employee->JobEmail             = $requestData['JobEmail'];
+        $employee->JobMobilePhone       = isset($requestData['JobMobilePhone'])  ? $requestData['JobMobilePhone'] : null;
+        $employee->InterPhone           = isset($requestData['InterPhone'])  ? $requestData['InterPhone'] : null;
+        $employee->ContractTypeID       = $requestData['ContractTypeID'];
 
         $employee->save();
 

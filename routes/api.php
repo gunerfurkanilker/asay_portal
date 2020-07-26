@@ -61,15 +61,19 @@ Route::namespace("Api")->group(function(){
     Route::prefix('processes/permit/')->group(function () {
         Route::post('createNewPermit', 'Processes\PermitController@createPermit')->name('new_permit');
         Route::get('getPermitTypes', 'Processes\PermitController@permitTypes')->name('permit_types');
+        Route::get('getPermits', 'Processes\PermitController@getPermits')->name('get_permits');
         Route::post('savePermit', 'Processes\PermitController@savePermit')->name('save_permit');
     });
+
     Route::prefix('processes/AdvancePayment/')->group(function () {
+
         Route::post('save', 'Processes\AdvancePaymentController@save')->name('AdvancePayment_save');
         Route::get('list', 'Processes\AdvancePaymentController@list')->name('AdvancePayment_list');
         Route::get('getAdvance', 'Processes\AdvancePaymentController@getAdvance')->name('AdvancePayment_getAdvance');
         Route::get('listPending', 'Processes\AdvancePaymentController@listPending')->name('AdvancePayment_listPending');
         Route::put('confirmTakeBack', 'Processes\AdvancePaymentController@confirmTakeBack')->name('AdvancePayment_confirmTakeBack');
         Route::put('confirm', 'Processes\AdvancePaymentController@confirm')->name('AdvancePayment_confirm');
+        Route::put('complete', 'Processes\AdvancePaymentController@complete')->name('AdvancePayment_complete');
         Route::delete('deleteAdvance', 'Processes\AdvancePaymentController@deleteAdvance')->name('AdvancePayment_deleteAdvance');
     });
 
@@ -107,6 +111,10 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
             Route::get('employee/children', "EmployeeController@getEmployeesChildren")->where(['id' => '[0-9]+'])->name("get_employees_children");
 
+
+
+            Route::post('employee/child/save', "EmployeeController@saveEmployeesChild")->name("save_employees_child");
+            Route::delete('employee/child/delete', "EmployeeController@deleteEmployeesChild")->name("delete_employees_children");
             Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
 
             Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("delete_employee");
