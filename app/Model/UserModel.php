@@ -35,7 +35,8 @@ class UserModel extends Model
 
     public function getUserGroupAttribute()
     {
-        $userGroups = $this->hasMany(UserHasGroupModel::class, "user_id", "id")->get();
+        $groups = [];
+        $userGroups = $this->hasMany(EmployeeHasGroupModel::class, "EmployeeID", "EmployeeID")->get();
         foreach ($userGroups as $userGroup) {
             $group = UserGroupModel::find($userGroup->group_id);
             $groups[$userGroup->group_id] = $group->name;
@@ -117,7 +118,7 @@ class UserModel extends Model
         foreach ($UserFields as $userField) {
             if($userField->field_type=="active")
             {
-                if($userDetail->{$userField->ldap_attributes}[0]==66048 || $userDetail->{$userField->ldap_attributes}[0]==66080)
+                if($userDetail->{$userField->ldap_attributes}[0]==66048 || $userDetail->{$userField->ldap_attributes}[0]==66080  || $userDetail->{$userField->ldap_attributes}[0]==512)
                     $active = 1;
                 else
                     $active = 0;
@@ -156,6 +157,7 @@ class UserModel extends Model
 
 
         //User Group
+        /*
         foreach ($userDetail->memberof as $item) {
             $groupQ = UserGroupModel::where(["ldap_code"=>$item]);
             if($groupQ->count()>0)
@@ -173,6 +175,7 @@ class UserModel extends Model
             $userGroup = UserHasGroupModel::firstOrNew(["user_id"=>$lUser->id,"group_id"=>$group->id]);
             $userGroup->save();
         }
+        */
         return $lUser;
     }
 }

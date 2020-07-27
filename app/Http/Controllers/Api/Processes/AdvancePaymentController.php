@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Model\AdvancePaymentModel;
+use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeePositionModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
@@ -116,7 +117,7 @@ class AdvancePaymentController extends ApiController
         }
         else if($status==3 || $status==4)
         {
-            $userGroupCount = UserHasGroupModel::where(["user_id"=>$request->userId,"group_id"=>58])->count();
+            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12])->count();
             if($userGroupCount>0 && ($status==3 || $status==4))
                 $statusArray[] = $status;
             else{
@@ -392,7 +393,7 @@ class AdvancePaymentController extends ApiController
         }
         else if($advancePayment->Status==3 || $advancePayment->Status==4) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
-            $userGroupCount = UserHasGroupModel::where(["user_id"=>$user_id,"group_id"=>58])->count();
+            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12])->count();
             if($userGroupCount>0)
                 $status = true;
         }

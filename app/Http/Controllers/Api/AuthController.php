@@ -28,14 +28,14 @@ class AuthController extends Controller
         $error = false;
         $connections = [
             'asay.corp' => [
-                'hosts' => ['10.34.42.11','10.35.42.5'],
+                'hosts' => ["asay.corp"],
             ],
         ];
 
         $ad = new \Adldap\Adldap($connections);
 
         try {
-            $provider = $ad->connect("asay.corp", $email, $data["password"]);
+            $provider = $ad->connect("asay.corp", "ASAY\\".$data["username"], $data["password"]);
             $search = $provider->search();
             $user = UserModel::LdapUserCreate($search,$data["username"]);
             $Menus = UserMenuModel::UserMenus($user->user_group);
@@ -53,7 +53,7 @@ class AuthController extends Controller
             ];
             $userdata["token"] = UserModel::createToken($userdata);
         } catch (\Adldap\Auth\BindException $e) {
-            $error = "Kullanıcı adı ve şifre hatası";
+            $error = "Kullanıcı adı ve şifre hatası ".$e->getMessage();
         }
         if ($error) {
             return response([
