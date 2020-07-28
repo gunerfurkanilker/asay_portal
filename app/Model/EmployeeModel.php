@@ -109,8 +109,9 @@ class EmployeeModel extends Model
 
     public static function saveOtherInformations($employee,$requestData)
     {
+        $employee->ContractTypeID    = $requestData['contracttypeid'];
         $employee->StartDate            = new Carbon($requestData['jobbegindate']);
-        $employee->ContractFinishDate   = $requestData['contractfinishdate'] ? new Carbon($requestData['contractfinishdate']) : null;
+        $employee->ContractFinishDate   = isset($requestData['contractfinishdate']) ? new Carbon($requestData['contractfinishdate']) : null;
         $employee->WorkingScheduleID    = $requestData['workingscheduleid'];
 
         if ($employee->save())
