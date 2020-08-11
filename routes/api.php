@@ -166,6 +166,8 @@ Route::namespace("Api")->group(function(){
         Route::prefix('common')->group(function () {
             Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
             Route::post('cities/districts', "CityController@getDistrictsOfCity")->name("get_districts_of_city");
+
+            Route::post('objectFile/setObjectFile', "ObjectFileController@setObjectFile")->name("ObjectFileController_setObjectFile");
         });
 
     });
