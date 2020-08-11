@@ -19,63 +19,87 @@ Route::namespace("Api")->group(function(){
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
     Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
 
-    Route::get('processes/usersProject/list', "Processes\ProjectController@projectListOfUser")->name("project_projectListOfUser");
-    Route::get('processes/project', "Processes\ProjectController@getProject")->name("project_by_id");
-    Route::get('processes/categoriesOfProject/list', "Processes\ProjectController@categoryListOfProject")->name("categories_categoriesOfProjects");
 
-    Route::prefix('processes/expense')->group(function () {
-        Route::get('list', "Processes\ExpenseController@expenseList")->name("expense_expenseList");
-        Route::post('expenseSave', "Processes\ExpenseController@expenseSave")->name("expense_expenseSave");
-        Route::post('documentSave', "Processes\ExpenseController@documentSave")->name("expense_documentSave");
-        Route::get('getExpense', "Processes\ExpenseController@getExpense")->name("expense_getExpense");
-        Route::get('getExpenseDocument', "Processes\ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
-        Route::get('expenseDocumentList', "Processes\ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
-        Route::get('expensePendingList', "Processes\ExpenseController@expensePendingList")->name("expense_expensePendingList");
-        Route::delete('expenseDelete', "Processes\ExpenseController@expenseDelete")->name("expense_expenseDelete");
-        Route::delete('deleteDocument', "Processes\ExpenseController@deleteDocument")->name("expense_deleteDocument");
-        Route::put('userTakeBack', "Processes\ExpenseController@userTakeBack")->name("expense_userTakeBack");
-        Route::put('expenseDocumentConfirm', "Processes\ExpenseController@expenseDocumentConfirm")->name("expense_expenseDocumentConfirm");
-        Route::put('documentConfirmTakeBack', "Processes\ExpenseController@documentConfirmTakeBack")->name("expense_documentConfirmTakeBack");
-        Route::put('expenseComplete', "Processes\ExpenseController@expenseComplete")->name("expense_expenseComplete");
+    Route::namespace('Processes')->group(function (){
 
-        Route::get('getCurrent', "Processes\ExpenseController@getCurrent")->name("expense_getCurrent");
-        Route::post('currentSave', "Processes\ExpenseController@currentSave")->name("expense_currentSave");
-        Route::post('SendCurrentToNetsis', "Processes\ExpenseController@SendCurrentToNetsis")->name("expense_SendCurrentToNetsis");
-        Route::post('SendExpenseToNetsis', "Processes\ExpenseController@SendExpenseToNetsis")->name("expense_SendExpenseToNetsis");
-        Route::get('listNetsisCurrent', "Processes\ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
+        Route::get('processes/usersProject/list', "ProjectController@projectListOfUser")->name("project_projectListOfUser");
+        Route::get('processes/project', "ProjectController@getProject")->name("project_by_id");
+        Route::get('processes/categoriesOfProject/list', "ProjectController@categoryListOfProject")->name("categories_categoriesOfProjects");
 
-        Route::get('getCrmProjectCode', "Processes\ExpenseController@getCrmProjectCode")->name("expense_getCrmProjectCode");
-        Route::get('getParaBirimleri', "Processes\ExpenseController@getParaBirimleri")->name("expense_getParaBirimleri");
-        Route::get('getMuhasebeGiderHesaplari', "Processes\ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
-        Route::get('getAccountBalance', "Processes\ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
-        Route::get('listDocumentTypes', "Processes\ExpenseController@listDocumentTypes")->name("expense_listDocumentTypes");
-        Route::get('listTypes', "Processes\ExpenseController@listTypes")->name("expense_listTypes");
-        Route::get('listExpenseAccountCodes', "Processes\ExpenseController@listExpenseAccountCodes")->name("expense_listExpenseAccountCodes");
-        Route::get('getDocumentType', "Processes\ExpenseController@getDocumentType")->name("expense_getDocumentType");
-        Route::get('getType', "Processes\ExpenseController@getType")->name("expense_getType");
 
-        Route::get('listTaxOffice', "Processes\ExpenseController@listTaxOffice")->name("expense_listTaxOffice");
-        //Route::get('test', "Processes\ExpenseController@test")->name("expense_test");
+        Route::prefix('processes/expense')->group(function () {
+            Route::get('list', "ExpenseController@expenseList")->name("expense_expenseList");
+            Route::post('expenseSave', "ExpenseController@expenseSave")->name("expense_expenseSave");
+            Route::post('documentSave', "ExpenseController@documentSave")->name("expense_documentSave");
+            Route::get('getExpense', "ExpenseController@getExpense")->name("expense_getExpense");
+            Route::get('getExpenseDocument', "ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
+            Route::get('expenseDocumentList', "ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
+            Route::get('expensePendingList', "ExpenseController@expensePendingList")->name("expense_expensePendingList");
+            Route::delete('expenseDelete', "ExpenseController@expenseDelete")->name("expense_expenseDelete");
+            Route::delete('deleteDocument', "ExpenseController@deleteDocument")->name("expense_deleteDocument");
+            Route::put('userTakeBack', "ExpenseController@userTakeBack")->name("expense_userTakeBack");
+            Route::put('expenseDocumentConfirm', "ExpenseController@expenseDocumentConfirm")->name("expense_expenseDocumentConfirm");
+            Route::put('documentConfirmTakeBack', "ExpenseController@documentConfirmTakeBack")->name("expense_documentConfirmTakeBack");
+            Route::put('expenseComplete', "ExpenseController@expenseComplete")->name("expense_expenseComplete");
+
+            Route::get('getCurrent', "ExpenseController@getCurrent")->name("expense_getCurrent");
+            Route::post('currentSave', "ExpenseController@currentSave")->name("expense_currentSave");
+            Route::post('SendCurrentToNetsis', "ExpenseController@SendCurrentToNetsis")->name("expense_SendCurrentToNetsis");
+            Route::post('SendExpenseToNetsis', "ExpenseController@SendExpenseToNetsis")->name("expense_SendExpenseToNetsis");
+            Route::get('listNetsisCurrent', "ExpenseController@listNetsisCurrent")->name("expense_listNetsisCurrent");
+
+            Route::get('getCrmProjectCode', "ExpenseController@getCrmProjectCode")->name("expense_getCrmProjectCode");
+            Route::get('getParaBirimleri', "ExpenseController@getParaBirimleri")->name("expense_getParaBirimleri");
+            Route::get('getMuhasebeGiderHesaplari', "ExpenseController@getMuhasebeGiderHesaplari")->name("expense_getMuhasebeGiderHesaplari");
+            Route::get('getAccountBalance', "ExpenseController@getAccountBalance")->name("expense_getAccountBalance");
+            Route::get('listDocumentTypes', "ExpenseController@listDocumentTypes")->name("expense_listDocumentTypes");
+            Route::get('listTypes', "ExpenseController@listTypes")->name("expense_listTypes");
+            Route::get('listExpenseAccountCodes', "ExpenseController@listExpenseAccountCodes")->name("expense_listExpenseAccountCodes");
+            Route::get('getDocumentType', "ExpenseController@getDocumentType")->name("expense_getDocumentType");
+            Route::get('getType', "ExpenseController@getType")->name("expense_getType");
+
+            Route::get('listTaxOffice', "ExpenseController@listTaxOffice")->name("expense_listTaxOffice");
+            Route::post('isEmployeesManager', "ExpenseController@isLoggedPersonIsEmployeeManager")->name("expense_isEmployeeManager");
+            Route::post('isManagerApprovedAllDocuments', "ExpenseController@isManagerApprovedAllDocuments")->name("expense_isManagerApprovedAllDocuments");
+            Route::post('isProjectManagerApprovedAllDocuments', "ExpenseController@isProjectManagerApprovedAllDocuments")->name("expense_isProjectManagerApprovedAllDocuments");
+            Route::post('isProjectManager', "ExpenseController@isLoggedPersonProjectManager")->name("expense_isLoggedPersonProjectManager");
+            Route::post('isAccounterApprovedAllDocuments', "ExpenseController@isAccounterApprovedAllDocuments")->name("expense_isAccounterApprovedAllDocuments");
+            Route::get('loggedUsersAuthorizations', "ExpenseController@loggedUsersAuthorizations")->name("expense_loggedUsersAuthorizations");
+            //Route::get('test', "ExpenseController@test")->name("expense_test");
+        });
+
+        Route::prefix('processes/permit/')->group(function () {
+            Route::post('createNewPermit', 'PermitController@createPermit')->name('new_permit');
+            Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_types');
+            Route::get('getPermits', 'PermitController@getPermits')->name('get_permits');
+            Route::post('savePermit', 'PermitController@savePermit')->name('save_permit');
+        });
+
+        Route::prefix('processes/AdvancePayment/')->group(function () {
+
+            Route::post('save', 'AdvancePaymentController@save')->name('AdvancePayment_save');
+            Route::get('list', 'AdvancePaymentController@list')->name('AdvancePayment_list');
+            Route::get('getAdvance', 'AdvancePaymentController@getAdvance')->name('AdvancePayment_getAdvance');
+            Route::get('listPending', 'AdvancePaymentController@listPending')->name('AdvancePayment_listPending');
+            Route::put('confirmTakeBack', 'AdvancePaymentController@confirmTakeBack')->name('AdvancePayment_confirmTakeBack');
+            Route::put('confirm', 'AdvancePaymentController@confirm')->name('AdvancePayment_confirm');
+            Route::put('complete', 'AdvancePaymentController@complete')->name('AdvancePayment_complete');
+            Route::delete('deleteAdvance', 'AdvancePaymentController@deleteAdvance')->name('AdvancePayment_deleteAdvance');
+        });
+
+        Route::prefix('processes/Overtime/')->group(function () {
+            Route::get('all','OvertimeController@getOvertimeRequests')->name('overtime_all');
+            Route::get('statuses','OvertimeController@getOvertimeStatuses')->name('overtime_statuses');
+            Route::get('managersEmployees','OvertimeController@getManagersEmployees')->name('overtime_managers_employees');
+            Route::get('overtimeKinds','OvertimeController@overtimeKinds')->name('overtime_kinds');
+            Route::get('managersProjectList','OvertimeController@managersProjectList')->name('overtime_managers_project_list');
+            Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');
+        });
+
     });
 
-    Route::prefix('processes/permit/')->group(function () {
-        Route::post('createNewPermit', 'Processes\PermitController@createPermit')->name('new_permit');
-        Route::get('getPermitTypes', 'Processes\PermitController@permitTypes')->name('permit_types');
-        Route::get('getPermits', 'Processes\PermitController@getPermits')->name('get_permits');
-        Route::post('savePermit', 'Processes\PermitController@savePermit')->name('save_permit');
-    });
 
-    Route::prefix('processes/AdvancePayment/')->group(function () {
 
-        Route::post('save', 'Processes\AdvancePaymentController@save')->name('AdvancePayment_save');
-        Route::get('list', 'Processes\AdvancePaymentController@list')->name('AdvancePayment_list');
-        Route::get('getAdvance', 'Processes\AdvancePaymentController@getAdvance')->name('AdvancePayment_getAdvance');
-        Route::get('listPending', 'Processes\AdvancePaymentController@listPending')->name('AdvancePayment_listPending');
-        Route::put('confirmTakeBack', 'Processes\AdvancePaymentController@confirmTakeBack')->name('AdvancePayment_confirmTakeBack');
-        Route::put('confirm', 'Processes\AdvancePaymentController@confirm')->name('AdvancePayment_confirm');
-        Route::put('complete', 'Processes\AdvancePaymentController@complete')->name('AdvancePayment_complete');
-        Route::delete('deleteAdvance', 'Processes\AdvancePaymentController@deleteAdvance')->name('AdvancePayment_deleteAdvance');
-    });
 
     Route::namespace("Ik")->group(function(){
 
@@ -164,6 +188,7 @@ Route::namespace("Api")->group(function(){
     Route::namespace('Common')->group(function (){
 
         Route::prefix('common')->group(function () {
+            Route::get('cities', "CityController@getCities")->name("get_cities_of_country");
             Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
             Route::post('cities/districts', "CityController@getDistrictsOfCity")->name("get_districts_of_city");
 

@@ -46,7 +46,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'photo' => "http://portal.asay.com.tr/".$user->photo,
                 'full_name' => $user->full_name,
-                'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
+                //'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
                 'active' => $user->active,
                 'user_group' => $user->user_group,
                 "user_menus" => json_encode($Menus),

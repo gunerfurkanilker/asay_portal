@@ -9,6 +9,7 @@ use App\Library\Cari;
 use App\Model\AsayCariModel;
 use App\Model\AsayExpenseLogModel;
 use App\Model\EmployeeHasGroupModel;
+use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\ExpenseAccountCodesModel;
 use App\Model\ExpenseDocumentElementModel;
@@ -141,7 +142,6 @@ class ExpenseController extends ApiController
             'data' => $projeler
         ], 200);
     }
-
 
     public function expenseSave(Request $request)
     {
@@ -309,7 +309,7 @@ class ExpenseController extends ApiController
         }
         else if($asayExpense->status==3 || $asayExpense->status==4) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
-            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$asayExpense->EmployeeID,"group_id"=>12])->count();
+            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12,'active' => 1])->count();
             if($userGroupCount>0)
                 $status = true;
         }
@@ -421,7 +421,7 @@ class ExpenseController extends ApiController
         $user = UserModel::find($request->userId);
         $expenseId = $request->input("expense_id");
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
-            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId,"Expense.EmployeeID"=>$user->EmployeeID])
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id"=>$expenseId])
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
             ->groupBy("ExpenseDocument.id");
@@ -684,7 +684,7 @@ class ExpenseController extends ApiController
 
     public function expensePendingList(Request $request)
     {
-        //1:Proje Yönetici, 2:Muhasebe
+
         $status = ($request->input("status")!==null) ? $request->input("status") : "";
         $status = $status=="0" ? "1" : $status;
         $user = UserModel::find($request->userId);
@@ -711,8 +711,7 @@ class ExpenseController extends ApiController
             $statusArray = [1,2];
         else if($status<>3)
             $statusArray[] = $status;
-        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12])->count();
-        if($userGroupCount>0 && ($status==3 || $status==""))
+        if($status==3)
             $statusArray[] = 3;
         $expenseQ->whereIn("Expense.status",$statusArray);
 
@@ -720,7 +719,8 @@ class ExpenseController extends ApiController
 
         return response([
             'status' => true,
-            'data' => $data
+            'data' => $data,
+            'UGCount' => $user
         ], 200);
     }
 
@@ -1363,6 +1363,266 @@ class ExpenseController extends ApiController
             'data' => $response
         ], 200);
     }
+
+    public function isLoggedPersonIsEmployeeManager(Request $request){
+
+        $user = UserModel::find($request->userId);
+        $expense = ExpenseModel::find($request->expenseId);
+
+        if($expense->status==1)
+        {
+            $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$expense->EmployeeID])->first();
+            if($employeePosition->ManagerID==$user->EmployeeID)
+                return response([
+                    'status' => true,
+                    'message' => 'Yetkili Kişi'
+                ],200);
+        }
+
+        return response([
+            'status' => false,
+            'message' => 'Yetki Yok'
+        ],200);
+
+
+    }
+
+    public function isManagerApprovedAllDocuments(Request $request){
+
+        $user = UserModel::find($request->userId);
+        $loggedEmployee = EmployeeModel::find($user->EmployeeID);
+        $expense = ExpenseModel::find($request->expenseId);
+        $expenseOwnersManager = EmployeePositionModel::where('EmployeeID',$expense->EmployeeID)->where('Active',2)->first();
+
+        $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id" => $expense->id])
+            ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
+            ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
+            ->groupBy("ExpenseDocument.id");
+
+        if($expenseDocumentsQ->count()>0)
+        {
+            $expenseDocuments = $expenseDocumentsQ->get();
+            foreach ($expenseDocuments as $expenseDocument) {
+                if ($expenseDocument->manager_status == 0)
+                    return response([
+                        'status' => false,
+                        'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                    ],200);
+            }
+            if ($loggedEmployee->Id == $expenseOwnersManager->ManagerID)
+                return response([
+                    'status' => true,
+                    'message' => 'Tüm Belgeler Onaylanmış'
+                ],200);
+            else
+                return response([
+                    'status' => false,
+                    'message' => 'Yetkiniz Yok'
+                ],200);
+        }
+
+        else
+            return response([
+                'status' => false,
+                'message' => 'Harcama Belgesi Bulunamadı.'
+            ],200);
+
+    }
+
+    public function isLoggedPersonProjectManager(Request $request){
+
+        $user = UserModel::find($request->userId);
+        $expense = ExpenseModel::find($request->expenseId);
+        if($expense->status==2)
+        {
+            if($expense->category_id<>""){
+                $projetCategories = ProjectCategoriesModel::find($expense->category_id);
+                if($user->EmployeeID==$projetCategories->manager_id)
+                {
+                    return response([
+                        'status' => true,
+                        'message' => 'Yetkili Kişi'
+                    ],200);
+                }
+                return response([
+                    'status' => false,
+                    'message' => 'Yetki Yok'
+                ],200);
+
+            }
+            else {
+                $project = ProjectsModel::find($expense->project_id);
+                if($user->EmployeeID==$project->manager_id)
+                {
+                    return response([
+                        'status' => true,
+                        'message' => 'Yetkili Kişi'
+                    ],200);
+                }
+                return response([
+                    'status' => false,
+                    'message' => 'Yetki Yok'
+                ],200);
+
+            }
+        }
+
+        return response([
+            'status' => false,
+            'message' => 'Yetki Yok'
+        ],200);
+
+    }
+
+    public function isProjectManagerApprovedAllDocuments(Request $request){
+
+        $asayExpense = ExpenseModel::find($request->expenseId);
+        $user = UserModel::find($request->userId);
+
+        if ($asayExpense->status != 2)
+            return response([
+                'status' => false,
+                'message' => 'Harcama Proje Yönetici Onayı Aşamasında Değil !'
+            ],200);
+
+        if($asayExpense->category_id<>""){
+            $projetCategories = ProjectCategoriesModel::find($asayExpense->category_id);
+            if($user->EmployeeID==$projetCategories->manager_id)
+            {
+
+                $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
+                    ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id" => $asayExpense->id])
+                    ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
+                    ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
+                    ->groupBy("ExpenseDocument.id");
+
+                if($expenseDocumentsQ->count()>0)
+                {
+                    $expenseDocuments = $expenseDocumentsQ->get();
+                    foreach ($expenseDocuments as $expenseDocument) {
+                        if ($expenseDocument->pm_status == 0)
+                            return response([
+                                'status' => false,
+                                'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                            ],200);
+                    }
+                    return response([
+                        'status' => true,
+                        'message' => 'Tüm Belgeler Onaylanmış.'
+                    ],200);
+                }
+
+
+            }
+
+        }
+        else {
+            $project = ProjectsModel::find($asayExpense->project_id);
+            if($user->EmployeeID==$project->manager_id)
+            {
+                $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
+                    ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id" => $asayExpense->id])
+                    ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
+                    ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
+                    ->groupBy("ExpenseDocument.id");
+
+                if($expenseDocumentsQ->count()>0)
+                {
+                    $expenseDocuments = $expenseDocumentsQ->get();
+                    foreach ($expenseDocuments as $expenseDocument) {
+                        if ($expenseDocument->pm_status == 0)
+                            return response([
+                                'status' => false,
+                                'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                            ],200);
+                    }
+                    return response([
+                        'status' => true,
+                        'message' => 'Tüm Belgeler Onaylanmış.'
+                    ],200);
+                }
+            }
+
+        }
+
+    }
+
+    public function isAccounterApprovedAllDocuments(Request $request){
+
+        $user = UserModel::find($request->userId);
+        $expense = ExpenseModel::find($request->expenseId);
+
+        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12,'active' => 1])->count();
+        if($userGroupCount<1)
+            return response([
+                'status' => false,
+                'message' => 'Yetkisiz Kişi.'
+            ],200);
+
+        $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*",DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
+            ->where(["ExpenseDocument.active"=>1,"ExpenseDocument.expense_id" => $expense->id])
+            ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
+            ->leftJoin("Expense","ExpenseDocument.expense_id","=","Expense.id")
+            ->groupBy("ExpenseDocument.id");
+
+        if($expenseDocumentsQ->count()>0)
+        {
+            $expenseDocuments = $expenseDocumentsQ->get();
+            foreach ($expenseDocuments as $expenseDocument) {
+                if ($expenseDocument->accounting_status == 0)
+                    return response([
+                        'status' => false,
+                        'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                    ],200);
+            }
+            return response([
+                'status' => true,
+                'message' => 'Yetkili Kişi.'
+            ],200);
+        }
+
+        else
+            return response([
+                'status' => false,
+                'message' => 'Harcama Belgesi Bulunamadı.'
+            ],200);
+
+    }
+
+    public function loggedUsersAuthorizations(Request $request){
+        $isEmployeeManager = false;
+        $isProjectManager = false;
+        $isAccounter = false;
+
+        $user = UserModel::find($request->userId);
+
+        $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID]);
+        $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID]);
+        $categories = ProjectCategoriesModel::where(["manager_id"=>$user->EmployeeID]);
+
+        if ($projects->count() > 0)
+            $isProjectManager = true;
+        if ($categories->count() > 0)
+            $isProjectManager = true;
+        if( $employeeManagers->count() > 0 )
+            $isEmployeeManager = true;
+
+        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12])->count();
+        if ($userGroupCount > 0)
+            $isAccounter = true;
+
+        $data['isEmployeeManager'] = $isEmployeeManager;
+        $data['isProjectManager'] = $isProjectManager;
+        $data['isAccounter'] = $isAccounter;
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $data
+        ],200);
+    }
+
     /*
     public function test()
     {

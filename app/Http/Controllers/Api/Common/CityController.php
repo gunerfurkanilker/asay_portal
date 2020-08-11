@@ -11,6 +11,17 @@ use Illuminate\Http\Request;
 class CityController extends ApiController
 {
 
+    public function getCities(){
+
+        $citiesOfTurkey = CityModel::all();
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $citiesOfTurkey
+        ],200);
+    }
+
     public function getDistrictsOfCity(Request $request){
 
         $request_data = $request->all();

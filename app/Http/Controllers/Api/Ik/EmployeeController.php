@@ -115,8 +115,8 @@ class EmployeeController extends ApiController
         ]);
     }
 
-    public function getGeneralInformationFields(){
-        $fields = EmployeeModel::getGeneralInformationsFields();
+    public function getGeneralInformationFields(Request $request){
+        $fields = EmployeeModel::getGeneralInformationsFields($request->userId);
 
         return response([
             'status' => true,
@@ -129,13 +129,14 @@ class EmployeeController extends ApiController
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
+        $employee->AccessTypes = EmployeeModel::getAccessTypes($employee->Id);
 
         if ($employee != null)
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
                 'data' => $employee,
-                'generalInfoFields' => EmployeeModel::getGeneralInformationsFields()
+                'generalInfoFields' => EmployeeModel::getGeneralInformationsFields($id)
             ], 200);
         else
             return response([
@@ -202,7 +203,6 @@ class EmployeeController extends ApiController
             ], 200);
 
     }
-
 
     public function saveContactInformation(Request $request)
     {

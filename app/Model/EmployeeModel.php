@@ -14,7 +14,6 @@ class EmployeeModel extends Model
     const CREATED_AT = 'CreateDate';
     const UPDATED_AT = 'LastUpdateDate';
     protected $appends = [
-        "AccessType",
         "ContractType",
         "WorkingSchedule",
         "Company",
@@ -41,11 +40,10 @@ class EmployeeModel extends Model
     {
         $employee = new EmployeeModel();
 
-        $employee->StaffID              = $requestData['staffId'];
+        $employee->StaffID              = isset($requestData['staffId']) ? $requestData['staffId'] : null ;
         $employee->FirstName            = $requestData['FirstName'];
         $employee->UsageName            = $requestData['UsageName'];
         $employee->LastName             = $requestData['LastName'];
-        $employee->AccessTypeID         = $requestData['AccessTypeID'];
         $employee->DomainID             = $requestData['DomainID'];
         $employee->JobEmail             = $requestData['JobEmail'];
         $employee->JobMobilePhone       = isset($requestData['JobMobilePhone'])  ? $requestData['JobMobilePhone'] : null;
@@ -53,6 +51,10 @@ class EmployeeModel extends Model
         $employee->ContractTypeID       = $requestData['ContractTypeID'];
 
         $employee->save();
+        $employee = $employee->fresh();
+
+        //Erişim Tiplerini Belirliyoruz.
+        self::saveEmployeeAccessType($requestData['AccessTypes'],$employee->Id);
 
         return $employee->fresh();
     }
@@ -72,10 +74,10 @@ class EmployeeModel extends Model
         }
     }
 
-    public static function getGeneralInformationsFields()
+    public static function getGeneralInformationsFields($employeeId)
     {
         $data = [];
-        $data['accesstypefield'] = AccessTypeModel::where('Active',1)->get();
+        $data['accesstypefield'] = UserGroupModel::all();
         $data['contractypefield'] = ContractTypeModel::where('Active',1)->get();
         $data['workingschedulefield'] = WorkingScheduleModel::all();
         $data['domainfield'] = DomainModel::where('active', 1)->get();
@@ -93,18 +95,75 @@ class EmployeeModel extends Model
         $employee->FirstName            = $requestData['firstname'];
         $employee->UsageName            = $requestData['usagename'];
         $employee->LastName             = $requestData['lastname'];
-        $employee->AccessTypeID         = $requestData['accesstypeid'];
         $employee->DomainID             = $requestData['domain'];
         $employee->JobEmail             = $requestData['jobemail'];
         $employee->JobMobilePhone       = $requestData['jobphone'];
         $employee->InterPhone           = $requestData['internalphone'];
         $employee->ContractTypeID       = $requestData['contracttypeid'];
 
+        self::saveEmployeeAccessType($requestData['accesstypes'],$employee->Id);
+
         if ($employee->save())
             return $employee->fresh();
         else
             return false;
 
+    }
+
+    public static function saveEmployeeAccessType($accessTypeIDs,$employeeID)
+    {
+
+        $currentAccessTypes = EmployeeHasGroupModel::where('EmployeeID',$employeeID)->where('active',1)->get();
+
+        $currentAccessTypeIDs  = [];
+
+        foreach ($currentAccessTypes as $currentAccessType)
+        {
+            array_push($currentAccessTypeIDs,$currentAccessType->group_id);
+        }
+
+
+
+        foreach ($currentAccessTypeIDs as $currentAccessTypeID)
+        {
+
+            if (!in_array($currentAccessTypeID,$accessTypeIDs))
+            {
+                $obj = EmployeeHasGroupModel::where('EmployeeID',$employeeID)->where('group_id',$currentAccessTypeID)
+                ->update(['active' => 0]);
+            }
+        }
+        foreach ($accessTypeIDs as $accessTypeID)
+        {
+
+            $accessType = EmployeeHasGroupModel::where('EmployeeID',$employeeID)->where('group_id',$accessTypeID);
+            if(!$accessType->first())
+            {
+                $newAccessType = new EmployeeHasGroupModel();
+
+                $newAccessType->EmployeeID = $employeeID;
+                $newAccessType->group_id = $accessTypeID;
+                $newAccessType->active = 1;
+                $newAccessType->save();
+            }
+            else{
+                $accessType->update(['active' => 1]);
+            }
+
+
+        }
+
+    }
+
+    public static function getAccessTypes($id)
+    {
+        $accessTypeIDs = [];
+        $accessTypeObjects = EmployeeHasGroupModel::select('group_id')->where('EmployeeID',$id)->where('active',1)->get();
+        foreach ($accessTypeObjects as $val)
+        {
+            array_push($accessTypeIDs,$val->group_id);
+        }
+        return $accessTypeIDs;
     }
 
     public static function saveOtherInformations($employee,$requestData)
@@ -137,19 +196,6 @@ class EmployeeModel extends Model
     }
 
 
-    public function getAccessTypeAttribute()
-    {
-
-        $accessType = $this->hasOne(AccessTypeModel::class,"Id","AccessTypeID");
-        if ($accessType)
-        {
-            return $accessType->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
 
     public function getContractTypeAttribute()
     {

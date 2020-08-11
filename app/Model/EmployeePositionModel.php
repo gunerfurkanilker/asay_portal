@@ -46,10 +46,10 @@ class EmployeePositionModel extends Model
                 'DistrictID' => $requestData['districtid'],
                 'DepartmentID' => $requestData['departmentid'],
                 'TitleID' => $requestData['titleid'],
-                'ManagerID' => $requestData['managerid'],
+                'ManagerID' => isset($requestData['managerid']) ? $requestData['managerid'] : null,
                 'WorkingTypeID' => $requestData['workingtypeid'],
                 'StartDate' => new Carbon($requestData['positionstartdate']),
-                'EndDate' => new Carbon($requestData['positionenddate']),
+                'EndDate' => isset($requestData['positionenddate']) ? new Carbon($requestData['positionenddate']) : null,
                 'Active' => $requestData['activeposition'] ? 1 : 0
             ]);
 

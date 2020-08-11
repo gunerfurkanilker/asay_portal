@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\EmployeeModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserModel;
@@ -39,7 +40,7 @@ class ProjectController extends ApiController
         $user = UserModel::find($request->userId);
         $data = [];
 
-        $projectsRelationsOfUser = UserProjectsModel::where('user_id', $user->id)->get();
+        $projectsRelationsOfUser = UserProjectsModel::where('EmployeeID', $user->EmployeeID)->get();
         $projectList = [];
 
         if (count($projectsRelationsOfUser) < 1) {
