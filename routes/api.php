@@ -88,9 +88,11 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/Overtime/')->group(function () {
-            Route::get('all','OvertimeController@getOvertimeRequests')->name('overtime_all');
+            Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
+            Route::get('Managers/all','OvertimeController@getManagersOvertimeRequests')->name('overtime_manager_all');
             Route::get('statuses','OvertimeController@getOvertimeStatuses')->name('overtime_statuses');
             Route::get('managersEmployees','OvertimeController@getManagersEmployees')->name('overtime_managers_employees');
+            Route::get('employeesManagers','OvertimeController@getEmployeesManagers')->name('overtime_employees_managers');
             Route::get('overtimeKinds','OvertimeController@overtimeKinds')->name('overtime_kinds');
             Route::get('managersProjectList','OvertimeController@managersProjectList')->name('overtime_managers_project_list');
             Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
+use App\Model\EmployeePositionModel;
 use App\Model\OvertimeKindModel;
 use App\Model\OvertimeModel;
 use App\Model\OvertimeStatusModel;
@@ -18,7 +19,34 @@ use Illuminate\Http\Request;
 class OvertimeController extends ApiController
 {
 
-    public function getOvertimeRequests(Request $request)
+    public function getEmployeesOvertimeRequests(Request $request)
+    {
+        $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
+
+        if ($status == null)
+        {
+            $user = UserModel::find($request->userId);
+            $overtimes = OvertimeModel::where([ 'Active' => 1,'AssignedID' => $user->EmployeeID ])->get();
+
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $overtimes
+            ],200);
+        }
+
+
+        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status,$request->userId);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $overtimes
+        ],200);
+
+    }
+
+    public function getManagersOvertimeRequests(Request $request)
     {
         $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
 
@@ -47,12 +75,24 @@ class OvertimeController extends ApiController
 
     public function getManagersEmployees(Request $request)
     {
-        $manager = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID );
+        $manager = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID);
         $employees = OvertimeModel::getManagersEmployees($manager->Id);
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $employees
+        ],200);
+    }
+
+
+
+    public function getEmployeesManagers(Request $request){
+        $employee = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID );
+        $managers = OvertimeModel::getEmployeesManagers($employee->Id);
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $managers
         ],200);
     }
 
@@ -88,26 +128,27 @@ class OvertimeController extends ApiController
 
         /*
          * Request Tipleri
-         *
+         * Tip 0 : Fazla Çalışmayı kaydetme durumu
          * Tip 1 : Yöneticiden çalışana fazla çalışma atama durumu
          * Tip 2 : Çalışandan yöneticiye düzeltme talebi
          * Tip 3 : Çalışan tarafından reddedildi -> Yöneticiye düzeltme gidecek.
-         * Tip 4 : Çalışan tarafından onaylandı -> Yönetici Onayı Bekleniyor.
+         * Tip 4 : Çalışan tarafından onaylandı
          * Tip 5 : Çalışan tarafından iptal edildi
-         * Tip 6 : Çalışan tarafından çalışma tamamlandı
-         * Tip 7 : Yönetici tarafından fazla çalışma onaylandı.
-         * Tip 8 : Yönetici tarafından fazla çalışmaya yönetici tarafından düzeltme talep edildi.
+         * Tip 6 : Çalışan tarafından çalışma tamamlandı -> Yönetici Onayı Bekleniyor.
+         * Tip 7 : Yönetici tarafından fazla çalışmaya yönetici tarafından düzeltme talep edildi.
+         * Tip 8 : Yönetici tarafından fazla çalışma onaylandı.
          * Tip 9 : IK tarfından fazla çalışmaya düzenleme talebi yapıldı.
          * Tip 10 : IK tarafından onaylandı
          *
          * */
-        if(!isset($request->processType) || $request->processType == null || $request->processType == "")
+        /*if(!isset($request->processType) || $request->processType == null || $request->processType == "")
         {
             return response([
                 'status' => false,
                 'message' => 'İşlem Tipi Tanımlanmamış'
             ],200);
-        }
+        }*/
+
 
         $status = OvertimeModel::saveOvertimeByProcessType($request->processType,$request->all());
 
