@@ -19,4 +19,10 @@ class ExpenseDocumentElementModel extends Model
     {
         return ExpenseAccountCodesModel::whereRaw("CONCAT(account,'-',expense_type,'-',project,'-',project_category,'-',accounting_code)='".$this->attributes["expense_account"]."'")->first()->name;
     }
+
+    public static function saveExpenseDocumentElement($requestArray)
+    {
+
+    }
+
 }

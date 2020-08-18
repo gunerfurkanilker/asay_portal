@@ -75,6 +75,7 @@ Route::namespace("Api")->group(function(){
             Route::post('savePermit', 'PermitController@savePermit')->name('save_permit');
         });
 
+
         Route::prefix('processes/AdvancePayment/')->group(function () {
 
             Route::post('save', 'AdvancePaymentController@save')->name('AdvancePayment_save');

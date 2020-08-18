@@ -18,6 +18,7 @@ use App\Model\ExpenseDocumentTypesModel;
 use App\Model\ExpenseModel;
 use App\Model\AsayProjeModel;
 use App\Model\ExpenseTypesModel;
+use App\Model\ObjectFileModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\TaxOfficesModel;
@@ -241,46 +242,102 @@ class ExpenseController extends ApiController
         $expenseDocument->cari_province     = $request->cari_province;
         $expenseDocument->cari_tax_office   = $request->cari_tax_office;
         $expenseDocument->cari_tax_number   = $request->cari_tax_number;
-        $expenseDocument->document_date     = date("Y-m-d H:i:s",strtotime($request->document_date));
+        $expenseDocument->document_date     = $request->document_date;
+        $expenseDocument->document_time     = $request->document_time;
         $expenseDocument->document_number   = $request->document_number;
         $expenseDocument->document_type     = $request->document_type;
-        $expenseDocument->currency          = $request->currency;
+        $expenseDocument->currency          = "00";//TRY Varsayılan olarak belirlendi
         $expenseDocument->netsis_carikod    = $request->netsis_carikod;
         $expenseDocument->active            = 1;
-        $expenseDocument->save();
-        $documentId = $expenseDocument->id;
+        $result = $expenseDocument->save();
 
-        ExpenseDocumentElementModel::where(["document_id"=>$documentId])->update(["active"=>0]);
-        if(count($request->element))
+        if ($result && $request->hasFile('expense_document_file'))
         {
-            foreach ($request->element as $element) {
-                $elementId = isset($element["id"]) ? $element["id"] : "";
-                if($elementId!="")
-                {
-                    $expenseDocumentElement    = ExpenseDocumentElementModel::find($elementId);
-                    if($expenseDocumentElement===null)
-                        $expenseDocumentElement = new ExpenseDocumentElementModel();
-                }
-                else
-                {
-                    $expenseDocumentElement = new ExpenseDocumentElementModel();
-                }
-                $expenseDocumentElement->document_id        = $documentId;
-                $expenseDocumentElement->expense_account    = $element["expense_account"];
-                $expenseDocumentElement->content            = $element["content"];
-                $expenseDocumentElement->quantity           = $element["quantity"];
-                $expenseDocumentElement->kdv                = $element["kdv"];
-                $expenseDocumentElement->price              = $element["price"];
-                $expenseDocumentElement->amount             = number_format(($element["quantity"]*$element["price"])*(($element["kdv"]/100)+1), 2, '.', '');
-                $expenseDocumentElement->active             = 1;
-                $expenseDocumentElement->save();
+            $file = file_get_contents($request->expense_document_file->path());
+            $guzzleParams = [
+
+                'multipart' =>[
+                    [
+                        'name' => 'token',
+                        'contents' => $request->token
+                    ],
+                    [
+                        'name' => 'ObjectType',
+                        'contents' => 1 // Harcama Masraf
+                    ],
+                    [
+                        'name' => 'ObjectTypeName',
+                        'contents' =>  'Expense'
+                    ],
+                    [
+                        'name' => 'ObjectId',
+                        'contents' => $expenseDocument->id
+                    ],
+                    [
+                        'name' => 'file',
+                        'contents' => $file,
+                        'filename' => 'harcama_' . $expenseDocument->expense_id . '_' . $expenseDocument->id . '.' . $request->expense_document_file->getClientOriginalExtension()
+                    ],
+
+                ],
+            ];
+
+            $client = new \GuzzleHttp\Client();
+            $res    = $client->request("POST",'http://lifi.asay.com.tr/connectUpload',$guzzleParams);
+            $responseBody = json_decode($res->getBody());
+
+            if ($responseBody->status == false)
+                return response([
+                    'status' => false,
+                    'message' => 'Dosya Yükleme İşlemi Başarısız Oldu',
+                ],200);
+            else
+            {
+                return response([
+                    'status' => true,
+                    'message' => "Belge Kaydı Yapıldı",
+                    'data' => ExpenseDocumentModel::find($expenseDocument->id)
+                ], 200);
             }
+
+
         }
 
-        return response([
-            'status' => true,
-            'message' => "Belge Kaydı Yapıldı",
-        ], 200);
+        else if($result)
+            return response([
+                'status' => true,
+                'message' => "Belge Kaydı Yapıldı",
+            ], 200);
+
+
+        else
+            return response([
+                'status' => false,
+                'message' => "İşlem Başarısız",
+            ], 200);
+
+    }
+
+    public function documentElementSave(Request $request){
+        if (!isset($request->expenseId) || $request->expenseId == '' || $request->expenseId == null)
+            return response([
+                'status' => false,
+                'message' => 'Belgenin hangi harcamaya ekleneceği belli değil'
+            ],200);
+
+        $savedRecord = ExpenseDocumentElementModel::saveExpenseDocumentElement($request->all());
+
+        if ($savedRecord != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $savedRecord
+            ],200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız'
+            ],200);
 
     }
 
