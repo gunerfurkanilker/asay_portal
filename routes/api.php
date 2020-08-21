@@ -31,12 +31,14 @@ Route::namespace("Api")->group(function(){
             Route::get('list', "ExpenseController@expenseList")->name("expense_expenseList");
             Route::post('expenseSave', "ExpenseController@expenseSave")->name("expense_expenseSave");
             Route::post('documentSave', "ExpenseController@documentSave")->name("expense_documentSave");
+            Route::post('documentElementSave', "ExpenseController@documentElementSave")->name("document_elementsave");
             Route::get('getExpense', "ExpenseController@getExpense")->name("expense_getExpense");
             Route::get('getExpenseDocument', "ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
             Route::get('expenseDocumentList', "ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
             Route::get('expensePendingList', "ExpenseController@expensePendingList")->name("expense_expensePendingList");
             Route::delete('expenseDelete', "ExpenseController@expenseDelete")->name("expense_expenseDelete");
             Route::delete('deleteDocument', "ExpenseController@deleteDocument")->name("expense_deleteDocument");
+            Route::delete('deleteElement', "ExpenseController@deleteElement")->name("expense_deleteElement");
             Route::put('userTakeBack', "ExpenseController@userTakeBack")->name("expense_userTakeBack");
             Route::put('expenseDocumentConfirm', "ExpenseController@expenseDocumentConfirm")->name("expense_expenseDocumentConfirm");
             Route::put('documentConfirmTakeBack', "ExpenseController@documentConfirmTakeBack")->name("expense_documentConfirmTakeBack");

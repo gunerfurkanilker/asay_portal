@@ -11,7 +11,8 @@ class ExpenseModel extends Model
     protected $appends = [
         'Project',
         'Category',
-        'EmployeeManager'
+        'EmployeeManager',
+        'Employee'
     ];
 
     public $timestamps = false;
@@ -59,6 +60,21 @@ class ExpenseModel extends Model
             $employeePosition = $employeePosition->where(['Active' => 2])->first();
             $employee = EmployeeModel::find($employeePosition->ManagerID);
             return $employee;
+        }
+        else
+        {
+            return null;
+        }
+
+    }
+
+    public function getEmployeeAttribute()
+    {
+
+        $employee = $this->hasOne(EmployeeModel::class,"Id","EmployeeID");
+        if ($employee)
+        {
+            return $employee->first();
         }
         else
         {

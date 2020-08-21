@@ -33,7 +33,8 @@ class EmployeeModel extends Model
         'IDCard',
         'SocialSecurityInformation',
         'EmployeeBank',
-        'Domain'
+        'Domain',
+        'EmployeePosition'
     ];
 
     public static function addEmployee($requestData)
@@ -466,6 +467,19 @@ class EmployeeModel extends Model
         if ($domain)
         {
             return $domain->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getEmployeePositionAttribute()
+    {
+        $position = $this->hasOne(EmployeePositionModel::class,"EmployeeID","Id");
+        if ($position)
+        {
+            return $position->where(['Active' => 2])->first();
         }
         else
         {

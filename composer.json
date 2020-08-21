@@ -12,6 +12,7 @@
         "ext-curl": "*",
         "ext-json": "^1.1",
         "adldap2/adldap2-laravel": "^6.0",
+        "barryvdh/laravel-dompdf": "^0.8.6",
         "fideloper/proxy": "^4.0",
         "guzzlehttp/guzzle": "~6.0",
         "laravel/framework": "^6.2",

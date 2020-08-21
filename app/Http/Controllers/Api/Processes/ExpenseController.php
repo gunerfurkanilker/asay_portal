@@ -25,6 +25,7 @@ use App\Model\TaxOfficesModel;
 use App\Model\UserHasGroupModel;
 use App\Model\UserModel;
 use App\Model\UserTokensModel;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use SoapClient;
@@ -42,7 +43,7 @@ class ExpenseController extends ApiController
             ->leftJoin("ExpenseDocumentElement","ExpenseDocumentElement.document_id","=","ExpenseDocument.id")
             ->where(["Expense.active"=>1,"Expense.EmployeeID"=>$user->EmployeeID])
             ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
-        if($status<>0)
+
             $expenseQ->where(["Expense.status"=>$status]);
 
         $data["manager"] = $user->user_property->manager;
@@ -306,7 +307,8 @@ class ExpenseController extends ApiController
         else if($result)
             return response([
                 'status' => true,
-                'message' => "Belge Kaydı Yapıldı",
+                'message' => "Kayıt Başarılı",
+                'data' => ExpenseDocumentModel::find($expenseDocument->id)
             ], 200);
 
 
@@ -319,13 +321,46 @@ class ExpenseController extends ApiController
     }
 
     public function documentElementSave(Request $request){
-        if (!isset($request->expenseId) || $request->expenseId == '' || $request->expenseId == null)
+        if (!isset($request->documentId) || $request->documentId == '' || $request->documentId == null)
             return response([
                 'status' => false,
-                'message' => 'Belgenin hangi harcamaya ekleneceği belli değil'
+                'message' => 'Kalemin hangi belgeye ekleneceği belli değil'
             ],200);
 
-        $savedRecord = ExpenseDocumentElementModel::saveExpenseDocumentElement($request->all());
+        if (!isset($request->elementId) || $request->elementId == '' || $request->elementId == null)
+            $documentElement = new ExpenseDocumentElementModel();
+        else
+            $documentElement = ExpenseDocumentElementModel::find($request->elementId);
+
+        $requestArray = $request->all();
+        $documentElement->document_id        = $request->documentId;
+        $documentElement->expense_account    = $requestArray['expense_account'];
+        $documentElement->content            = $requestArray['content'];
+        $documentElement->quantity           = $requestArray['quantity'];
+        $documentElement->kdv                = $requestArray['kdv'];
+        $documentElement->price              = $requestArray['price'];
+        $documentElement->amount             = number_format(($requestArray['quantity']*$requestArray['price'])-
+            (($requestArray['quantity']*$requestArray['price'])*($requestArray['kdv']/100))
+            , 2, '.', '');
+        $documentElement->active             = 1;
+        $result = $documentElement->save();
+
+        if ($result)
+            return response([
+                'status' => true,
+                'message' => 'Kayıt Başarılı',
+                'data' => $documentElement
+            ],200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız'
+            ],200);
+
+
+
+
+
 
         if ($savedRecord != null)
             return response([
@@ -743,6 +778,7 @@ class ExpenseController extends ApiController
     {
 
         $status = ($request->input("status")!==null) ? $request->input("status") : "";
+        $singleStatus = $request->input("singleStatus");
         $status = $status=="0" ? "1" : $status;
         $user = UserModel::find($request->userId);
         $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
@@ -764,12 +800,22 @@ class ExpenseController extends ApiController
                     $query->whereIn("EmployeeID",$employeeManagers,"OR");
             });
         $expenseQ->groupBy("Expense.id")->orderBy("Expense.created_date","DESC");
-        if($status=="")
-            $statusArray = [1,2];
-        else if($status<>3)
-            $statusArray[] = $status;
         if($status==3)
-            $statusArray[] = 3;
+            $statusArray = [3,4];
+        else if ($status == 4)
+        {
+            $statusArray = [4];
+            $expenseQ->where(['netsis' => 1]);
+        }
+        else if($status == 1 && $singleStatus == 1)
+            $statusArray = [1];
+        else if($status == 1 && $singleStatus == 0)
+            $statusArray = [2,3];
+        else if($status == 2 && $singleStatus == 1)
+            $statusArray = [2,3];
+        else if($status == 2 && $singleStatus == 0)
+            $statusArray = [2];
+
         $expenseQ->whereIn("Expense.status",$statusArray);
 
         $data["expenses"] = $expenseQ->get();
@@ -777,7 +823,8 @@ class ExpenseController extends ApiController
         return response([
             'status' => true,
             'data' => $data,
-            'UGCount' => $user
+            'UGCount' => $user,
+            'statusVal' => $request->singleStatus
         ], 200);
     }
 
@@ -842,6 +889,51 @@ class ExpenseController extends ApiController
             return response([
                 'status' => true,
                 'message' => "Belge Silme Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Silme Başarısız"
+            ], 200);
+        }
+
+    }
+
+    public function deleteElement(Request $request)
+    {
+        $elementId = $request->elementId;
+        if($elementId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Kalem Id Boş Olamaz"
+            ], 200);
+        }
+        $documentId = $request->documentId;
+        if($documentId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Id Boş Olamaz"
+            ], 200);
+        }
+
+        $user = UserModel::find($request->userId);
+        $document = ExpenseDocumentModel::find($documentId);
+        $expense = ExpenseModel::find($document->expense_id);
+        if($expense->EmployeeID!=$user->EmployeeID)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+        $updateResult =ExpenseDocumentElementModel::where(["document_id"=>$documentId])->update(["active"=>0]);
+        if($updateResult){
+            return response([
+                'status' => true,
+                'message' => "Kalem Silme Başarılı"
             ], 200);
         }
         else {
@@ -1162,11 +1254,11 @@ class ExpenseController extends ApiController
         }
 
 
-        if($expense->expense_type=="İş Avansı")
+        if($expense->expense_type==1)//İş Avansı
         {
             $Query = "CARI_KOD LIKE 'P%' AND CARI_KOD NOT LIKE 'PS%'";
         }
-        elseif($expense->expense_type=="Seyahat Avansı")
+        elseif($expense->expense_type==2)//Seyahat Avansı
         {
             $Query = "CARI_KOD LIKE 'PS%'";
         }
@@ -1347,7 +1439,7 @@ class ExpenseController extends ApiController
         }
         if($DurumHataSay==0)
         {
-            ExpenseModel::where(["id"=>$expenseId])->update(["status"=>3]);
+            ExpenseModel::where(["id"=>$expenseId])->update(["status"=>4]);
             return response([
                 'status' => true,
                 'data' => "Masraf Belgeleri Netsise Aktarıldı"
@@ -1627,7 +1719,7 @@ class ExpenseController extends ApiController
         {
             $expenseDocuments = $expenseDocumentsQ->get();
             foreach ($expenseDocuments as $expenseDocument) {
-                if ($expenseDocument->accounting_status == 0)
+                if ($expenseDocument->accounting_status == 0 && $expenseDocument->manager_status != 2 && $expenseDocument->pm_status != 2)
                     return response([
                         'status' => false,
                         'message' => 'Onaylanmamış Belgeler Bulunuyor.'
