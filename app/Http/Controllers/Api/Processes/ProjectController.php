@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\CarHasProject;
+use App\Model\CarModel;
 use App\Model\EmployeeModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
@@ -90,6 +92,32 @@ class ProjectController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $data
         ], 200);
+
+    }
+
+    public function getProjectCars(Request $request){
+
+        if (is_null($request->projectId) || $request->projectId == "")
+            return response([
+                'status' => true,
+                'message' => 'Proje Id boş olamaz'
+            ],200);
+
+        $carHasProject = CarHasProject::where(['Active' => 1, 'ProjectId' => $request->projectId])->get();
+
+        $carList = [];
+
+        foreach ($carHasProject as $item)
+        {
+            $car = CarModel::find($item->id);
+            array_push($carList,$car);
+        }
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $carList
+        ],200);
 
     }
 

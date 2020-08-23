@@ -335,6 +335,7 @@ class ExpenseController extends ApiController
         $requestArray = $request->all();
         $documentElement->document_id        = $request->documentId;
         $documentElement->expense_account    = $requestArray['expense_account'];
+        $documentElement->car_plate          = $requestArray['car_plate'];
         $documentElement->content            = $requestArray['content'];
         $documentElement->quantity           = $requestArray['quantity'];
         $documentElement->kdv                = $requestArray['kdv'];
@@ -350,23 +351,6 @@ class ExpenseController extends ApiController
                 'status' => true,
                 'message' => 'Kayıt Başarılı',
                 'data' => $documentElement
-            ],200);
-        else
-            return response([
-                'status' => false,
-                'message' => 'İşlem Başarısız'
-            ],200);
-
-
-
-
-
-
-        if ($savedRecord != null)
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $savedRecord
             ],200);
         else
             return response([
@@ -1770,6 +1754,53 @@ class ExpenseController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $data
         ],200);
+    }
+
+    public function printExpense(Request $request){
+        $expenseId = $request->expenseId;
+
+        if (is_null($expenseId) || !isset($expenseId))
+            return response([
+                'status' => false,
+                'message' => 'Harcama Id Boş Olamaz!'
+            ],200);
+
+        $expense = ExpenseModel::find($expenseId);
+
+        if ( $expense->status < 3)
+            return response([
+                'status' => false,
+                'message' => 'Harcama Yönetici Onayından Geçmemiş!'
+            ],200);
+
+        $expenseDocuments = ExpenseDocumentModel::where([ 'active' => 1 ,'expense_id' => $expenseId])->
+            where('manager_status','<>','2')->
+            where('pm_status','<>','2')->
+            where('accounting_status','<>','2')->get();
+
+        $expenseDocumentElements = [];
+        $expenseDocumentElementsTotalPrice = 0;
+        foreach ($expenseDocuments as $key => $expenseDocument)
+        {
+            $documentElements = ExpenseDocumentElementModel::where(['active' => 1,'document_id' => $expenseDocument->id])->get();
+            foreach ($documentElements as $documentElement)
+            {
+                $expenseDocumentElementsTotalPrice+=$documentElement->price;
+                array_push($expenseDocumentElements,$documentElement);
+            }
+        }
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => [
+                'expense' => $expense,
+                'expenseDocuments' => $expenseDocuments,
+                'documentElements' => $expenseDocumentElements,
+                'elementsTotalPrice' => $expenseDocumentElementsTotalPrice
+            ]
+        ],200);
+
     }
 
     /*

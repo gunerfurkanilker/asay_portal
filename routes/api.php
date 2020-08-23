@@ -25,7 +25,7 @@ Route::namespace("Api")->group(function(){
         Route::get('processes/usersProject/list', "ProjectController@projectListOfUser")->name("project_projectListOfUser");
         Route::get('processes/project', "ProjectController@getProject")->name("project_by_id");
         Route::get('processes/categoriesOfProject/list', "ProjectController@categoryListOfProject")->name("categories_categoriesOfProjects");
-
+        Route::get('processes/project/carList','ProjectController@getProjectCars')->name("project_cars");
 
         Route::prefix('processes/expense')->group(function () {
             Route::get('list', "ExpenseController@expenseList")->name("expense_expenseList");
@@ -36,6 +36,7 @@ Route::namespace("Api")->group(function(){
             Route::get('getExpenseDocument', "ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
             Route::get('expenseDocumentList', "ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
             Route::get('expensePendingList', "ExpenseController@expensePendingList")->name("expense_expensePendingList");
+            Route::get('printExpense',"ExpenseController@printExpense")->name("expense_print");
             Route::delete('expenseDelete', "ExpenseController@expenseDelete")->name("expense_expenseDelete");
             Route::delete('deleteDocument', "ExpenseController@deleteDocument")->name("expense_deleteDocument");
             Route::delete('deleteElement', "ExpenseController@deleteElement")->name("expense_deleteElement");
