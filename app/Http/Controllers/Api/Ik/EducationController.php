@@ -22,14 +22,14 @@ class EducationController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->EducationID != null)
-                $education = EducationModel::saveEducation($request_data,$employee->EducationID);
+                $education = EducationModel::saveEducation($request,$employee->EducationID);
             else
-                $education = EducationModel::addEducation($request_data,$employee);
+                $education = EducationModel::addEducation($request,$employee);
 
             if ($education)
                 return response([
                     'status' => true,
-                    'message' => $education->Id . " ID No'lu Eğitim Bilgisi Kaydedildi",
+                    'message' => 'İşlem Başarılı',
                     'data' =>$education
                 ],200);
             else
@@ -42,7 +42,7 @@ class EducationController extends ApiController
         {
             return response([
                 'status' => false,
-                'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
+                'message' => $employee->Id. " ID No'lu Çalışan bulunamadı."
             ],200);
         }
     }

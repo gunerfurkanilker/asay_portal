@@ -24,13 +24,17 @@ class EmployeePositionModel extends Model
     public static function getPositionFields()
     {
         $data = [];
-        $data['Companies'] = CompanyModel::all();
-        $data['Cities'] = CityModel::all();
-        $data['Districts'] = DistrictModel::where('CityId',35)->get();
-        $data['Departments'] = DepartmentModel::all();
-        $data['Titles'] = TitleModel::all();
-        $data['Managers'] = EmployeeModel::all();
-        $data['WorkingTypes'] = WorkingTypeModel::where('Active',1)->get();
+        $data['WorkingFields']      = WorkingFieldModel::all();
+        $data['Offices']            = OfficeModel::all();
+        $data['Organizations']      = OrganizationModel::all();
+        $data['Regions']            = RegionModel::all();
+        $data['Companies']          = CompanyModel::all();
+        $data['Cities']             = CityModel::all();
+        $data['Districts']          = DistrictModel::where('CityId',35)->get();
+        $data['Departments']        = DepartmentModel::all();
+        $data['Titles']             = TitleModel::all();
+        $data['Managers']           = EmployeeModel::where(['Active' => 1])->get();
+        $data['WorkingTypes']       = WorkingTypeModel::where('Active',1)->get();
 
         return $data;
 
@@ -40,22 +44,30 @@ class EmployeePositionModel extends Model
     {
         try{
             $salary = self::create([
-                'EmployeeID' => $requestData['employeeid'],
-                'CompanyID' => $requestData['companyid'],
-                'CityID' => $requestData['cityid'],
-                'DistrictID' => $requestData['districtid'],
-                'DepartmentID' => $requestData['departmentid'],
-                'TitleID' => $requestData['titleid'],
-                'ManagerID' => isset($requestData['managerid']) ? $requestData['managerid'] : null,
-                'WorkingTypeID' => $requestData['workingtypeid'],
-                'StartDate' => new Carbon($requestData['positionstartdate']),
-                'EndDate' => isset($requestData['positionenddate']) ? new Carbon($requestData['positionenddate']) : null,
-                'Active' => $requestData['activeposition'] ? 1 : 0
+                'OrganizationID'        => $requestData['OrganizationID'],
+                'SubDepartment'         => $requestData['SubDepartment'],
+                'Unit'                  => $requestData['Unit'],
+                'ServiceCode'           => $requestData['ServiceCode'],
+                'RegionID'              => $requestData['RegionID'],
+                'OfficeID'              => $requestData['OfficeID'],
+                'WorkingFieldID'        => $requestData['WorkingFieldID'],
+                'UnitSupervisorID'      => $requestData['UnitSupervisorID'],
+                'EmployeeID'            => $requestData['EmployeeID'],
+                'CompanyID'             => $requestData['CompanyID'],
+                'CityID'                => $requestData['CityID'],
+                'DistrictID'            => $requestData['DistrictID'],
+                'DepartmentID'          => $requestData['DepartmentID'],
+                'TitleID'               => $requestData['TitleID'],
+                'ManagerID'             => isset($requestData['ManagerID']) ? $requestData['ManagerID'] : null,
+                'WorkingTypeID'         => $requestData['WorkingTypeID'],
+                'StartDate'             => new Carbon($requestData['StartDate']),
+                'EndDate'               => isset($requestData['EndDate']) ? new Carbon($requestData['EndDate']) : null,
+                'Active'                => $requestData['ActivePosition'] ? 1 : 0
             ]);
 
-            if ($requestData['actualposition'])
+            if ($requestData['ActualPosition'])
             {
-                $actualPosition = self::checkActualPositionExists($requestData['employeeid']);
+                $actualPosition = self::checkActualPositionExists($requestData['EmployeeID']);
 
                 if ($actualPosition)
                 {
@@ -69,7 +81,7 @@ class EmployeePositionModel extends Model
 
             $salary->save();
 
-            return self::checkActualPositionExists($requestData['employeeid']);
+            return self::checkActualPositionExists($requestData['EmployeeID']);
         }
         catch (\Exception $e){
             return $e->getMessage();

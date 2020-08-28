@@ -20,9 +20,9 @@ class IDCardController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->IDCardID != null)
-                $idCard = IdCardModel::saveIDCard($request_data,$employee->IDCardID);
+                $idCard = IdCardModel::saveIDCard($request,$employee->IDCardID);
             else
-                $idCard = IdCardModel::addIDCard($request_data,$employee);
+                $idCard = IdCardModel::addIDCard($request,$employee);
 
             if ($idCard)
                 return response([
@@ -40,7 +40,7 @@ class IDCardController extends ApiController
         {
             return response([
                 'status' => false,
-                'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
+                'message' => $request->EmployeeID. " ID No'lu Çalışan bulunamadı."
             ],200);
         }
     }

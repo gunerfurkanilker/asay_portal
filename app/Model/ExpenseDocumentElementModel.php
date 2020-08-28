@@ -13,11 +13,26 @@ class ExpenseDocumentElementModel extends Model
 
     protected $hidden = [];
     protected $casts = [];
-    protected $appends = ["expense_account_name"];
+    protected $appends = ["expense_account_name","car"];
 
     public function getExpenseAccountNameAttribute()
     {
         return ExpenseAccountCodesModel::whereRaw("CONCAT(account,'-',expense_type,'-',project,'-',project_category,'-',accounting_code)='".$this->attributes["expense_account"]."'")->first()->name;
+    }
+
+    public function getCarAttribute()
+    {
+
+        $car = $this->hasOne(CarModel::class,"id","car_id");
+        if ($car)
+        {
+            return $car->first();
+        }
+        else
+        {
+            return null;
+        }
+
     }
 
 

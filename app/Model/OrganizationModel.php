@@ -4,8 +4,9 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WorkingFieldModel extends Model
+class OrganizationModel extends Model
 {
+    protected $table = "Organization";
     protected $primaryKey = "id";
-    protected $table = "WorkingField";
+
 }

@@ -98,6 +98,7 @@ Route::namespace("Api")->group(function(){
             Route::get('managersEmployees','OvertimeController@getManagersEmployees')->name('overtime_managers_employees');
             Route::get('employeesManagers','OvertimeController@getEmployeesManagers')->name('overtime_employees_managers');
             Route::get('overtimeKinds','OvertimeController@overtimeKinds')->name('overtime_kinds');
+            Route::get('overtimeLimits','OvertimeController@getOvertimeLimits')->name('overtime_limits');
             Route::get('managersProjectList','OvertimeController@managersProjectList')->name('overtime_managers_project_list');
             Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');
         });
@@ -197,7 +198,7 @@ Route::namespace("Api")->group(function(){
             Route::get('cities', "CityController@getCities")->name("get_cities_of_country");
             Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
             Route::post('cities/districts', "CityController@getDistrictsOfCity")->name("get_districts_of_city");
-
+            Route::get('authorizations', "AuthorityController@loggedUserAuthorizations")->name("user_authorities");
             Route::post('objectFile/setObjectFile', "ObjectFileController@setObjectFile")->name("ObjectFileController_setObjectFile");
         });
 

@@ -13,7 +13,9 @@ use App\Model\OvertimeStatusModel;
 use App\Model\ProjectsModel;
 use App\Model\UserModel;
 use App\Model\UserProjectsModel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use DateTime;
 
 
 class OvertimeController extends ApiController
@@ -84,8 +86,6 @@ class OvertimeController extends ApiController
         ],200);
     }
 
-
-
     public function getEmployeesManagers(Request $request){
         $employee = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID );
         $managers = OvertimeModel::getEmployeesManagers($employee->Id);
@@ -124,6 +124,17 @@ class OvertimeController extends ApiController
         ],200);
     }
 
+    public function getOvertimeLimits(Request $request){
+
+        $data = OvertimeModel::overtimeRemainingLimits($request);
+
+        return response([
+            'status' => true,
+            'data' => $data
+        ],200);
+
+    }
+
     public function saveOvertimeRequest(Request $request){
 
         /*
@@ -148,25 +159,43 @@ class OvertimeController extends ApiController
                 'message' => 'İşlem Tipi Tanımlanmamış'
             ],200);
         }*/
+        /*return response([
+            'status' => true,
+            'message' => $request->all(),
+        ],200);*/
 
+        $status = OvertimeModel::saveOvertimeByProcessType($request->processType,$request);
 
-        $status = OvertimeModel::saveOvertimeByProcessType($request->processType,$request->all());
-
-        if ($status)
+        if ($status['status'])
             return response([
                 'status' => true,
-                'message' => 'İşlem Başarılı',
+                'message' => $status['message'],
             ],200);
 
         return response([
             'status' => false,
-            'message' => 'İşlem Başarısız',
+            'message' => $status['message'],
         ],200);
 
 
 
     }
 
+    public function getRemainingOvertimeLimits(Request $request){
+
+        $assignedId = $request->assignedId;
+
+        if (!isset($assignedId) || $assignedId == "" || $assignedId == null)
+            return response([
+                'status' => false,
+                'message' => 'Atanan kişinin Idsi boş olamaz'
+            ],200);
+
+        $data = OvertimeModel::getRemainingOvertimeLimits($request);
+
+
+
+    }
 
 
 }

@@ -335,7 +335,7 @@ class ExpenseController extends ApiController
         $requestArray = $request->all();
         $documentElement->document_id        = $request->documentId;
         $documentElement->expense_account    = $requestArray['expense_account'];
-        $documentElement->car_plate          = $requestArray['car_plate'];
+        $documentElement->car_id             = $requestArray['carId'];
         $documentElement->content            = $requestArray['content'];
         $documentElement->quantity           = $requestArray['quantity'];
         $documentElement->kdv                = $requestArray['kdv'];

@@ -20,9 +20,9 @@ class SocialSecurityInformationController extends ApiController
         if (!is_null($employee))
         {
             if ($employee->SocialSecurityInformationID != null)
-                $socialSecurityInformation = SocialSecurityInformationModel::saveSocialSecurityInformation($request_data,$employee->SocialSecurityInformationID);
+                $socialSecurityInformation = SocialSecurityInformationModel::saveSocialSecurityInformation($request,$employee->SocialSecurityInformationID);
             else
-                $socialSecurityInformation = SocialSecurityInformationModel::addSocialSecurityInformation($request_data,$employee);
+                $socialSecurityInformation = SocialSecurityInformationModel::addSocialSecurityInformation($request,$employee);
 
             if ($socialSecurityInformation)
                 return response([
@@ -40,7 +40,7 @@ class SocialSecurityInformationController extends ApiController
         {
             return response([
                 'status' => false,
-                'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
+                'message' => $request_data['employeeid']. " ID No'lu Çalışan bulunamadı."
             ],200);
         }
     }

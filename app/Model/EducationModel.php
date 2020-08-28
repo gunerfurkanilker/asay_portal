@@ -10,49 +10,141 @@ class EducationModel extends Model
     protected $primaryKey = "Id";
     protected $table = "Education";
     protected $guarded = [];
-    public $timestamps =false;
+    public $timestamps = false;
     protected $appends = [
         'EducationLevel',
         'EducationStatus',
-        'DocumentFile'
+        'ObjectFile'
     ];
 
     public static function saveEducation($request, $educationID)
     {
         $education = self::find($educationID);
-
-
-
         if ($education != null) {
 
-            $education->StatusID = $request['educationstatus'];
-            $education->Institution = $request['institution'];
-            $education->LevelID = $request['educationlevel'];
+            $education->StatusID = $request->educationstatus;
+            $education->Institution = $request->institution;
+            $education->LevelID = $request->educationlevel;
+            $result = $education->save();
 
-            $education->save();
+            if ($result && $request->hasFile('education_file')) {
+
+
+                $file = file_get_contents($request->education_file->path());
+                $guzzleParams = [
+
+                    'multipart' => [
+                        [
+                            'name' => 'token',
+                            'contents' => $request->token
+                        ],
+                        [
+                            'name' => 'ObjectType',
+                            'contents' => 5 // Mezuniyet Belgesi
+                        ],
+                        [
+                            'name' => 'ObjectTypeName',
+                            'contents' => 'Education'
+                        ],
+                        [
+                            'name' => 'ObjectId',
+                            'contents' => $education->Id
+                        ],
+                        [
+                            'name' => 'file',
+                            'contents' => $file,
+                            'filename' => 'mezuniyet_belgesi_' . $education->Id . '.' . $request->education_file->getClientOriginalExtension()
+                        ],
+
+                    ],
+                ];
+
+                $client = new \GuzzleHttp\Client();
+                $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
+                $responseBody = json_decode($res->getBody());
+
+                if ($responseBody->status == false)
+                    return false;
+                else {
+                    return $education;
+                }
+
+
+            }
 
             return $education->fresh();
-        }
-        else
+        } else
             return false;
     }
 
-    public static function addEducation($request,$employee)
+    public static function addEducation($request, $employee)
     {
         $education = self::create([
-            'StatusID' => $request['educationstatus'],
-            'Institution' => $request['institution'],
-            'LevelID' => $request['educationlevel']
+            'StatusID' => $request->educationstatus,
+            'Institution' => $request->institution,
+            'LevelID' => $request->educationlevel
         ]);
 
-        if ($education != null)
-        {
+        if ($education != null) {
+            $education->StatusID = $request->educationstatus;
+            $education->Institution = $request->institution;
+            $education->LevelID = $request->educationlevel;
+            $result = $education->save();
+
+            if ($result && $request->hasFile('education_file')) {
+
+
+                $file = file_get_contents($request->education_file->path());
+                $guzzleParams = [
+
+                    'multipart' => [
+                        [
+                            'name' => 'token',
+                            'contents' => $request->token
+                        ],
+                        [
+                            'name' => 'ObjectType',
+                            'contents' => 5 // Mezuniyet Belgesi
+                        ],
+                        [
+                            'name' => 'ObjectTypeName',
+                            'contents' => 'Education'
+                        ],
+                        [
+                            'name' => 'ObjectId',
+                            'contents' => $education->Id
+                        ],
+                        [
+                            'name' => 'file',
+                            'contents' => $file,
+                            'filename' => 'mezuniyet_belgesi_' . $education->Id . '.' . $request->education_file->getClientOriginalExtension()
+                        ],
+
+                    ],
+                ];
+
+                $client = new \GuzzleHttp\Client();
+                $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
+                $responseBody = json_decode($res->getBody());
+
+                if ($responseBody->status == false)
+                    return false;
+                else {
+                    $employee->EducationID = $education->Id;
+                    $employee->save();
+                    return $education;
+                }
+
+
+            }
+
+
             $employee->EducationID = $education->Id;
             $employee->save();
             return $education;
-        }
 
-        else
+
+        } else
             return false;
     }
 
@@ -67,20 +159,20 @@ class EducationModel extends Model
 
     public function getEducationLevelAttribute()
     {
-        $educationLevel = $this->hasOne(EducationLevelModel::class,"Id","LevelID");
-        return $educationLevel->where("Active",1)->first();
+        $educationLevel = $this->hasOne(EducationLevelModel::class, "Id", "LevelID");
+        return $educationLevel->where("Active", 1)->first();
     }
 
     public function getEducationStatusAttribute()
     {
-        $educationStatus = $this->hasOne(EducationStatusModel::class,"Id","StatusID");
-        return $educationStatus->where("Active",1)->first();
+        $educationStatus = $this->hasOne(EducationStatusModel::class, "Id", "StatusID");
+        return $educationStatus->where("Active", 1)->first();
     }
 
-    public function getDocumentFileAttribute()
+    public function getObjectFileAttribute()
     {
-        $document = $this->hasOne(DocumentFileModel::class,"Id","DocumentID");
-        return $document->where("Active",1)->first();
+        $document = $this->hasOne(ObjectFileModel::class, "ObjectId", "Id");
+        return $document->where(['Active' => 1,'ObjectType' => 5])->first();
     }
 
 }
