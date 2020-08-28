@@ -9,6 +9,7 @@ use App\Model\EmployeeModel;
 use App\Model\PermitKindModel;
 use App\Model\PermitLeftOverHoursModel;
 use App\Model\PermitModel;
+use App\Model\ProcessesSettingsModel;
 use App\Model\PublicHolidayModel;
 use App\Model\UserModel;
 use Carbon\Carbon;
@@ -19,7 +20,7 @@ use SoapClient;
 
 class PermitController extends ApiController
 {
-    public function getPermits(Request $request)
+    public function permitList(Request $request)
     {
         $employee = EmployeeModel::find( UserModel::find($request->userId)->EmployeeID );
         return response([
@@ -29,19 +30,81 @@ class PermitController extends ApiController
         ], 200);
     }
 
-    public function permitTypes(Request $request)
+    public function getPermit(Request $request)
     {
+        $employee = EmployeeModel::find( UserModel::find($request->userId)->EmployeeID );
         return response([
             'status' => true,
             'message' => "İşlem Başarılı",
-            'data' => PermitKindModel::getPermitKinds()
+            'data' => PermitModel::where(["id"=>$request->permitId,'EmployeeID'=>$employee->Id])->first()
+        ], 200);
+    }
+
+    public function permitTypes(Request $request)
+    {
+        $permitKinds = PermitKindModel::where(["active"=>1])->get();
+        return response([
+            'status' => true,
+            'message' => "İşlem Başarılı",
+            'data' => $permitKinds
         ], 200);
     }
 
     public function savePermit(Request $request)
     {
+        if($request->permitId!==null){
+            $EmployeeID = PermitModel::find($request->permitId)->EmployeeID;
+        }
+        else
+            $EmployeeID = UserModel::find($request->userId)->EmployeeID;
+        //tanımlar
+        $endDate = $request->endDate;
+        $startDate = $request->startDate;
 
-        /*$datetime1 = new DateTime($request->endDate);
+        if($startDate>$endDate)
+        {
+            return response([
+                'status' => false,
+                'message' => "İzin Tarihlerini Kontrol Ediniz. Hatalı Girdiniz."
+            ], 200);
+        }
+
+        $calculatePermit = PermitModel::calculatePermit($startDate,$endDate);
+
+        if($request->kind==12){
+            //Yıllık İzin ise
+            $remainingDays = PermitModel::netsisRemainingPermit($EmployeeID);
+            if (($calculatePermit["UsedDay"] > $remainingDays['daysLeft']) ||
+                ($calculatePermit["UsedDay"] == $remainingDays['daysLeft'] && $calculatePermit["OverHour"] > $remainingDays['hoursLeft']))
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Yıllık izin hakkınızdan fazla bir izin talep ettiniz.\n Kullandığınız izin miktarı : "
+                        .$calculatePermit["UsedDay"].' gün, '.$calculatePermit["OverHour"].'saat.'.'\n Kalan İzin Miktarı : ' .$remainingDays['daysLeft'].' gün, '.$remainingDays['hoursLeft'].' saat.',
+                ], 200);
+            }
+        }
+        else{
+            //Yıllık izin haricindeki tipler kullanım kontrolü
+        }
+
+        $status = PermitModel::createPermit($request);
+        if ($status)
+            return response([
+                'status' => true,
+                'message' => "Kayıt Başarılı",
+            ], 200);
+        else
+            return response([
+                'status' => false,
+                'message' => "Kayıt Başarısız",
+            ], 200);
+    }
+
+
+    /*public function savePermit2(Request $request)
+    {
+        $datetime1 = new DateTime($request->endDate);
         $datetime2 = new DateTime($request->startDate);
         $interval = $datetime2->diff($datetime1);
         $elapsed = $interval->format('%y years %m months %a days %h hours %i minutes %s seconds');
@@ -53,6 +116,7 @@ class PermitController extends ApiController
 
         $requestedPermitDays =(int) $interval->format('%a');
         $requestedPermitHours =(int) $interval->format('%h');
+
 
         if ($requestedPermitDays > $remainingDays['daysLeft'])
         {
@@ -67,7 +131,7 @@ class PermitController extends ApiController
                 'status' => false,
                 'message' => "Yıllık izin hakkınızdan fazla bir izin talep ettiniz.\n Kullandığınız izin miktarı : "
                     .$remainingDays['daysUsed'].' gün, '.$remainingDays['hoursUsed'].'saat.'.'\n Kalan İzin Miktarı : ' .$remainingDays['daysLeft'].' gün, '.$remainingDays['hoursLeft'].' saat.',
-            ], 200);*/
+            ], 200);
 
         $status = PermitModel::createPermit($request);
         if ($status)
@@ -81,59 +145,186 @@ class PermitController extends ApiController
                 'message' => "Kayıt Başarısız",
             ], 200);
 
+    }*/
+
+    public function permitPendingList(Request $request)
+    {
+        $status = ($request->status!==null) ? $request->status : "";
+        $status = $status=="0" ? "1" : $status;
+        $user = UserModel::find($request->userId);
+        $employeeManagers   = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
+        $hrManagers         = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager"])->first()->PropertyValue;
+        $personnelSpecialist= ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist"])->first()->PropertyValue;
+
+        $permitQ = PermitModel::where(["active"=>1,"netsis"=>0]);
+
+        $permitQ->where(function($query) use($employeeManagers,$hrManagers,$personnelSpecialist,$status){
+            if($status==1)
+                $query->whereIn("EmployeeID",$employeeManagers)->where("status",1);
+            else if($status==2)
+                $query->where("status_id",2);
+            else if($status==3)
+                $query->where("status_id",3);
+        });
+        $permitQ->orderBy("created_date","DESC");
+        $permits = $permitQ->get();
+
+        return response([
+            'status' => true,
+            'data' => $permits,
+        ], 200);
     }
 
-    public function permitSendNetsis(Request $request)
+
+    public function permitConfirm(Request $request)
     {
-        $permit = PermitModel::find($request->permitId);
-        $permitCounts = PermitModel::calculateTotalDayHourCount($permit->start_date,$permit->end_date);
-
-        $izin["_Isyeri"] = $request->isYeri; // İş Yeri ne olacak ?
-        $izin["_SicilNo"] =  EmployeeModel::where('Id',$permit->EmployeeID)->first()->StaffID;
-        $izin["_BasTarih"] = new Carbon($permit->start_date);
-        $izin["_BitTarih"] = new Carbon($permit->start_date);
-        $izin["_IsGunuSayisi"] = $permitCounts['usedDays'];
-        $izin["_HaftaSonuTatilSayisi"] = $permitCounts['weekendsHolidays'];
-        $izin["_IzinTuru"] = "I";
-        $izin["_NedenKodu"] = "";
-
-        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
-
-        ini_set('soap.wsdl_cache_enabled', 0);
-        ini_set('soap.wsdl_cache_ttl', 900);
-        ini_set('default_socket_timeout', 15);
-
-        $options = array(
-            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
-            'style'             =>SOAP_RPC,
-            'use'               =>SOAP_ENCODED,
-            'soap_version'      =>SOAP_1_1,
-            'cache_wsdl'        =>WSDL_CACHE_NONE,
-            'connection_timeout'=>15,
-            'trace'             =>true,
-            'encoding'          =>'UTF-8',
-            'exceptions'        =>true,
-            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
-        );
-        try
-        {
-            $soap = new SoapClient($wsdl, $options);
-            $data = $soap->PersonelIzinGirisi($izin);
-            return response([
-                'status' => true,
-                'message' => "Kayıt Başarılı",
-                'resultMessage' => $data->PersonelIzinGirisiResult->Sonuc."-".$data->PersonelIzinGirisiResult->Aciklama
-            ], 200);
-        }
-        catch(Exception $e)
+        $user_id = $request->userId;
+        $permitId = $request->permitId;
+        if($permitId===null)
         {
             return response([
                 'status' => false,
-                'message' => $e->getMessage(),
+                'message' => "İzin Id Boş Olamaz"
+            ], 200);
+        }
+        $permit = PermitModel::find($permitId);
+        $status = self::permitAuthority($permit,$user_id);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
+        if($request->confirm==1)
+            $confirm = 1;
+        else{
+            $confirm = 2;
+            $permit->netsis = 2;
+        }
+
+        if($permit->status==1)
+        {
+            $permit->manager_status = $confirm;
+            if($confirm==2){
+                $permit->hr_status = 2;
+                $permit->ps_status = 2;
+            }
+        }
+        else if($permit->status==2){
+            $permit->hr_status = $confirm;
+            if($confirm==2){
+                $permit->ps_status = 2;
+            }
+        }
+        else if($permit->status==3)
+            $permit->ps_status = $confirm;
+
+        $permit->status = $permit->status+1;
+        $permitResult = $permit->save();
+        if($permitResult){
+            return response([
+                'status' => true,
+                'message' => "Onay İşlemi Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Onaylama İşlemi Başarısız"
             ], 200);
         }
 
     }
+
+    public function permitConfirmTakeBack(Request $request)
+    {
+        $user_id = $request->userId;
+        $permitId = $request->permitId;
+        if($permitId===null)
+        {
+            return response([
+                'status' => false,
+                'message' => "Belge Id Boş Olamaz"
+            ], 200);
+        }
+        $permit = PermitModel::find($permitId);
+        $status = self::permitAuthority($permit,$user_id);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
+        if($permit->netsis==1){
+            return response([
+                'status' => false,
+                'message' => "Aktarımı Tamamlanmış İzinlerin Onayı Geri Alınamaz"
+            ], 200);
+        }
+
+        if($permit->status==2){
+            $permit->manager_status     = 0;
+            $permit->hr_status          = 0;
+            $permit->ps_status          = 0;
+            $permit->netsis             = 0;
+            $permit->status             = 1;
+        }
+        else if($permit->status==3){
+            $permit->hr_status  = 0;
+            $permit->ps_status  = 0;
+            $permit->netsis     = 0;
+            $permit->status     = 2;
+        }
+        else if($permit->status==4 && $permit->netsis==0){
+            $permit->ps_status  = 0;
+            $permit->netsis     = 0;
+            $permit->status     = 3;
+        }
+        $permitResult = $permit->save();
+
+        if($permitResult){
+            return response([
+                'status' => true,
+                'message' => "Geri Alma Başarılı"
+            ], 200);
+        }
+        else {
+            return response([
+                'status' => false,
+                'message' => "Geri Alma Başarısız"
+            ], 200);
+        }
+
+    }
+
+    public function permitAuthority($permit,$user_id)
+    {
+        $status = false;
+        $user = UserModel::find($user_id);
+        if($permit->status==2)
+        {
+            $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$permit->EmployeeID])->first();
+            if($employeePosition->ManagerID==$user->EmployeeID)
+                $status = true;
+        }
+        else if($permit->status==3) {
+            $hrManagers         = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager"])->first()->PropertyValue;
+            if($hrManagers==$user->EmployeeID)
+                $status = true;
+        }
+        else if($permit->status==4) {
+            $personnelSpecialist= ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist"])->first()->PropertyValue;
+            if($personnelSpecialist==$user->EmployeeID)
+                $status = true;
+        }
+
+        return $status;
+    }
+
 
 
 

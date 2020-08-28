@@ -4,11 +4,8 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PermitKindModel extends Model
+class ProcessesSettingsModel extends Model
 {
-    protected $table = 'PermitKinds';
-    public $timestamps = false;
+    protected $table = 'ProcessesSettings';
     protected $primaryKey = 'id';
-
-
 }

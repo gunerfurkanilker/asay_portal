@@ -16,30 +16,34 @@ class PermitModel extends Model
 
     public static function createPermit($req)
     {
-        $totalPermitDayHour = self::calculateTotalDayHourCount($req->start_date,$req->end_date);
-        $user = UserModel::find(UserTokensModel::where('user_token', $req['token'])->first()->user_id);
+        $totalPermitDayHour = self::calculateTotalDayHourCount($req->endDate,$req->endDate);
+        if($req->permitId!==null){
+            $EmployeeID = PermitModel::find($req->permitId)->EmployeeID;
+        }
+        else
+            $EmployeeID = UserModel::find($req->userId)->EmployeeID;
 
         $newPermit = new PermitModel();
 
-        $newPermit->EmployeeID = $user->EmployeeID;
-        $newPermit->kind = $req->kind;
+        $newPermit->EmployeeID  = $EmployeeID;
+        $newPermit->kind        = $req->kind;
         $newPermit->description = $req->description;
-        $newPermit->start_date = new Carbon($req->start_date);
-        $newPermit->end_date = new Carbon($req->end_date);
-        $newPermit->total_day = $totalPermitDayHour['usedDays'];
-        $newPermit->total_hours = $totalPermitDayHour['inheritHours'];
-        $newPermit->duty_transferee = $req->duty_transferee;
-        $newPermit->transfer_date = new Carbon($req->transfer_date);
+        $newPermit->start_date  = new Carbon($req->startDate);
+        $newPermit->end_date    = new Carbon($req->endDate);
+        $newPermit->used_day    = $totalPermitDayHour['UsedDay'];
+        $newPermit->over_hour   = $totalPermitDayHour['OverHour'];
+        $newPermit->holiday     = $totalPermitDayHour['Holidays'];
+        $newPermit->weekend     = $totalPermitDayHour['Weekend'];
         return $newPermit->save() ? true : false;
     }
 
-    public static function getRemainingDaysYearlyPermit($req)
+    /*public static function getRemainingDaysYearlyPermit($req)
     {
         $user = UserModel::find($req->userId);
         //Yıllık İzin için bu kontrolü yapıyoruz ileride diğer izin tipleri için de bu tarz kontroller yapılabilir.
         $permitCounts = self::select(DB::raw('SUM(total_day) as total_days,SUM(total_hours) as total_hours'))
             ->where('EmployeeID', $user->EmployeeID)
-            ->where('kind', 12)->first();
+            ->where('kind', $req->kind)->first();
 
         if ($permitCounts->total_hours % 8 > 0) {
             $leftOverDays = floor($permitCounts->total_hours / 8);
@@ -48,10 +52,10 @@ class PermitModel extends Model
 
         $data['hoursUsed'] = $permitCounts->total_hours % 8;
         $data['daysUsed'] = $permitCounts->total_days + $leftOverDays;
-        $data['daysLeft'] = PermitKindModel::where('id', 12)->first()
+        $data['daysLeft'] = PermitKindModel::where('id', $req->kind)->first()
             ->dayLimitPerYear ?
-            PermitKindModel::find(12)->dayLimitPerYear - $data['daysUsed'] :
-            PermitKindModel::find(12)->dayLimitPerRequest - $data['daysUsed'];
+            PermitKindModel::find($req->kind)->dayLimitPerYear - $data['daysUsed'] :
+            PermitKindModel::find($req->kind)->dayLimitPerRequest - $data['daysUsed'];
 
         if ($data['daysLeft'] != 0)
             $data['hoursLeft'] = 8 - $data['hoursUsed'];
@@ -63,10 +67,73 @@ class PermitModel extends Model
         return $data;
 
 
+    }*/
+
+    public static function calculatePermit($startDate,$endDate)
+    {
+        $holidays = PublicHolidayModel::where(["active"=>1])->get();
+
+        foreach ($holidays as $holiday) {
+            $ResmiTatil[] = $holiday;
+        }
+
+        $st = strtotime($startDate);
+        $saat       = 0;
+        $hssaat     = 0;
+        $rssaat     = 0;
+        while($st < strtotime($endDate) ){
+            $st += 3600;
+            $dd = strtotime("1970-01-01 ".date("H:i:s",$st));
+            $resmi = 0;
+            foreach($ResmiTatil as $key => $value)
+            {
+                if($st>strtotime($value["start_date"]) && $st<strtotime($value["end_date"]))
+                {
+                    $resmi=1;
+                    if($dd>21600 && $dd<=54000)
+                        $rssaat++;
+                    continue;
+                }
+            }
+            if($resmi==1) continue;
+            if(date("l",$st)=="Sunday")
+            {
+                if($dd>21600 && $dd<=54000)
+                    $hssaat++;
+
+                continue;
+            }
+
+            //echo date("H:i:s",$st)."-".$dd."<br>";
+
+            if($dd>21600 && $dd<=54000)
+            {
+                if($dd>32400 && $dd<=36000){
+                    continue;
+                }
+                else{
+                    $saat++;
+                }
+            }
+        }
+
+        $devirSaat 		= $saat % 8;
+        $aktarilacakGun = floor($saat / 8);
+
+        $haftasonu 	= floor($hssaat/8);
+        $resmigun 	= floor($rssaat/8);
+
+        return [
+            "UsedDay" => $aktarilacakGun,
+            "OverHour" => $devirSaat,
+            "Weekend" => $haftasonu,
+            "Holidays" => $resmigun
+        ];
     }
 
-    public static function calculateTotalDayHourCount($startDateTimeParam, $endDateTimeParam)
+    public static function calculateTotalDayHourCount2($startDateTimeParam, $endDateTimeParam)
     {
+        exit;
         //$interval->format('%y years %m months %a days %h hours %i minutes %s seconds');
         $data=[];
         $clearHourCount = 0;
@@ -186,8 +253,85 @@ class PermitModel extends Model
 
     public static function isPermitAtPublicHoliday($permitDate)
     {
-            $holidays = PublicHolidayModel::where('start_date','<=',$permitDate)->where('end_date','>=',$permitDate)->orderBy('start_date','asc')->get();
-            return $holidays;
+        exit;
+        $holidays = PublicHolidayModel::where('start_date','<=',$permitDate)->where('end_date','>=',$permitDate)->orderBy('start_date','asc')->get();
+        return $holidays;
+    }
+
+
+
+    public function netsisRemainingPermit($employeeId="")
+    {
+        $employee = EmployeeModel::where(["Id"=>$employeeId,"Active"=>1])->first();
+        $company = CompanyModel::find($employee->EmployeePosition->CompanyID);
+
+
+        if($company->Sym=="aSAY Elektronik"){
+            $companyCode = "ASAYELEK";
+        }
+        elseif($company->Sym=="aSAY Energy"){
+            $companyCode = "ASAYENER";
+        }
+        elseif($company->Sym=="aSAY Comm"){
+            $companyCode = "ASAYILET";
+        }
+        elseif($company->Sym=="aSAY VAD"){
+            $companyCode = "YASAYVAD";
+        }
+        //izin gün sayısı
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+
+        $izin["_Isyeri"]    = $companyCode;
+        $izin["_SicilNo"]   = $employee->StaffID;
+        try
+        {
+            $soap = new SoapClient($wsdl, $options);
+            $data = $soap->PersonelIzinSorgula($izin);
+        }
+        catch(Exception $e)
+        {
+            return false;
+            //die($e->getMessage());
+        }
+        $saat = 0;
+
+        $PermitLeftOverHours = PermitLeftOverHoursModel::where(["EmployeeID"=>$employeeId,"active"=>1]);
+        foreach ($PermitLeftOverHours as $permitLeftOverHour) {
+            $saat += $permitLeftOverHour->LeftOverHour;
+        }
+        $gun = intval($data->PersonelIzinSorgulaResult->Aciklama);
+        $kalansaat = 0;
+        if($saat<>0)
+        {
+            if($gun<>0)
+            {
+                $gun = intval($data->PersonelIzinSorgulaResult->Aciklama)-1;
+                $kalansaat = 8-$saat;
+            }
+            else
+            {
+                $kalansaat = -(8-$saat);
+            }
+        }
+
+        return ["daysLeft"=>$gun,"hoursLeft"=>$kalansaat];
     }
 
 

@@ -72,10 +72,13 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/permit/')->group(function () {
-            Route::post('createNewPermit', 'PermitController@createPermit')->name('new_permit');
-            Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_types');
-            Route::get('getPermits', 'PermitController@getPermits')->name('get_permits');
-            Route::post('savePermit', 'PermitController@savePermit')->name('save_permit');
+            Route::post('savePermit', 'PermitController@savePermit')->name('permit_savePermit');
+            Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_getPermitTypes');
+            Route::get('permitList', 'PermitController@permitList')->name('permit_permitList');
+            Route::get('getPermit', 'PermitController@getPermit')->name('permit_getPermit');
+            Route::get('permitPendingList', 'PermitController@permitPendingList')->name('permit_permitPendingList');
+            Route::put('permitConfirm', 'PermitController@permitConfirm')->name('permit_permitConfirm');
+            Route::put('permitConfirmTakeBack', 'PermitController@permitConfirmTakeBack')->name('permit_permitConfirmTakeBack');
         });
 
 
