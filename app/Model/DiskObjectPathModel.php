@@ -8,4 +8,6 @@ class DiskObjectPathModel extends Model
 {
     protected $primaryKey = "id";
     protected $table = "disk_object_path";
+
+    public $timestamps = false;
 }

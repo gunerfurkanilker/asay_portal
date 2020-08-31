@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
+use App\Model\EmployeePositionModel;
 use App\Model\PermitKindModel;
 use App\Model\PermitLeftOverHoursModel;
 use App\Model\PermitModel;
@@ -327,7 +328,11 @@ class PermitController extends ApiController
         $user = UserModel::find($user_id);
         $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$permit->EmployeeID])->first();
 
-        if(($permit->status==2 && $authType="takeBack") || ($permit->status==1 && $authType="confirm")){
+        if(($permit->status==1 && $authType="takeBack") || ($permit->status==0 && $authType="confirm")){
+            if($permit->EmployeeID==$user->EmployeeID)
+                $status = true;
+        }
+        else if(($permit->status==2 && $authType="takeBack") || ($permit->status==1 && $authType="confirm")){
             if($employeePosition->ManagerID==$user->EmployeeID)
                 $status = true;
         }

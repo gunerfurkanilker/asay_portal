@@ -10,7 +10,9 @@ use App\Model\DiskRightModel;
 use App\Model\DiskStorageModel;
 use App\Model\EmployeeHasGroupModel;
 use Facade\FlareClient\Api;
+use Faker\Provider\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DiskController extends ApiController
 {
@@ -35,11 +37,11 @@ class DiskController extends ApiController
     {
         //İlgili objenin klasör ve dosyaları
         $objectStorageId    = DiskObjectModel::find($request->objectId)->storage_id;
-        $rootObjectId       = DiskStorageModel::find($objectStorageId)->root_object_id;
+        $rootObject         = DiskStorageModel::find($objectStorageId);
 
         $rights = self::rights($request);
         $rightStatus = DiskRightModel::whereIn("access_code",$rights)
-            ->where(["object_id"=>$rootObjectId])->count();
+            ->where(["object_id"=>$rootObject->root_object_id])->count();
 
         if($rightStatus==0){
             return response([
@@ -49,6 +51,17 @@ class DiskController extends ApiController
         }
 
         $objects = DiskObjectModel::where(["parent_id"=>$request->objectId,"deleted"=>0])->get();
+        foreach ($objects as $key=>$object) {
+            if($object->type==3){
+                //http://portal.asay.com.tr/disk/company/3?token=d268659be29bdb958c2105dd7f80e846&filename=ssss.pdf
+                $object->viewFile       = "http://".parse_url(request()->root())['host']."/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->downloadFile   = "http://".parse_url(request()->root())['host']."/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+            }
+            else{
+                $object->viewFile       = null;
+                $object->downloadFile   = null;
+            }
+        }
         return response([
             'status' => true,
             'message' => 'Başarılı',
@@ -72,11 +85,15 @@ class DiskController extends ApiController
 
         $object = DiskObjectModel::find($objectId);
         $file   = DiskFileModel::find($object->file_id);
+
         $headers = array(
-            'Content-Type: '.$file->content_type
+            'Content-Type: '.$file->content_type,
+            'Content-Disposition', 'filename='. $file->original_name. ';'
         );
 
-        return response()->file($file->subdir."/".$file->filename,$headers);
+        return response(Storage::disk("connect")->get($file->subdir."/".$file->filename))
+            ->header('Content-Type',$file->content_type)
+            ->header( 'Content-Disposition', 'filename='. $file->original_name. ';');
     }
 
     public function downloadFile(Request $request,$storage="",$objectId="")
@@ -102,13 +119,63 @@ class DiskController extends ApiController
 
         );
 
-        return response()->download($file->subdir."/".$file->filename,$file->original_name,$headers);
+        return Storage::disk("connect")->download($file->subdir."/".$file->filename,$file->original_name,$headers);
     }
 
 
     public function addFile(Request $request)
     {
+        $storageIdQ = DiskStorageModel::where(["EmployeeID"=>$request->storage]);
+        if($storageIdQ->count()==0){
+            return response([
+                'status' => false,
+                'message' => 'Disk Bulunamadı',
+            ],200);
+        }
 
+        $fileName   = md5(uniqid("", true));
+        $folderName = substr($fileName, 0, 3);
+
+        if(!Storage::disk("connect")->exists($request->moduleId)) {
+            Storage::disk("connect")->makeDirectory($request->moduleId, 0775, true); //creates directory
+        }
+        $path       = $request->moduleId."/".$folderName;
+        if(!Storage::disk("connect")->exists($path)) {
+            Storage::disk("connect")->makeDirectory($path, 0775, true); //creates directory
+        }
+
+        if($request->file('file')===null){
+            return response([
+                'status' => false,
+                'message' => 'Dosya Yüklenemedi',
+            ],200);
+        }
+
+        $file = $request->file('file');
+
+        $uploadFile = $file->storeAs($path,$fileName,"connect");
+        $diskFile = new DiskFileModel();
+        $diskFile->module_id    = $request->moduleId;
+        $diskFile->subdir       = $path;
+        $diskFile->content_type = $file->getClientMimeType();
+        $diskFile->filename     = $fileName;
+        $diskFile->original_name= $file->getClientOriginalName();
+        $diskFile->save();
+
+        $storageId = $storageIdQ->first()->id;
+        $diskObject = new DiskObjectModel();
+        $diskObject->name       = $diskFile->original_name;
+        $diskObject->storage_id = $storageId;
+        $diskObject->parent_id  = $request->directoryId;
+        $diskObject->type       = 3;
+        $diskObject->created_by = $request->EmployeeID;
+        $diskObject->file_id    = $diskFile->id;
+        $diskObject->save();
+
+        return response([
+            'status' => true,
+            'message' => 'Yükleme Başarılı',
+        ],200);
     }
     
     public function rights(Request $request)

@@ -8,4 +8,6 @@ class DiskObjectModel extends Model
 {
     protected $primaryKey = "id";
     protected $table = "disk_object";
+
+    public $timestamps = false;
 }

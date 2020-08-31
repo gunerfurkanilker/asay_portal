@@ -8,4 +8,6 @@ class DiskRightModel extends Model
 {
     protected $primaryKey = "id";
     protected $table = "disk_right";
+
+    public $timestamps = false;
 }
