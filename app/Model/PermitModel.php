@@ -16,14 +16,17 @@ class PermitModel extends Model
 
     public static function createPermit($req)
     {
-        $totalPermitDayHour = self::calculateTotalDayHourCount($req->endDate,$req->endDate);
+        $totalPermitDayHour = self::calculatePermit($req->startDate,$req->endDate);
         if($req->permitId!==null){
             $EmployeeID = PermitModel::find($req->permitId)->EmployeeID;
+            $newPermit = PermitModel::find($req->permitId);
         }
-        else
+        else{
             $EmployeeID = UserModel::find($req->userId)->EmployeeID;
+            $newPermit = new PermitModel();
+        }
 
-        $newPermit = new PermitModel();
+
 
         $newPermit->EmployeeID  = $EmployeeID;
         $newPermit->kind        = $req->kind;
