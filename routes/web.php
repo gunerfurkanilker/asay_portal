@@ -11,6 +11,11 @@
 |
 */
 
+Route::get('disk/{storage}/{objectId}', "Api\Components\DiskController@viewFile");
+Route::get('disk/downloadFile/{storage}/{objectId}', "Api\Components\DiskController@downloadFile");
+
+
+/*
 Route::get('/', "View\Ik\DefaultController@index")->name("home");
 Route::get('ik/employee/list', "View\Ik\DefaultController@employee_list")->name("employee_list");
 Route::get('calendar', "View\Ik\DefaultController@calendar")->name("calendar");
@@ -90,4 +95,5 @@ Route::namespace("View\Processes")->group(function(){
         Route::get('approval/view/{leave_id?}', "OvertimeController@overtime_approval_view")->name("overtime_approval_view");
         Route::get('approval/edit/{leave_id?}', "OvertimeController@overtime_approval_edit")->name("overtime_approval_edit");
     });
-});
+});*/
+

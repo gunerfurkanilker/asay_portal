@@ -206,7 +206,16 @@ Route::namespace("Api")->group(function(){
         });
 
     });
-
+    Route::namespace("Components")->group(function() {
+        Route::prefix('disk')->group(function () {
+            Route::get('getStorage', "DiskController@getStorage")->name("disk_getStorage");
+            Route::get('getFoldersAndFiles', "DiskController@getFoldersAndFiles")->name("disk_getFoldersAndFiles");
+            Route::post('createFileSession', "DiskController@createFileSession")->name("disk_createFileSession");
+            Route::post('downloadFile', "DiskController@downloadFile")->name("disk_downloadFile");
+            Route::post('viewFile', "DiskController@viewFile")->name("disk_viewFile");
+            Route::post('addFile', "DiskController@addFile")->name("disk_addFile");
+        });
+    });
 
 
 });

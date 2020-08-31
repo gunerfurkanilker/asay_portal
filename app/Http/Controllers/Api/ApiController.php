@@ -26,8 +26,11 @@ class ApiController extends Controller
                 ], 200);
             }
 
-            $userId = UserTokensModel::where(["user_token"=>$token])->first()->user_id;
-            $request->userId = $userId;
+            $user = UserTokensModel::select("user.*")
+                ->leftJoin("user","user.id","=","user_tokens.user_id")
+                ->where(["user_token"=>$token])->first();
+            $request->userId        = $user->id;
+            $request->EmployeeID    = $user->EmployeeID;
             return $next($request);
         });
     }
