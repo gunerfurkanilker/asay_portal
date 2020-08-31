@@ -166,19 +166,24 @@ class PermitController extends ApiController
         }
 
         $user = UserModel::find($request->userId);
+        $permitQ = PermitModel::where(["active"=>1,"netsis"=>0]);
         if($status==1){
             $usersApprove   = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
+
+            $permitQ->whereIn("EmployeeID",$usersApprove)->where(["status"=>$QueryStatus,"manager_status"=>$ApprovalStatus]);
         }
         else if($status==2){
             $hrRegion   = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager","PropertyValue"=>$user->EmployeeID])->pluck("RegionID");
             $usersApprove = EmployeePositionModel::where(["Active"=>2])->whereIn("RegionID",$hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
+
+            $permitQ->whereIn("EmployeeID",$usersApprove)->where(["status"=>$QueryStatus,"hr_status"=>$ApprovalStatus]);
         }
         else if($status==3){
             $psRegion   = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist","PropertyValue"=>$user->EmployeeID])->pluck("RegionID");
             $usersApprove    = EmployeePositionModel::where(["Active"=>2])->whereIn("RegionID",$psRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
+
+            $permitQ->whereIn("EmployeeID",$usersApprove)->where(["status"=>$QueryStatus,"ps_status"=>$ApprovalStatus]);
         }
-        $permitQ = PermitModel::where(["active"=>1,"netsis"=>0]);
-        $permitQ->whereIn("EmployeeID",$usersApprove)->where(["status"=>$QueryStatus,"manager_status"=>$ApprovalStatus]);
         $permitQ->orderBy("created_date","DESC");
         $permits = $permitQ->get();
 
