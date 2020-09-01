@@ -167,7 +167,7 @@ class PermitController extends ApiController
         }
 
         $user = UserModel::find($request->userId);
-        $permitQ = PermitModel::where(["active"=>1,"netsis"=>0]);
+        $permitQ = PermitModel::where(["active"=>1])->whereNotIn("netsis",[1]);
         if($status==1){
             $usersApprove   = EmployeePositionModel::where(["Active"=>2,"ManagerId"=>$user->EmployeeID])->pluck("EmployeeID");
 
