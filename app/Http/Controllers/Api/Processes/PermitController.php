@@ -150,16 +150,16 @@ class PermitController extends ApiController
 
     public function permitPendingList(Request $request)
     {
-        $status = ($request->status!==null) ? $request->status : "";
+        $status = ($request->status!==null) ? $request->status : null;
         $status = $status=="2" || $status=="3" || $status=="4" ? intval($status) : 1;
 
-        $ApprovalStatus = ($request->ApprovalStatus!==null) ? $request->ApprovalStatus : "";
+        $ApprovalStatus = ($request->ApprovalStatus!==null) ? intval($request->ApprovalStatus) : null;
         if(($ApprovalStatus==1 || $ApprovalStatus==2) && $status<>4){
             $QueryStatus = $status+1;
         }
         else
             $QueryStatus = $status;
-        if($status=="" || $ApprovalStatus==""){
+        if($status===null || $ApprovalStatus===null){
             return response([
                 'status' => false,
                 'data' => "Eksik parametre",
