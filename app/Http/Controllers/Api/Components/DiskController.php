@@ -54,8 +54,8 @@ class DiskController extends ApiController
         foreach ($objects as $key=>$object) {
             if($object->type==3){
                 //http://portal.asay.com.tr/disk/company/3?token=d268659be29bdb958c2105dd7f80e846&filename=ssss.pdf
-                $object->viewFile       = "http://".parse_url(request()->root())['host']."/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
-                $object->downloadFile   = "http://".parse_url(request()->root())['host']."/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->viewFile       = "http://".parse_url(request()->root())['host']."/file/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->downloadFile   = "http://".parse_url(request()->root())['host']."/file/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
             }
             else{
                 $object->viewFile       = null;
@@ -69,7 +69,7 @@ class DiskController extends ApiController
         ],200);
     }
 
-    public function viewFile(Request $request,$storage="",$objectId="")
+    public function viewObjectFile(Request $request,$storage="",$objectId="")
     {
         $rights = self::rights($request);
         $rootObjectId   = DiskStorageModel::where(["EmployeeID"=>$storage])->first()->root_object_id;
@@ -96,7 +96,7 @@ class DiskController extends ApiController
             ->header( 'Content-Disposition', 'filename='. $file->original_name. ';');
     }
 
-    public function downloadFile(Request $request,$storage="",$objectId="")
+    public function downloadObjectFile(Request $request,$storage="",$objectId="")
     {
         $rights = self::rights($request);
         $rootObjectId   = DiskStorageModel::where(["EmployeeID"=>$storage])->first()->root_object_id;
@@ -122,6 +122,74 @@ class DiskController extends ApiController
         return Storage::disk("connect")->download($file->subdir."/".$file->filename,$file->original_name,$headers);
     }
 
+    public function viewFile(Request $request,$module_id="",$fileId="")
+    {
+        $fileQ   = DiskFileModel::where(["module_id"=>$module_id,"id"=>$fileId]);
+        if($fileQ->count()==0){
+            return response([
+                'status' => false,
+                'message' => 'Dosya Bulunamadı',
+            ],200);
+        }
+
+        $file = $fileQ->first();
+        $headers = array(
+            'Content-Type: '.$file->content_type,
+            'Content-Disposition', 'filename='. $file->original_name. ';'
+        );
+
+        return response(Storage::disk("connect")->get($file->subdir."/".$file->filename))
+            ->header('Content-Type',$file->content_type)
+            ->header( 'Content-Disposition', 'filename='. $file->original_name. ';');
+    }
+
+    public function downloadFile(Request $request,$module_id="",$fileId="")
+    {
+        $fileQ   = DiskFileModel::where(["module_id"=>$module_id,"id"=>$fileId]);
+        if($fileQ->count()==0){
+            return response([
+                'status' => false,
+                'message' => 'Dosya Bulunamadı',
+            ],200);
+        }
+
+        $file = $fileQ->first();
+
+        $headers = array(
+            'Content-Type: '.$file->content_type,
+            'Content-Disposition:attachment; filename="'.$file->original_name.'"',
+
+        );
+
+        return Storage::disk("connect")->download($file->subdir."/".$file->filename,$file->original_name,$headers);
+    }
+
+
+    public function addObjectFolder(Request $request)
+    {
+        $storageIdQ = DiskStorageModel::where(["EmployeeID"=>$request->storage]);
+        if($storageIdQ->count()==0){
+            return response([
+                'status' => false,
+                'message' => 'Disk Bulunamadı',
+            ],200);
+        }
+
+        $storageId = $storageIdQ->first()->id;
+        $diskObject = new DiskObjectModel();
+        $diskObject->name       = $request->folderName;
+        $diskObject->storage_id = $storageId;
+        $diskObject->parent_id  = $request->directoryId;
+        $diskObject->type       = 2;
+        $diskObject->created_by = $request->Employee;
+        $diskObject->file_id    = null;
+        $diskObject->save();
+
+        return response([
+            'status' => true,
+            'message' => 'Klasör Oluşturuldu',
+        ],200);
+    }
 
     public function addObjectFile(Request $request)
     {
@@ -168,7 +236,7 @@ class DiskController extends ApiController
         $diskObject->storage_id = $storageId;
         $diskObject->parent_id  = $request->directoryId;
         $diskObject->type       = 3;
-        $diskObject->created_by = $request->EmployeeID;
+        $diskObject->created_by = $request->Employee;
         $diskObject->file_id    = $diskFile->id;
         $diskObject->save();
 
@@ -177,11 +245,64 @@ class DiskController extends ApiController
             'message' => 'Yükleme Başarılı',
         ],200);
     }
-    
+
+    public function addFile(Request $request)
+    {
+        $fileName   = md5(uniqid("", true));
+        $folderName = substr($fileName, 0, 3);
+
+        if(!Storage::disk("connect")->exists($request->moduleId)) {
+            Storage::disk("connect")->makeDirectory($request->moduleId, 0775, true); //creates directory
+        }
+        $path       = $request->moduleId."/".$folderName;
+
+        if($request->file('file')===null){
+            return response([
+                'status' => false,
+                'message' => 'Dosya Yüklenemedi',
+            ],200);
+        }
+
+        $file = $request->file('file');
+
+        $uploadFile = $file->storeAs($path,$fileName,"connect");
+        $diskFile = new DiskFileModel();
+        $diskFile->module_id    = $request->moduleId;
+        $diskFile->subdir       = $path;
+        $diskFile->content_type = $file->getClientMimeType();
+        $diskFile->filename     = $fileName;
+        $diskFile->original_name= $file->getClientOriginalName();
+        $diskFile->save();
+
+        return response([
+            'status'    => true,
+            'message'   => 'Yükleme Başarılı',
+            'data'      => $diskFile->id
+        ],200);
+    }
+
+    public function getFile(Request $request)
+    {
+        if($request->fileId===null){
+            return response([
+                'status' => false,
+                'message' => 'Dosya Bulunamadı',
+            ],200);
+        }
+
+        $file = DiskFileModel::find($request->fileId);
+        $fileObject["viewFile"]       = "http://".parse_url(request()->root())['host']."/file/".$file->module_id."/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
+        $fileObject["downloadFile"]   = "http://".parse_url(request()->root())['host']."/file/".$file->module_id."/downloadFile/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
+        return response([
+            'status'    => true,
+            'data'      => $fileObject
+        ],200);
+    }
+
     public function rights(Request $request)
     {
-        $groups = EmployeeHasGroupModel::where(["EmployeeID"=>$request->EmployeeID])->pluck("group_id");
-        $rights[] = "E_".$request->EmployeeID;
+        $groups = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee])->pluck("group_id");
+        $rights[] = "E_".$request->Employee;
         foreach ($groups as $group) {
             $rights[] = "G_".$group;
         }

@@ -11,8 +11,11 @@
 |
 */
 
-Route::get('disk/{storage}/{objectId}', "Api\Components\DiskController@viewFile");
-Route::get('disk/downloadFile/{storage}/{objectId}', "Api\Components\DiskController@downloadFile");
+Route::get('file/disk/{storage}/{objectId}', "Api\Components\DiskController@viewObjectFile");
+Route::get('file/disk/downloadFile/{storage}/{objectId}', "Api\Components\DiskController@downloadObjectFile");
+
+Route::get('file/{moduleId}/{fileId}', "Api\Components\DiskController@viewFile");
+Route::get('file/{moduleId}/downloadFile/{fileId}', "Api\Components\DiskController@downloadFile");
 
 
 /*
