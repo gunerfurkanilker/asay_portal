@@ -42,7 +42,7 @@ class PermitSenNetsis extends Command
     public function handle()
     {
         //job olarak çalışacak
-        $permits = PermitModel::where(["netsis"=>0,"active"=>1,"ps_status"=>1])->whereDate('created_date', '<=', date("Y-m-d H:i:s"))->get();
+        $permits = PermitModel::where(["netsis"=>0,"active"=>1,"ps_status"=>1])->whereDate('start_date', '<=', date("Y-m-d H:i:s"))->get();
 
         foreach ($permits as $permit) {
             $employee = EmployeeModel::where(["Id"=>$permit->EmployeeID,"Active"=>1])->first();

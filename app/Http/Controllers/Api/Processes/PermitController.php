@@ -298,11 +298,12 @@ class PermitController extends ApiController
             $permit->netsis     = 0;
             $permit->status     = 2;
         }
-        else if($permit->status==4 && $permit->netsis==0){
+        else if($permit->status==4){
             $permit->ps_status  = 0;
             $permit->netsis     = 0;
             $permit->status     = 3;
         }
+
         $permitResult = $permit->save();
 
         if($permitResult){
