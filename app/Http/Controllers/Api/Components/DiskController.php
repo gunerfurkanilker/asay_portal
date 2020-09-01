@@ -123,7 +123,7 @@ class DiskController extends ApiController
     }
 
 
-    public function addFile(Request $request)
+    public function addObjectFile(Request $request)
     {
         $storageIdQ = DiskStorageModel::where(["EmployeeID"=>$request->storage]);
         if($storageIdQ->count()==0){

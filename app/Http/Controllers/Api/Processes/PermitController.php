@@ -328,20 +328,20 @@ class PermitController extends ApiController
         $user = UserModel::find($user_id);
         $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$permit->EmployeeID])->first();
 
-        if(($permit->status==1 && $authType="takeBack") || ($permit->status==0 && $authType="confirm")){
+        if(($permit->status==1 && $authType=="takeBack") || ($permit->status==0 && $authType=="confirm")){
             if($permit->EmployeeID==$user->EmployeeID)
                 $status = true;
         }
-        else if(($permit->status==2 && $authType="takeBack") || ($permit->status==1 && $authType="confirm")){
+        else if(($permit->status==2 && $authType=="takeBack") || ($permit->status==1 && $authType=="confirm")){
             if($employeePosition->ManagerID==$user->EmployeeID)
                 $status = true;
         }
-        else if(($permit->status==3 && $authType="takeBack") || ($permit->status==2 && $authType="confirm")){
+        else if(($permit->status==3 && $authType=="takeBack") || ($permit->status==2 && $authType=="confirm")){
             $hrManager   = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager"])->first();
             if($hrManager->PropertyValue==$user->EmployeeID && $hrManager->RegionID==$employeePosition->RegionID)
                 $status = true;
         }
-        else if(($permit->status==4 && $authType="takeBack") || ($permit->status==3 && $authType="confirm")){
+        else if(($permit->status==4 && $authType=="takeBack") || ($permit->status==3 && $authType=="confirm")){
             $personnelSpecialist= ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist"])->first();
             if($personnelSpecialist->PropertyValue==$user->EmployeeID && $personnelSpecialist->RegionID==$employeePosition->RegionID)
                 $status = true;

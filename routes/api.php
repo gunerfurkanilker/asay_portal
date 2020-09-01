@@ -212,7 +212,7 @@ Route::namespace("Api")->group(function(){
             Route::get('getFoldersAndFiles', "DiskController@getFoldersAndFiles")->name("disk_getFoldersAndFiles");
             Route::post('downloadFile', "DiskController@downloadFile")->name("disk_downloadFile");
             Route::post('viewFile', "DiskController@viewFile")->name("disk_viewFile");
-            Route::post('addFile', "DiskController@addFile")->name("disk_addFile");
+            Route::post('addObjectFile', "DiskController@addObjectFile")->name("disk_addFile");
         });
     });
 
