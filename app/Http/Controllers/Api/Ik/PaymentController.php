@@ -79,9 +79,9 @@ class PaymentController extends ApiController
         ],200);
     }
 
-    public function addPayment(Request $request){
+    public function savePayment(Request $request){
 
-        $salary = PaymentModel::addPayment($request->all());
+        $salary = PaymentModel::savePayment($request->all());
 
         return response([
             'status' => true,

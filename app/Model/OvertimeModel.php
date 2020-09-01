@@ -354,9 +354,12 @@ class OvertimeModel extends Model
                     return $limitCheck;
                 return self::saveOvertimeRequest($request);
             case 1:
-                $limitCheck = self::overtimeLimitCheck($request);
-                if ($limitCheck['status'] == false)
-                    return $limitCheck;
+                if ($request->OvertimeId == null)
+                {
+                    $limitCheck = self::overtimeLimitCheck($request);
+                    if ($limitCheck['status'] == false)
+                        return $limitCheck;
+                }
                 return self::sendOvertimeRequestToEmployee($request);
             case 2:
                 $limitCheck = self::overtimeLimitCheck($request);
@@ -1241,7 +1244,7 @@ table, th, td {
             $userAccountOfSupervisor = UserModel::where(['EmployeeID' => $managerSupervisor->ManagerID])->first();
             $supervisorEmployee = EmployeeModel::find($userAccountOfSupervisor->EmployeeID);
             $objectFile = ObjectFileModel::where(['ObjectType' => 4, 'ObjectId' => $overtimeRecord->id, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
-            Asay::sendMail($userAccountOfSupervisor->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından tamamlandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
+            Asay::sendMail($userAccountOfSupervisor->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından onaylandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>

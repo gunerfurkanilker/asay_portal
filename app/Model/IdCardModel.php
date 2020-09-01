@@ -51,7 +51,7 @@ class IdCardModel extends Model
                         [
                             'name' => 'file',
                             'contents' => $file,
-                            'filename' => 'kimlik_' . $IDCard->Id . '.' . $request->expense_document_file->getClientOriginalExtension()
+                            'filename' => 'kimlik_' . $IDCard->Id . '.' . $request->IDCardPhoto->getClientOriginalExtension()
                         ],
 
                     ],
@@ -68,31 +68,26 @@ class IdCardModel extends Model
 
 
 
-            $IDCard->ValidDate              = $request->ValidDate;
-            $IDCard->NewIDCard              = $request->NewIDCard;
+            $IDCard->ValidDate              = $request->ValidDate != null ? $request->ValidDate : null;
+            $IDCard->NewIDCard              = $request->NewIDCard ? 1 : 0;
             $IDCard->NationalityID          = $request->NationalityID;
             $IDCard->TCNo                   = $request->TCNo;
             $IDCard->FirstName              = $request->FirstName;
             $IDCard->LastName               = $request->LastName;
-            $IDCard->BirthDate              = new Carbon($request->BirthDate);
+            $IDCard->BirthDate              = $request->BirthDate;
             $IDCard->GenderID               = $request->GenderID;
             $IDCard->SerialNumber           = $request->SerialNumber;
-            $IDCard->DateOfIssue            = new Carbon($request->DateOfIssue);
+            $IDCard->DateOfIssue            = $request->DateOfIssue != null ? $request->DateOfIssue : null ;
             $IDCard->MotherName             = $request->MotherName;
             $IDCard->FatherName             = $request->FatherName;
             $IDCard->BirthPlace             = $request->BirthPlace;
-            $IDCard->CityID                 = $request->CityID;
-            $IDCard->DistrictID             = $request->DistrictID;
-            $IDCard->Neighborhood           = $request->Neighborhood;
-            $IDCard->Village                = $request->Village;
-            $IDCard->CoverNo                = $request->CoverNo;
-            $IDCard->PageNo                 = $request->PageNo;
-            $IDCard->RegisterNo             = $request->RegisterNo;
-           // $IDCard->DateOfIssue = new Carbon($request['dateofissue']);
-
-
-
-
+            $IDCard->CityID                 = $request->CityID != null ? $request->CityID : null;
+            $IDCard->DistrictID             = $request->DistrictID != null ? $request->DistrictID : null;
+            $IDCard->Neighborhood           = $request->Neighborhood != null ? $request->Neighborhood : '';
+            $IDCard->Village                = $request->Village != null ? $request->Village : '';
+            $IDCard->CoverNo                = $request->CoverNo != null ? $request->CoverNo : '';
+            $IDCard->PageNo                 = $request->PageNo != null ? $request->PageNo : '';
+            $IDCard->RegisterNo             = $request->RegisterNo != null ? $request-> RegisterNo : '';
 
             $IDCard->save();
 
@@ -108,26 +103,26 @@ class IdCardModel extends Model
         $photoLink = null;
 
         $IDCard = self::create([
-            'NewIDCard'             => $request->NewIDCard,
+            'NewIDCard'             => $request->NewIDCard ? 1 : 0,
             'NationalityID'         => $request->NationalityID,
             'TCNo'                  => $request->TCNo,
             'FirstName'             => $request->FirstName,
             'LastName'              => $request->LastName,
-            'BirthDate'             => new Carbon($request->BirthDate),
+            'BirthDate'             => $request->BirthDate,
             'GenderID'              => $request->GenderID,
             'SerialNumber'          => $request->SerialNumber,
-            'ValidDate'             => new Carbon($request->ValidDate),
-            'DateOfIssue'           => new Carbon($request->DateOfIssue),
+            'ValidDate'             => $request->ValidDate != null ? $request->ValidDate : null,
+            'DateOfIssue'           => $request->DateOfIssue != null ? $request->DateOfIssue : null,
             'MotherName'            => $request->MotherName,
             'FatherName'            => $request->FatherName,
             'BirthPlace'            => $request->BirthPlace,
-            'CityID'                => $request->CityID,
-            'DistrictID'            => $request->DistrictID,
-            'Neighborhood'          => $request->Neighborhood,
-            'Village'               => $request->Village,
-            'CoverNo'               => $request->CoverNo,
-            'PageNo'                => $request->PageNo,
-            'RegisterNo'            => $request->RegisterNo,
+            'CityID'                => $request->CityID != null ? $request->CityID : null,
+            'DistrictID'            => $request->DistrictID != null ? $request->DistrictID : null,
+            'Neighborhood'          => $request->Neighborhood != null ? $request->Neighborhood : '',
+            'Village'               => $request->Village != null ? $request->Village : '',
+            'CoverNo'               => $request->CoverNo != null ? $request->CoverNo : '',
+            'PageNo'                => $request->PageNo != null ? $request->PageNo : '',
+            'RegisterNo'            => $request->RegisterNo != null ? $request->RegisterNo : '',
         ]);
 
 
@@ -160,7 +155,7 @@ class IdCardModel extends Model
                         [
                             'name' => 'file',
                             'contents' => $file,
-                            'filename' => 'kimlik_' . $IDCard->Id . '.' . $request->expense_document_file->getClientOriginalExtension()
+                            'filename' => 'kimlik_' . $IDCard->Id . '.' . $request->IDCardPhoto->getClientOriginalExtension()
                         ],
 
                     ],

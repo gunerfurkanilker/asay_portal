@@ -30,7 +30,7 @@ class ApiController extends Controller
                 ->leftJoin("user","user.id","=","user_tokens.user_id")
                 ->where(["user_token"=>$token])->first();
             $request->userId        = $user->id;
-            $request->EmployeeID    = $user->EmployeeID;
+            //$request->EmployeeID    = $user->EmployeeID;
             return $next($request);
         });
     }

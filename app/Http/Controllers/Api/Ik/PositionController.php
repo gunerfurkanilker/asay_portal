@@ -40,28 +40,16 @@ class PositionController extends ApiController
     }
 
 
-    public function addJobPosition(Request $request)
+
+    public function saveJobPosition(Request $request)
     {
-
-        $requestData = $request->all();
-        $freshData = EmployeePositionModel::addJobPosition($requestData);
-
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $freshData
-            ]);
-
-
-    }
-
-    public function editJobPosition(Request $request,$employeeId,$positionId)
-    {
-
-        $requestData = $request->all();
-        $positionOfEmployee = EmployeePositionModel::where('EmployeeID',$employeeId)->where('Id',$positionId)->first();
-
-        $freshData = EmployeePositionModel::editJobPosition($positionOfEmployee,$requestData);
+        if (isset($request->PositionID) || $request->PositionID != null)
+        {
+            $positionOfEmployee = EmployeePositionModel::where(['Id' => $request->PositionID, 'EmployeeID' => $request->EmployeeID])->first();
+            $freshData = EmployeePositionModel::editJobPosition($positionOfEmployee,$request);
+        }
+        else
+            $freshData = EmployeePositionModel::addJobPosition($request);
 
         if ($freshData)
             return response([
@@ -74,7 +62,6 @@ class PositionController extends ApiController
                 'status' => false,
                 'message' => 'İşlem Başarısız.'
             ]);
-
     }
 
     public function deleteJobPosition(Request $request)

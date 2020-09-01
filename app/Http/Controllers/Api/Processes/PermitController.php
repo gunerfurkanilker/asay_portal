@@ -153,7 +153,7 @@ class PermitController extends ApiController
         $status = ($request->status!==null) ? $request->status : "";
         $status = $status=="2" || $status=="3" || $status=="4" ? intval($status) : 1;
 
-        $ApprovalStatus = ($request->ApprovalStatus!==null) ? intval($request->ApprovalStatus) : "";
+        $ApprovalStatus = ($request->ApprovalStatus!==null) ? $request->ApprovalStatus : "";
         if(($ApprovalStatus==1 || $ApprovalStatus==2) && $status<>4){
             $QueryStatus = $status+1;
         }

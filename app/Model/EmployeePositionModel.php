@@ -40,34 +40,34 @@ class EmployeePositionModel extends Model
 
     }
 
-    public static function addJobPosition($requestData)
+    public static function addJobPosition($request)
     {
         try{
-            $salary = self::create([
-                'OrganizationID'        => $requestData['OrganizationID'],
-                'SubDepartment'         => $requestData['SubDepartment'],
-                'Unit'                  => $requestData['Unit'],
-                'ServiceCode'           => $requestData['ServiceCode'],
-                'RegionID'              => $requestData['RegionID'],
-                'OfficeID'              => $requestData['OfficeID'],
-                'WorkingFieldID'        => $requestData['WorkingFieldID'],
-                'UnitSupervisorID'      => $requestData['UnitSupervisorID'],
-                'EmployeeID'            => $requestData['EmployeeID'],
-                'CompanyID'             => $requestData['CompanyID'],
-                'CityID'                => $requestData['CityID'],
-                'DistrictID'            => $requestData['DistrictID'],
-                'DepartmentID'          => $requestData['DepartmentID'],
-                'TitleID'               => $requestData['TitleID'],
-                'ManagerID'             => isset($requestData['ManagerID']) ? $requestData['ManagerID'] : null,
-                'WorkingTypeID'         => $requestData['WorkingTypeID'],
-                'StartDate'             => new Carbon($requestData['StartDate']),
-                'EndDate'               => isset($requestData['EndDate']) ? new Carbon($requestData['EndDate']) : null,
-                'Active'                => $requestData['ActivePosition'] ? 1 : 0
+            $position = self::create([
+                'OrganizationID'        => $request->OrganizationID,
+                'SubDepartment'         => $request->SubDepartment,
+                'Unit'                  => $request->Unit,
+                'ServiceCode'           => $request->ServiceCode,
+                'RegionID'              => $request->RegionID,
+                'OfficeID'              => $request->OfficeID,
+                'WorkingFieldID'        => $request->WorkingFieldID,
+                'UnitSupervisorID'      => $request->UnitSupervisorID,
+                'EmployeeID'            => $request->EmployeeID,
+                'CompanyID'             => $request->CompanyID,
+                'CityID'                => $request->CityID,
+                'DistrictID'            => $request->DistrictID,
+                'DepartmentID'          => $request->DepartmentID,
+                'TitleID'               => $request->TitleID,
+                'ManagerID'             => isset($request->ManagerID) ? $request->ManagerID : null,
+                'WorkingTypeID'         => $request->WorkingTypeID,
+                'StartDate'             => $request->StartDate,
+                'EndDate'               => isset($request->EndDate) ? $request->EndDate : null,
+                'Active'                => $request->ActivePosition ? 1 : 0
             ]);
 
-            if ($requestData['ActualPosition'])
+            if ($request->ActualPosition)
             {
-                $actualPosition = self::checkActualPositionExists($requestData['EmployeeID']);
+                $actualPosition = self::checkActualPositionExists($request->EmployeeID);
 
                 if ($actualPosition)
                 {
@@ -75,39 +75,46 @@ class EmployeePositionModel extends Model
                     $actualPosition->save();
                 }
 
-                $salary->Active = 2;
+                $position->Active = 2;
             }
 
 
-            $salary->save();
+            $position->save();
 
-            return self::checkActualPositionExists($requestData['EmployeeID']);
+            return $position->fresh();
         }
         catch (\Exception $e){
             return $e->getMessage();
         }
     }
 
-    public static function editJobPosition($position,$requestData)
+    public static function editJobPosition($position,$request)
     {
+        $position->OrganizationID       = $request->OrganizationID;
+        $position->SubDepartment        = $request->SubDepartment;
+        $position->Unit                 = $request->Unit;
+        $position->ServiceCode          = $request->ServiceCode;
+        $position->RegionID             = $request->RegionID;
+        $position->OfficeID             = $request->OfficeID;
+        $position->WorkingFieldID       = $request->WorkingFieldID;
+        $position->UnitSupervisorID     = $request->UnitSupervisorID;
+        $position->EmployeeID           = $request->EmployeeID;
+        $position->CompanyID            = $request->CompanyID;
+        $position->CityID               = $request->CityID;
+        $position->DistrictID           = $request->DistrictID;
+        $position->DepartmentID         = $request->DepartmentID;
+        $position->TitleID              = $request->TitleID;
+        $position->ManagerID            = $request->ManagerID;
+        $position->WorkingTypeID        = $request->WorkingTypeID;
+        $position->StartDate            = $request->StartDate;
+        $position->EndDate              = $request->EndDate;
+        $position->Active               = $request->ActivePosition ? 1:0;
 
-        $position->EmployeeID = $requestData['employeeid'];
-        $position->CompanyID = $requestData['companyid'];
-        $position->CityID = $requestData['cityid'];
-        $position->DistrictID = $requestData['districtid'];
-        $position->DepartmentID = $requestData['departmentid'];
-        $position->TitleID = $requestData['titleid'];
-        $position->ManagerID = $requestData['managerid'];
-        $position->WorkingTypeID = $requestData['workingtypeid'];
-        $position->StartDate = new Carbon($requestData['positionstartdate']);
-        $position->EndDate = new Carbon($requestData['positionenddate']);
-        $position->Active = $requestData['activeposition'] ? 1:0;
-
-        if ($requestData['actualposition'])
+        if ($request->ActualPosition)
         {
-            $actualPosition = self::checkActualPositionExists($requestData['employeeid']);
+            $actualPosition = self::checkActualPositionExists($request->EmployeeID);
 
-            if ($actualPosition)
+            if ($actualPosition && $actualPosition->Id != $position->Id)
             {
                 $actualPosition->Active = 1 ;
                 $actualPosition->save();

@@ -124,6 +124,10 @@ class AdvancePaymentController extends ApiController
                 $error = true;
             }
         }
+        else if($status==1)
+        {
+            $statusArray = [1,2];
+        }
         else
             $statusArray[] = $status;
 
@@ -214,14 +218,17 @@ class AdvancePaymentController extends ApiController
             $AdvancePayment->Netsis=0;
         }
         else if($AdvancePayment->Status==2){
+            $AdvancePayment->ManagerStatus     = 0;
             $AdvancePayment->PmStatus          = 0;
             $AdvancePayment->AccountingStatus  = 0;
             $AdvancePayment->Netsis=0;
         }
         else if($AdvancePayment->Status==3){
+            $AdvancePayment->PmStatus          = 0;
             $AdvancePayment->AccountingStatus  = 0;
             $AdvancePayment->Netsis=0;
         }
+        $AdvancePayment->Status = $AdvancePayment->Status - 1;
         $AdvancePaymentResult = $AdvancePayment->save();
 
         if($AdvancePaymentResult){
@@ -285,7 +292,7 @@ class AdvancePaymentController extends ApiController
             $AdvancePayment->AccountingStatus = $confirm;
         //TODO Netsise aktardıktan sonra status 4 mü olacak ?
         //TODO Netsise Aktarım eklenecek
-
+        $AdvancePayment->Status = $AdvancePayment->Status + 1;
         $AdvancePaymentResult = $AdvancePayment->save();
         if($AdvancePaymentResult){
             return response([

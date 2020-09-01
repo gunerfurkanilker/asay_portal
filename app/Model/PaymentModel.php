@@ -44,45 +44,83 @@ class PaymentModel extends Model
         return $data;
     }
 
-    public static function addPayment($request)
+    public static function savePayment($request)
     {
-        $employee = EmployeeModel::find($request['employeeid']);
-        $currentPayment = self::checkCurrentPayment($request['employeeid']);
+        $employee = EmployeeModel::find($request['EmployeeID']);
+        $additionalPayments = $request['AdditionalPayments'];
+        if ($request['PaymentID'] == null){
+            $currentPayment = self::checkCurrentPayment($request['EmployeeID']);
 
 
-        $salary = self::create([
+            $salary = self::create([
 
-            'EmployeeID' => $request['employeeid'],
-            'Pay' => $request['pay'],
-            'CurrencyID' => $request['currencyid'],
-            'StartDate' => new Carbon($request['startdate']),
-            'PayPeriodID' => $request['payperiod'],
-            'PayMethodID' => $request['paymethod'] ? 2:1,
-            'LowestPayID' => $request['lowestpay'] ? 1:0,
-        ]);
-
-        if ($currentPayment != null)
-        {
-            $currentPayment->EndDate = $salary->StartDate;
-            $currentPayment->save();
-        }
-
-        $additionalPayments = $request['additionalpayments'];
-
-        foreach ($additionalPayments as $additionalPayment)
-        {
-            AdditionalPaymentModel::create([
-                'Pay' => $additionalPayment['Pay'],
-                'PayPeriodID' => $additionalPayment['PayPeriodID'],
-                'AdditionalPaymentTypeID' => $additionalPayment['AdditionalPaymentTypeID'],
-                'PaymentID' => $salary->Id,
-                'CurrencyID' => $additionalPayment['CurrencyID']
+                'EmployeeID' => $request['EmployeeID'],
+                'Pay' => $request['Pay'],
+                'CurrencyID' => $request['CurrencyID'],
+                'StartDate' => $request['StartDate'],
+                'PayPeriodID' => $request['PayPeriod'],
+                'PayMethodID' => $request['PayMethod'] ? 2:1,
+                'LowestPayID' => $request['LowestPay'] ? 1:0,
             ]);
+
+            if ($currentPayment != null)
+            {
+                $currentPayment->EndDate = $salary->StartDate;
+                $currentPayment->save();
+            }
+
+            $additionalPayments = $request['AdditionalPayments'];
+
+            foreach ($additionalPayments as $additionalPayment)
+            {
+                AdditionalPaymentModel::create([
+                    'Pay' => $additionalPayment['Pay'],
+                    'PayPeriodID' => $additionalPayment['PayPeriod'],
+                    'PayMethod' => $additionalPayment['PayMethod'],
+                    'AdditionalPaymentTypeID' => $additionalPayment['AdditionalPaymentTypeID'],
+                    'PaymentID' => $salary->Id,
+                    'AddPayroll' => $additionalPayment['AddPayroll'] ? 1 : 0,
+                    'CurrencyID' => $additionalPayment['CurrencyID'],
+                    'Description' => $additionalPayment['Description']
+                ]);
+            }
+
+
+            $employee->PaymentID = $salary->Id;
+            $employee->save();
+        }
+        else
+        {
+
+            $salary = PaymentModel::find($request['PaymentID']);
+
+            $salary->Pay = $request['Pay'];
+            $salary->CurrencyID = $request['CurrencyID'];
+            $salary->StartDate = $request['StartDate'];
+            $salary->PayPeriodID = $request['PayPeriod'];
+            $salary->PayMethodID = $request['PayMethod'] ? 2 : 1;
+            $salary->LowestPayID = $request['LowestPay'] ? 1 : 0 ;
+
+
+            foreach ($additionalPayments as $additionalPayment)
+            {
+                $tempPayment = AdditionalPaymentModel::find($additionalPayment['Id']);
+
+                $tempPayment->Pay           = $additionalPayment['Pay'];
+                $tempPayment->CurrencyID    = $additionalPayment['CurrencyID'];
+                $tempPayment->PayMethodID   = $additionalPayment['PayMethodID'];
+                $tempPayment->AddPayroll    = $additionalPayment['AddPayroll'];
+                $tempPayment->PayPeriodID   = $additionalPayment['PayPeriodID'];
+                $tempPayment->Description   = $additionalPayment['Description'];
+
+                $tempPayment->save();
+
+            }
+
+            $salary->save();
+
         }
 
-
-        $employee->PaymentID = $salary->Id;
-        $employee->save();
 
         return $salary->fresh();
     }

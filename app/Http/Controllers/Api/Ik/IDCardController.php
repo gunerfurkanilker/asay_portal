@@ -15,7 +15,7 @@ class IDCardController extends ApiController
     public function saveIDCard(Request $request)
     {
         $request_data = $request->all();
-        $employee = EmployeeModel::find($request_data['employeeid']);
+        $employee = EmployeeModel::find($request_data['EmployeeID']);
 
         if (!is_null($employee))
         {

@@ -17,14 +17,14 @@ class EducationModel extends Model
         'ObjectFile'
     ];
 
-    public static function saveEducation($request, $educationID)
+    public static function saveEducation($request)
     {
-        $education = self::find($educationID);
+        $education = EducationModel::find($request->EducationID);
         if ($education != null) {
-
-            $education->StatusID = $request->educationstatus;
-            $education->Institution = $request->institution;
-            $education->LevelID = $request->educationlevel;
+            $education->EmployeeID = $request->EmployeeID;
+            $education->StatusID = $request->EducationStatus;
+            $education->Institution = $request->Institution;
+            $education->LevelID = $request->EducationLevel;
             $result = $education->save();
 
             if ($result && $request->hasFile('education_file')) {
@@ -65,10 +65,6 @@ class EducationModel extends Model
 
                 if ($responseBody->status == false)
                     return false;
-                else {
-                    return $education;
-                }
-
 
             }
 
@@ -77,22 +73,16 @@ class EducationModel extends Model
             return false;
     }
 
-    public static function addEducation($request, $employee)
+    public static function addEducation($request)
     {
-        $education = self::create([
-            'StatusID' => $request->educationstatus,
-            'Institution' => $request->institution,
-            'LevelID' => $request->educationlevel
-        ]);
-
-        if ($education != null) {
-            $education->StatusID = $request->educationstatus;
-            $education->Institution = $request->institution;
-            $education->LevelID = $request->educationlevel;
-            $result = $education->save();
-
-            if ($result && $request->hasFile('education_file')) {
-
+        $education = new EducationModel();
+        $education->EmployeeID = $request->EmployeeID;
+        $education->StatusID = $request->EducationStatus;
+        $education->Institution = $request->Institution;
+        $education->LevelID = $request->EducationLevel;
+        $result = $education->save();
+        if ($result) {
+            if ($request->hasFile('education_file')) {
 
                 $file = file_get_contents($request->education_file->path());
                 $guzzleParams = [
@@ -128,23 +118,18 @@ class EducationModel extends Model
                 $responseBody = json_decode($res->getBody());
 
                 if ($responseBody->status == false)
-                    return false;
+                    return $responseBody;
                 else {
-                    $employee->EducationID = $education->Id;
-                    $employee->save();
                     return $education;
                 }
 
 
             }
-
-
-            $employee->EducationID = $education->Id;
-            $employee->save();
             return $education;
 
 
-        } else
+        }
+        else
             return false;
     }
 

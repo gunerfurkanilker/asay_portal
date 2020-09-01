@@ -9,6 +9,7 @@ use App\Model\DocumentFileModel;
 use App\Model\EducationModel;
 use App\Model\EmployeeModel;
 use App\Model\LocationModel;
+use App\Model\ObjectFileModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,14 +18,17 @@ class EducationController extends ApiController
 
     public function saveEducation(Request $request)
     {
-        $request_data = $request->all();
-        $employee = EmployeeModel::find($request_data['employeeid']);
-        if (!is_null($employee))
+        if ($request->EducationID != null)
+            $education = EducationModel::saveEducation($request);
+        else
         {
-            if ($employee->EducationID != null)
-                $education = EducationModel::saveEducation($request,$employee->EducationID);
-            else
-                $education = EducationModel::addEducation($request,$employee);
+            $education = EducationModel::addEducation($request);
+            return response([
+                'status' => true,
+                'message' => 'Augustus'
+            ],200);
+        }
+
 
             if ($education)
                 return response([
@@ -35,16 +39,9 @@ class EducationController extends ApiController
             else
                 return response([
                     'status' => false,
-                    'message' => "İşlem Başarısız."
+                    'message' => "İşlem Başarısız.",'data' => $request->EducationID
                 ],200);
-        }
-        else
-        {
-            return response([
-                'status' => false,
-                'message' => $employee->Id. " ID No'lu Çalışan bulunamadı."
-            ],200);
-        }
+
     }
 
     public function saveEducationDocument(Request $request)
@@ -84,7 +81,7 @@ class EducationController extends ApiController
             ],200);
         else
         {
-            $education = EducationModel::find($employee->EducationID);
+            $education = EducationModel::where(['EmployeeID' => $employee->EducationID, 'Active' => 1])->get();
 
             return response([
                 'status' => true,
@@ -116,6 +113,34 @@ class EducationController extends ApiController
             'status' => true,
             'message' => "İşlem Başarılı.",
             'data' => $fields
+        ],200);
+
+    }
+
+    public function deleteEducation(Request $request){
+
+        $education = EducationModel::find($request->EducationID);
+
+
+        $objectFile = ObjectFileModel::where(['ObjectType' => 5, 'ObjectId' => $education->Id])->first();
+
+        $education->Active = 0;
+        if ($objectFile)
+        {
+            $objectFile->Active = 0;
+            $objectFile->save();
+        }
+
+
+        if ($education->save())
+            return response([
+                'status' => true,
+                'message' => 'Silme İşlemi Başarılı'
+            ],200);
+
+        return response([
+            'status' => false,
+            'message' => 'Silme İşlemi Başarısız'
         ],200);
 
     }

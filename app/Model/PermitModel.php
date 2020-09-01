@@ -14,6 +14,10 @@ class PermitModel extends Model
     protected $table = 'Permits';
     public $timestamps = false;
 
+    protected $appends = [
+        'PermitKind'
+    ];
+
     public static function createPermit($req)
     {
         $totalPermitDayHour = self::calculatePermit($req->startDate,$req->endDate);
@@ -337,6 +341,12 @@ class PermitModel extends Model
         return ["daysLeft"=>$gun,"hoursLeft"=>$kalansaat];
     }
 
+
+    public function getPermitKindAttribute()
+    {
+        $permitKind = $this->hasOne(PermitKindModel::class, "id", "kind");
+        return $permitKind->where("active", 1)->first()->toArray();
+    }
 
 
 

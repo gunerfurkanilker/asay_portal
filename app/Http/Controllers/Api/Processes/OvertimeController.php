@@ -193,8 +193,6 @@ class OvertimeController extends ApiController
 
         $data = OvertimeModel::getRemainingOvertimeLimits($request);
 
-
-
     }
 
 
