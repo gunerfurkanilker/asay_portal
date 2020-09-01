@@ -337,12 +337,12 @@ class PermitController extends ApiController
                 $status = true;
         }
         else if(($permit->status==3 && $authType=="takeBack") || ($permit->status==2 && $authType=="confirm")){
-            $hrManager   = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager"])->first();
+            $hrManager   = ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"HRManager","RegionId"=>$employeePosition->RegionID])->first();
             if($hrManager->PropertyValue==$user->EmployeeID && $hrManager->RegionID==$employeePosition->RegionID)
                 $status = true;
         }
         else if(($permit->status==4 && $authType=="takeBack") || ($permit->status==3 && $authType=="confirm")){
-            $personnelSpecialist= ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist"])->first();
+            $personnelSpecialist= ProcessesSettingsModel::where(["object_type"=>3,"PropertyCode"=>"PersonnelSpecialist","RegionId"=>$employeePosition->RegionID])->first();
             if($personnelSpecialist->PropertyValue==$user->EmployeeID && $personnelSpecialist->RegionID==$employeePosition->RegionID)
                 $status = true;
         }
