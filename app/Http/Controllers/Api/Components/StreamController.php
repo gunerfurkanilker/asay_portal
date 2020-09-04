@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Http\Controllers\Api\Components;
+
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
+use App\Model\ActivityStreamModel;
+use App\Model\ActivityStreamRightModel;
+use App\Model\BlogCategoryRightModel;
+use App\Model\BlogModel;
+use App\Model\EmployeeHasGroupModel;
+use App\Model\EmployeeModel;
+use App\Model\UserModel;
+use Illuminate\Http\Request;
+
+class StreamController extends ApiController
+{
+    public function SaveStream(Request $request)
+    {
+        $category   = $request->category;
+        $rights     = self::rights($request);
+        $categoryRight = BlogCategoryRightModel::where(["blog_category_id"=>$category])->whereIn("access_code",$rights);
+        if($categoryRight->count()==0){
+            return response([
+                'status' => false,
+                'message' =>  "Yetkisiz İşlem",
+            ], 200);
+        }
+
+        $blog = new BlogModel();
+        $blog->category_id = $category;
+        $blog->title        =  substr(strip_tags($request->message),0,255);
+        $blog->detail_text  = $request->message;
+        $blog->EmployeeID   = $request->Employee;
+        $blog->is_active    = 1;
+        if(!$blog->save()){
+            return response([
+                'status' => false,
+                'message' =>  "Hata oluştu"
+            ], 200);
+        }
+
+        $stream = new ActivityStreamModel();
+        $stream->module_id = "blog";
+        $stream->title        = $blog->title;
+        $stream->message      = $blog->detail_text;
+        $stream->EmployeeID   = $request->Employee;
+        $stream->source_id    = $blog->id;
+        $stream->is_active    = 1;
+        if(!$stream->save()){
+            return response([
+                'status' => false,
+                'message' =>  "Hata oluştu"
+            ], 200);
+        }
+        $to = $request->to;
+        $to[] = "E_".$request->Employee;
+        foreach ($to as $item) {
+            $streamRight = new ActivityStreamRightModel();
+            $streamRight->access_code   = $item;
+            $streamRight->stream_id     = $stream->id;
+            $streamRight->save();
+        }
+
+        return response([
+            'status' => true,
+            'data' =>  $stream->id,
+        ], 200);
+
+    }
+
+
+    public function streamList(Request $request)
+    {
+        $streamsQ = ActivityStreamModel::selectRaw("DISTINCT activity_stream.*");
+        $streamsQ->leftJoin("activity_stream_right","activity_stream_right.stream_id","=","activity_stream.id");
+
+        $rights = self::rights($request);
+        $rights[] = "AU";
+
+        $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
+            ->where(["activity_stream.is_active"=>1])->get();
+        if($request->categoryId!==null){
+            foreach ($streams as $key=>$stream) {
+                if($stream->module_id=="blog"){
+                    $categoryCount = BlogModel::where(["category_id"=>$request->categoryId])->count();
+                    if($categoryCount==0)
+                        unset($streams[$key]);
+                }
+            }
+            $streams = array_values($streams);
+        }
+
+        return response([
+            'status' => true,
+            'data' =>  $streams
+        ], 200);
+    }
+    
+    public function toList(Request $request){
+        $to["AU"] = "Tüm Çalışanlar";
+        $employee = EmployeeModel::select("Employee.Id","Employee.FirstName","Employee.LastName")
+            ->leftJoin("user","user.EmployeeID","=","Employee.Id")
+            ->whereNotNull("user.EmployeeID")
+            ->where(["user.active"=>1,"Employee.Active"=>1])->get();
+        foreach ($employee as $item) {
+            $to["E_".$item->Id] = $item->FirstName." ".$item->LastName;
+        }
+        return response([
+            'status'    => true,
+            'data'      =>  $to
+        ], 200);
+    }
+
+    public function categoryList(Request $request)
+    {
+        $rights = self::rights($request);
+        $blogCategory = BlogCategoryRightModel::selectRaw("DISTINCT blog_category.*")
+            ->leftJoin("blog_category","blog_category.id","=","blog_category_right.blog_category_id")
+            ->whereIn("blog_category_right.access_code",$rights)
+            ->where(["blog_category.is_active"=>1])->get();
+
+        return response([
+            'status'    => true,
+            'data'      =>  $blogCategory
+        ], 200);
+    }
+
+
+    public function rights(Request $request)
+    {
+        $groups = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee])->pluck("group_id");
+        $rights[] = "E_".$request->Employee;
+        foreach ($groups as $group) {
+            $rights[] = "G_".$group;
+        }
+
+        return $rights;
+    }
+}

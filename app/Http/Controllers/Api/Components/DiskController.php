@@ -56,10 +56,12 @@ class DiskController extends ApiController
                 //http://portal.asay.com.tr/disk/company/3?token=d268659be29bdb958c2105dd7f80e846&filename=ssss.pdf
                 $object->viewFile       = "http://".parse_url(request()->root())['host']."/file/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
                 $object->downloadFile   = "http://".parse_url(request()->root())['host']."/file/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->extension      = $extension = pathinfo($object->name, PATHINFO_EXTENSION);
             }
             else{
                 $object->viewFile       = null;
                 $object->downloadFile   = null;
+                $object->extension      = null;
             }
         }
         return response([

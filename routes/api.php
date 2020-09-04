@@ -221,6 +221,13 @@ Route::namespace("Api")->group(function(){
             Route::post('addFile', "DiskController@addFile")->name("disk_addFile");
             Route::get('getFile', "DiskController@getFile")->name("disk_getFile");
         });
+
+        Route::prefix('stream')->group(function () {
+            Route::get('streamList', "StreamController@streamList")->name("stream_streamList");
+            Route::post('SaveStream', "StreamController@SaveStream")->name("stream_SaveStream");
+            Route::get('toList', "StreamController@toList")->name("stream_toList");
+            Route::get('categoryList', "StreamController@categoryList")->name("stream_categoryList");
+        });
     });
 
 
