@@ -81,14 +81,16 @@ class StreamController extends ApiController
         $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
             ->where(["activity_stream.is_active"=>1])->get();
         if($request->categoryId!==null){
+            $stremk = [];
             foreach ($streams as $key=>$stream) {
                 if($stream->module_id=="blog"){
-                    $categoryCount = BlogModel::where(["category_id"=>$request->categoryId])->count();
-                    if($categoryCount==0)
-                        unset($streams[$key]);
+                    $categoryCount = BlogModel::where(["id"=>$stream->source_id,"category_id"=>$request->categoryId])->count();
+                    if($categoryCount>0)
+                       $stremk[] = $stream;
                 }
             }
-            $streams = array_values($streams);
+            $streams = $stremk;
+            //$streams = array_values($streams);
         }
 
         return response([
