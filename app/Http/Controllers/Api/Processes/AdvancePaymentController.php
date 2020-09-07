@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Model\AdvancePaymentModel;
+use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\LogsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserHasGroupModel;
@@ -65,6 +67,21 @@ class AdvancePaymentController extends ApiController
 
         if($AdvancePayment->save())
         {
+            if($post["AdvancePaymentId"] == null || $post["AdvancePaymentId"] == "")
+            {
+                $AdvancePayment->fresh();
+                $userEmployee = EmployeeModel::find($user->EmployeeID);
+                LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,8,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
+            }
+
+            else
+            {
+                //TODO Düzenlenen alanların tamamının loglanması gerekir.
+                $AdvancePayment->fresh();
+                $userEmployee = EmployeeModel::find($user->EmployeeID);
+                LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,10,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından düzenlendi.','','','','','');
+            }
+
             return response([
                 'status' => true,
                 'data' => [
@@ -79,6 +96,21 @@ class AdvancePaymentController extends ApiController
                 'message' => "Kayıt Yapılırken Hata Oluştu",
             ], 200);
         }
+    }
+
+    public function list2(Request $request)
+    {
+        $status = $request->status != null ? $request->status : 0;
+        $employee = EmployeeModel::find(UserModel::find($request->userId)->EmployeeID);
+
+        $list = AdvancePaymentModel::where(['status' => $status,'Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $list
+        ],200);
+
     }
 
     public function list(Request $request)
@@ -249,6 +281,7 @@ class AdvancePaymentController extends ApiController
     public function confirm(Request $request)
     {
         $user_id            = $request->userId;
+        $user               = UserModel::find($user_id);
         $AdvancePaymentId   = $request->AdvancePaymentId;
         if($AdvancePaymentId===null)
         {
@@ -295,6 +328,21 @@ class AdvancePaymentController extends ApiController
         $AdvancePayment->Status = $AdvancePayment->Status + 1;
         $AdvancePaymentResult = $AdvancePayment->save();
         if($AdvancePaymentResult){
+            switch ($AdvancePayment->Status - 1)
+            {
+                case 1:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,11,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı yönetici tarafından onaylandı.','','','','','');
+                    break;
+                case 2:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,12,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı proje yöneticisi tarafından onaylandı.','','','','','');
+                    break;
+                case 3:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,13,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı muhasebe yöneticisi tarafından onaylandı.','','','','','');
+                    break;
+            }
             return response([
                 'status' => true,
                 'message' => "Onay Başarılı"
@@ -350,6 +398,7 @@ class AdvancePaymentController extends ApiController
         }
 
         $user = UserModel::find($request->userId);
+        $userEmployee = EmployeeModel::find($user->EmployeeID);
 
         $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
         if($AdvancePayment->EmployeeID!=$user->EmployeeID)
@@ -362,6 +411,7 @@ class AdvancePaymentController extends ApiController
         $AdvancePayment->active=0;
         $AdvancePaymentResult = $AdvancePayment->save();
         if($AdvancePaymentResult){
+            LogsModel::setLog($user->EmployeeID,$AdvancePayment->Id,2,9,'','',$AdvancePayment->Name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından silindi.','','','','','');
             return response([
                 'status' => true,
                 'message' => "Avans Silme Başarılı"

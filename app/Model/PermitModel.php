@@ -15,7 +15,8 @@ class PermitModel extends Model
     public $timestamps = false;
 
     protected $appends = [
-        'PermitKind'
+        'PermitKind',
+        'TransferEmployee'
     ];
 
     public static function createPermit($req)
@@ -35,8 +36,9 @@ class PermitModel extends Model
         $newPermit->EmployeeID  = $EmployeeID;
         $newPermit->kind        = $req->kind;
         $newPermit->description = $req->description;
-        $newPermit->start_date  = new Carbon($req->startDate);
-        $newPermit->end_date    = new Carbon($req->endDate);
+        $newPermit->start_date  = $req->startDate;
+        $newPermit->end_date    = $req->endDate;
+        $newPermit->transfer_id = $req->transfer_id;
         $newPermit->used_day    = $totalPermitDayHour['UsedDay'];
         $newPermit->over_hour   = $totalPermitDayHour['OverHour'];
         $newPermit->holiday     = $totalPermitDayHour['Holidays'];
@@ -267,7 +269,7 @@ class PermitModel extends Model
 
 
 
-    public function netsisRemainingPermit($employeeId="")
+    public static function netsisRemainingPermit($employeeId="")
     {
         $employee = EmployeeModel::where(["Id"=>$employeeId,"Active"=>1])->first();
         $company = CompanyModel::find($employee->EmployeePosition->CompanyID);
@@ -309,7 +311,7 @@ class PermitModel extends Model
         $izin["_SicilNo"]   = $employee->StaffID;
         try
         {
-            $soap = new SoapClient($wsdl, $options);
+            $soap = new \SoapClient($wsdl, $options);
             $data = $soap->PersonelIzinSorgula($izin);
         }
         catch(Exception $e)
@@ -346,6 +348,15 @@ class PermitModel extends Model
     {
         $permitKind = $this->hasOne(PermitKindModel::class, "id", "kind");
         return $permitKind->where("active", 1)->first()->toArray();
+    }
+
+    public function getTransferEmployeeAttribute()
+    {
+        $transferEmployee = $this->hasOne(EmployeeModel::class, "Id", "transfer_id");
+        if($transferEmployee)
+            return $transferEmployee->where("Active", 1)->first();
+        else
+            return null;
     }
 
 

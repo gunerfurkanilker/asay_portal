@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\Common\DocumentTypeController;
 use App\Http\Controllers\Controller;
+use App\Library\Asay;
 use App\Library\Cari;
 use App\Model\AsayCariModel;
 use App\Model\AsayExpenseLogModel;
@@ -18,6 +19,7 @@ use App\Model\ExpenseDocumentTypesModel;
 use App\Model\ExpenseModel;
 use App\Model\AsayProjeModel;
 use App\Model\ExpenseTypesModel;
+use App\Model\LogsModel;
 use App\Model\ObjectFileModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
@@ -148,6 +150,7 @@ class ExpenseController extends ApiController
     public function expenseSave(Request $request)
     {
         $user = UserModel::find($request->userId);
+        $userEmployee = EmployeeModel::find($user->EmployeeID);
         $post["type"]                = $request->input("type");
         $post["name"]                = $request->input("name");
         $post["expense_type"]        = $request->input("expense_type");
@@ -159,7 +162,7 @@ class ExpenseController extends ApiController
         $expense_id                  = $post["expense_id"];
         if($post["type"]=="onay")
         {
-            $expenseDocument = ExpenseDocumentModel::where(["expense_id"=>$expense_id,"active"=>1]);
+            $expenseDocument    = ExpenseDocumentModel::where(["expense_id"=>$expense_id,"active"=>1]);
             if($expenseDocument->count()==0)
             {
                 return response([
@@ -197,15 +200,24 @@ class ExpenseController extends ApiController
         $AsayExpense->EmployeeID         = $user->EmployeeID;
         if($post["type"]=="kaydet")
         {
+
             $AsayExpense->status = 0;
         }
-        elseif($post["type"]=="onay")
+        else if($post["type"]=="onay")
         {
+            ExpenseModel::sendMailToManager($request);
             $AsayExpense->status = 1;
         }
 
+        if ($AsayExpense->id == null)
+            LogsModel::setLog($user->EmployeeID,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
+        //TODO Edit için log kaydı nasıl oluşacak belirlenmelidir.
         if($AsayExpense->save())
         {
+            $AsayExpense->fresh();
+            if ($post["type"]=="kaydet")
+                LogsModel::setLog($user->EmployeeID,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
+
             return response([
                 'status' => true,
                 'type' => $post["type"],
@@ -831,13 +843,18 @@ class ExpenseController extends ApiController
                 'message' => "Yetkisiz İşlem"
             ], 200);
         }
-        $expense = $expenseQ->update(["active"=>0]);
+        $expenseQ->update(["active"=>0]);
+        $expense = $expenseQ->first();
 
         $documentsQ = ExpenseDocumentModel::where(["expense_id"=>$expenseId]);
         foreach ($documentsQ->get() as $document) {
             ExpenseDocumentElementModel::where(["document_id"=>$document->id])->update(["active"=>0]);
         }
         $documentsQ->update(["active"=>0]);
+
+        $creatorOfExpense = EmployeeModel::find($expense->EmployeeID);
+        LogsModel::setLog($user->EmployeeID,$expenseId,1,2,'','',$expense->name.' başlıklı harcama '.$creatorOfExpense->UsageName . '' . $creatorOfExpense->LastName.' tarafından silindi.','','','','','');
+
         return response([
             'status' => true,
             'message' => "Kayıt Silindi"
@@ -1088,6 +1105,8 @@ class ExpenseController extends ApiController
             ], 200);
         }
         $expense = ExpenseModel::find($expenseId);
+        $loggedUser = UserModel::find($request->userId);
+        $loggedUserEmployee = EmployeeModel::find($loggedUser->EmployeeID);
         $status = self::expenseAuthority($expense,$user_id);
         if($status==false)
         {
@@ -1112,9 +1131,19 @@ class ExpenseController extends ApiController
             ], 200);
         }
         if ($column == "manager_status")
+        {
             $expenseResult = $expenseQ->update(["status"=>2]);
+            ExpenseModel::sendMailToProjectManager($request);
+            LogsModel::setLog($loggedUserEmployee->Id,$expenseId,1,4,'','',$expense->name.' başlıklı harcama '.$loggedUserEmployee->UsageName . '' . $loggedUserEmployee->LastName.' tarafından onaylandı.','','','','','');
+        }
+
         if ($column == "pm_status")
+        {
             $expenseResult = $expenseQ->update(["status"=>3]);
+            ExpenseModel::sendMailToAccounters($request);
+            LogsModel::setLog($loggedUserEmployee->Id,$expenseId,1,5,'','',$expense->name.' başlıklı harcama '.$loggedUserEmployee->UsageName . '' . $loggedUserEmployee->LastName.' tarafından onaylandı.','','','','','');
+        }
+
         //TODO Mail gönderilecek
 
         if($expenseResult){
@@ -1424,6 +1453,8 @@ class ExpenseController extends ApiController
         if($DurumHataSay==0)
         {
             ExpenseModel::where(["id"=>$expenseId])->update(["status"=>4]);
+            $userEmployee = EmployeeModel::find($user->EmployeeID);
+            LogsModel::setLog($user->EmployeeID,$expenseId,1,7,'','',$expense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından NETSIS\'e aktarıldı.','','','','','');
             return response([
                 'status' => true,
                 'data' => "Masraf Belgeleri Netsise Aktarıldı"

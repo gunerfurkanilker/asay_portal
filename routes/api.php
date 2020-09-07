@@ -79,6 +79,7 @@ Route::namespace("Api")->group(function(){
             Route::get('permitListHR', 'PermitController@permitListHR')->name('permit_permitListHR');
             Route::get('permitListPS', 'PermitController@permitListPS')->name('permit_permitListPS');
             Route::get('getPermit', 'PermitController@getPermit')->name('permit_getPermit');
+            Route::get('getTransferPersons', 'PermitController@getTransferPersons')->name('permit_getTransferPersons');
             Route::get('permitPendingList', 'PermitController@permitPendingList')->name('permit_permitPendingList');
             Route::put('permitConfirm', 'PermitController@permitConfirm')->name('permit_permitConfirm');
             Route::put('permitConfirmTakeBack', 'PermitController@permitConfirmTakeBack')->name('permit_permitConfirmTakeBack');
@@ -90,6 +91,7 @@ Route::namespace("Api")->group(function(){
 
             Route::post('save', 'AdvancePaymentController@save')->name('AdvancePayment_save');
             Route::get('list', 'AdvancePaymentController@list')->name('AdvancePayment_list');
+            Route::get('list2', 'AdvancePaymentController@list2')->name('AdvancePayment_list2');
             Route::get('getAdvance', 'AdvancePaymentController@getAdvance')->name('AdvancePayment_getAdvance');
             Route::get('listPending', 'AdvancePaymentController@listPending')->name('AdvancePayment_listPending');
             Route::put('confirmTakeBack', 'AdvancePaymentController@confirmTakeBack')->name('AdvancePayment_confirmTakeBack');
