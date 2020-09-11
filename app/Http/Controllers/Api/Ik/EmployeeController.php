@@ -116,7 +116,7 @@ class EmployeeController extends ApiController
     }
 
     public function getGeneralInformationFields(Request $request){
-        $fields = EmployeeModel::getGeneralInformationsFields($request->userId);
+        $fields = EmployeeModel::getGeneralInformationsFields($request->Employee);
 
         return response([
             'status' => true,

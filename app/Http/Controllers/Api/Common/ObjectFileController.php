@@ -15,7 +15,7 @@ class ObjectFileController extends ApiController
         $ObjectType             = $request->ObjectType;
         $FlowFile               = ObjectFileModel::firstOrNew(["ObjectType"=>$ObjectType,"ObjectId"=>$request->ObjectId,"Type"=>$request->Type]);
         $FlowFile->File         = $request->File;
-        $FlowFile->EmployeeID   = UserModel::find($request->userId)->EmployeeID;
+        $FlowFile->EmployeeID   = $request->Employee;
         $FlowFile->save();
 
         return response([
