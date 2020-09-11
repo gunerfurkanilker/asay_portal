@@ -245,24 +245,22 @@ class OvertimeModel extends Model
 
     }
 
-    public static function getOvertimeByStatus($status, $userId)
+    public static function getOvertimeByStatus($status,$EmployeeID)
     {
-        $user = UserModel::find($userId);
-        $userEmployees = EmployeePositionModel::where(['Active' => 2, 'ManagerID' => $user->EmployeeID])->get();
+        $userEmployees = EmployeePositionModel::where(['Active' => 2, 'ManagerID' => $EmployeeID])->get();
         $userEmployeesIDs = [];
         foreach ($userEmployees as $userEmployee) {
             array_push($userEmployeesIDs, $userEmployee->EmployeeID);
         }
-        return self::where(['Active' => 1, 'StatusID' => $status])->where(function ($query) use ($user, $userEmployeesIDs) {
-            $query->orWhere(['ManagerID' => $user->EmployeeID, 'CreatedBy' => $user->EmployeeID])->orWhereIn('CreatedBy', $userEmployeesIDs);
+        return self::where(['Active' => 1, 'StatusID' => $status])->where(function ($query) use ($EmployeeID,$userEmployeesIDs) {
+            $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID])->orWhereIn('CreatedBy', $userEmployeesIDs);
         })->orderBy('BeginDate', 'desc')->get();
 
     }
 
-    public static function getEmployeesOvertimeByStatus($status, $userId)
+    public static function getEmployeesOvertimeByStatus($status, $EmployeeID)
     {
-        $user = UserModel::find($userId);
-        return self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $user->EmployeeID])->orderBy('BeginDate', 'desc')->get();
+        return self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $EmployeeID])->orderBy('BeginDate', 'desc')->get();
     }
 
     public static function getOvertimeFields($managerId)
@@ -449,8 +447,7 @@ class OvertimeModel extends Model
         $overtimeRecord->Description = $overtimeRequest->Description;
         $overtimeRecord->StatusID = 1;
 
-        $user = UserModel::find($overtimeRequest->userId);
-        $employee = EmployeeModel::find($user->EmployeeID);
+        $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
 
@@ -556,12 +553,11 @@ table, th, td {
 
         $overtimeRecord->StatusID = 2;
 
-        $user = UserModel::find($overtimeRequest->userId);
-        $employee = EmployeeModel::find($user->EmployeeID);
+        $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $userAccountOfManager = UserModel::where(['EmployeeID' => $assignedEmployeesManager->Id])->first();
+        $userAccountOfManager = EmployeeModel::where(['Id' => $assignedEmployeesManager->Id])->first();
         $mailTable = $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' isimli personel tarafından düzenleme talep edildi.' . '
 <html lang="en">
 <head>
@@ -639,7 +635,7 @@ table, th, td {
 </html>
   ';
 
-        Asay::sendMail($userAccountOfManager->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma için düzenleme talep edildi.", $mailTable
+        Asay::sendMail($userAccountOfManager->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma için düzenleme talep edildi.", $mailTable
             , "Fazla Çalışma İçin Düzenleme Talep Edildi");
 
 
@@ -681,13 +677,12 @@ table, th, td {
 
         $overtimeRecord->StatusID = 3;
 
-        $user = UserModel::find($overtimeRequest->userId);
-        $employee = EmployeeModel::find($user->EmployeeID);
+        $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $userAccountOfManager = UserModel::where(['EmployeeID' => $assignedEmployeesManager->Id])->first();
-        Asay::sendMail($userAccountOfManager->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma reddedildi.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' isimli personel tarafından reddedildi.' . '
+        $userAccountOfManager = EmployeeModel::where(['Id' => $assignedEmployeesManager->Id])->first();
+        Asay::sendMail($userAccountOfManager->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma reddedildi.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' isimli personel tarafından reddedildi.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>
@@ -949,13 +944,12 @@ table, th, td {
         //TODO Loglama ve mail göndeirmi yapılacak
 
 
-        $user = UserModel::find($overtimeRequest->userId);
-        $employee = EmployeeModel::find($user->EmployeeID);
+        $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $userAccountOfManager = UserModel::where(['EmployeeID' => $assignedEmployeesManager->Id])->first();
-        Asay::sendMail($userAccountOfManager->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma çalışan tarafından iptal edildi.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' isimli personel tarafından iptal edildi.' . '
+        $userAccountOfManager = EmployeeModel::where(['Id' => $assignedEmployeesManager->Id])->first();
+        Asay::sendMail($userAccountOfManager->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma çalışan tarafından iptal edildi.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' isimli personel tarafından iptal edildi.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>
@@ -1084,13 +1078,12 @@ table, th, td {
 
 
         //TODO Loglama ve mail göndeirmi yapılacak
-        $user = UserModel::find($overtimeRequest->userId);
-        $employee = EmployeeModel::find($user->EmployeeID);
+        $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $userAccountOfManager = UserModel::where(['EmployeeID' => $assignedEmployeesManager->Id])->first();
+        $userAccountOfManager = EmployeeModel::where(['Id' => $assignedEmployeesManager->Id])->first();
         $objectFile = ObjectFileModel::where(['ObjectType' => 4, 'ObjectId' => $overtimeRecord->id, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
-        Asay::sendMail($userAccountOfManager->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından tamamlandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
+        Asay::sendMail($userAccountOfManager->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından tamamlandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>
@@ -1361,7 +1354,7 @@ table, th, td {
 </html>
   ';
 
-        Asay::sendMail($userAccountOfEmployee->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma için düzenleme talep edildi.", $mailTable
+        Asay::sendMail($userAccountOfEmployee->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma için düzenleme talep edildi.", $mailTable
             , "Fazla Çalışma İçin Düzenleme Talep Edildi");
 
 
@@ -1714,14 +1707,14 @@ table, th, td {
         }
         else if ($overtimeRecord->ManagerID != $managerSupervisor->ManagerID) {
             //TODO Loglama ve mail göndeirmi yapılacak
-            $user = UserModel::find($overtimeRequest->userId);
-            $employee = EmployeeModel::find($user->EmployeeID);
+
+            $employee = EmployeeModel::find($overtimeRequest->Employee);
             $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
             $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-            $userAccountOfSupervisor = UserModel::where(['EmployeeID' => $managerSupervisor->ManagerID])->first();
+            $userAccountOfSupervisor = EmployeeModel::where(['Id' => $managerSupervisor->ManagerID])->first();
             $supervisorEmployee = EmployeeModel::find($userAccountOfSupervisor->EmployeeID);
             $objectFile = ObjectFileModel::where(['ObjectType' => 4, 'ObjectId' => $overtimeRecord->id, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
-            Asay::sendMail($userAccountOfSupervisor->email, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından onaylandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
+            Asay::sendMail($userAccountOfSupervisor->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma tamamlandı.", $overtimeRecord->JobOrderNo . ' iş emri nolu fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından onaylandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Model\EmployeeModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
 use App\Model\UserModel;
@@ -18,7 +19,7 @@ class ApiController extends Controller
                 $token = $request->token;
             }
 
-            if (!isset($token) || empty($token) || !UserModel::tokenControl($token)) {
+            if (!isset($token) || empty($token) || !EmployeeModel::tokenControl($token)) {
                 return response([
                     'status' => false,
                     'message' => "Yetkisiz işlem",
@@ -26,11 +27,11 @@ class ApiController extends Controller
                 ], 200);
             }
 
-            $user = UserTokensModel::select("user.*")
-                ->leftJoin("user","user.id","=","user_tokens.user_id")
+            $Employee = UserTokensModel::select("Employee.*")
+                ->leftJoin("Employee","Employee.Id","=","user_tokens.EmployeeID")
                 ->where(["user_token"=>$token])->first();
-            $request->userId        = $user->id;
-            $request->Employee      = $user->EmployeeID;
+            //$request->userId        = $user->id;
+            $request->Employee      = $Employee->Id;
             return $next($request);
         });
     }

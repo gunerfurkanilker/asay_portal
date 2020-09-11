@@ -27,7 +27,7 @@ class PermitModel extends Model
             $newPermit = PermitModel::find($req->permitId);
         }
         else{
-            $EmployeeID = UserModel::find($req->userId)->EmployeeID;
+            $EmployeeID = $req->Employee;
             $newPermit = new PermitModel();
         }
 

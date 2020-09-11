@@ -36,13 +36,11 @@ class ProjectController extends ApiController
 
     public function projectListOfUser(Request $request)
     {
-
         $requestArray = $request->all();
 
-        $user = UserModel::find($request->userId);
         $data = [];
 
-        $projectsRelationsOfUser = UserProjectsModel::where('EmployeeID', $user->EmployeeID)->get();
+        $projectsRelationsOfUser = UserProjectsModel::where('EmployeeID', $request->Employee)->get();
         $projectList = [];
 
         if (count($projectsRelationsOfUser) < 1) {

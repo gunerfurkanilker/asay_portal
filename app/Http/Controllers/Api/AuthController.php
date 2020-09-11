@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Model\DomainModel;
+use App\Model\EmployeeModel;
 use App\Model\UserMenuModel;
 use App\Model\UserModel;
 use Illuminate\Http\Request;
@@ -20,10 +22,22 @@ class AuthController extends Controller
                 'message' => "Kullanıcı adı ve şifre Hatası"
             ], 200);
         }
+        $domain = DomainModel::find(1);
         if(filter_var( $data["username"], FILTER_VALIDATE_EMAIL))
             $email = $data["username"];
         else
-            $email = $data["username"]."@asay.com.tr";
+            $email = $data["username"]."@".$domain->domain;
+
+        $employeeQ = EmployeeModel::where(["JobEmail"=>$email,"Active"=>1]);
+        if($employeeQ->count()==0)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
+        $employee = $employeeQ->first();
 
         $error = false;
         $connections = [
@@ -37,21 +51,29 @@ class AuthController extends Controller
         try {
             $provider = $ad->connect("asay.corp", "ASAY\\".$data["username"], $data["password"]);
             $search = $provider->search();
-            $user = UserModel::LdapUserCreate($search,$data["username"]);
-            $Menus = UserMenuModel::UserMenus($user->user_group);
+            //$user = UserModel::LdapUserCreate($search,$data["username"]);
+            $userLogin = EmployeeModel::LdapUserLogin($search,$data["username"]);
+            if(!$userLogin)
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Yetkisiz İşlem"
+                ], 200);
+            }
+
+
+            $Menus = UserMenuModel::UserMenus($employee->EmployeeGroup);
             $userdata = [
-                'user_id' => $user->id,
-                'EmployeeID' => $user->EmployeeID,
-                'username' => $user->username,
-                'email' => $user->email,
-                'photo' => "http://portal.asay.com.tr/".$user->photo,
-                'full_name' => $user->full_name,
+                'EmployeeID' => $employee->Id,
+                'email' => $employee->JobEmail,
+                'photo' => "http://portal.asay.com.tr/".$employee->Photo,
+                'full_name' => $employee->UsageName." ".$employee->LastName,
                 //'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
-                'active' => $user->active,
-                'user_group' => $user->user_group,
+                'active' => $employee->Active,
+                'user_group' => $employee->EmployeeGroup,
                 "user_menus" => json_encode($Menus),
             ];
-            $userdata["token"] = UserModel::createToken($userdata);
+            $userdata["token"] = EmployeeModel::createToken($userdata);
         } catch (\Adldap\Auth\BindException $e) {
             $error = "Kullanıcı adı ve şifre hatası ".$e->getMessage();
         }
@@ -73,7 +95,7 @@ class AuthController extends Controller
     public function loginCheck(Request $request)
     {
         $data["token"] = $request->input("token");
-        $userCheck = UserModel::tokenControl($data["token"]);
+        $userCheck = EmployeeModel::tokenControl($data["token"]);
         if($userCheck){
             return response([
                 'status' => true,

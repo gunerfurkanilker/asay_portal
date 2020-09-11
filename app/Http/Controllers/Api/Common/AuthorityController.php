@@ -24,11 +24,9 @@ class AuthorityController extends ApiController
         $isHRPersonel = false;
         $isPermitPersonnelManager= false;
 
-        $user = UserModel::find($request->userId);
-
-        $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerID"=>$user->EmployeeID]);
-        $projects   = ProjectsModel::where(["manager_id"=>$user->EmployeeID]);
-        $categories = ProjectCategoriesModel::where(["manager_id"=>$user->EmployeeID]);
+        $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerID"=>$request->Employee]);
+        $projects   = ProjectsModel::where(["manager_id"=>$request->Employee]);
+        $categories = ProjectCategoriesModel::where(["manager_id"=>$request->Employee]);
 
         if ($projects->count() > 0)
             $isProjectManager = true;
@@ -37,16 +35,16 @@ class AuthorityController extends ApiController
         if( $employeeManagers->count() > 0 )
             $isEmployeeManager = true;
 
-        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID,"group_id"=>12, 'active' => 1])->count();
+        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee,"group_id"=>12, 'active' => 1])->count();
         if ($userGroupCount > 0)
         {
             $isAccounter = true;
         }
 
 
-        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$user->EmployeeID, 'active' => 1])->whereIn('group_id',[16,17])->count();
+        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee, 'active' => 1])->whereIn('group_id',[16,17])->count();
         if ($userGroupCount > 0) {
-            $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $user->EmployeeID])->first();
+            $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
             $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'HRManager', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $user->EmployeeID])->count();
             if ($processSetting > 0){
                 $isHRPersonel = true;

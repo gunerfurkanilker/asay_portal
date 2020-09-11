@@ -27,8 +27,7 @@ class OvertimeController extends ApiController
 
         if ($status == null)
         {
-            $user = UserModel::find($request->userId);
-            $overtimes = OvertimeModel::where([ 'Active' => 1,'AssignedID' => $user->EmployeeID ])->get();
+            $overtimes = OvertimeModel::where([ 'Active' => 1,'AssignedID' => $request->Employee ])->get();
 
             return response([
                 'status' => true,
@@ -38,7 +37,7 @@ class OvertimeController extends ApiController
         }
 
 
-        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status,$request->userId);
+        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status,$request->Employee);
 
         return response([
             'status' => true,
@@ -54,8 +53,7 @@ class OvertimeController extends ApiController
 
         if ($status == null)
         {
-            $user = UserModel::find($request->userId);
-            $overtimes = OvertimeModel::where([ 'Active' => 1,'ManagerID' => $user->EmployeeID ])->get();
+            $overtimes = OvertimeModel::where([ 'Active' => 1,'ManagerID' => $request->Employee ])->get();
 
             return response([
                 'status' => true,
@@ -65,7 +63,7 @@ class OvertimeController extends ApiController
         }
 
 
-        $overtimes = OvertimeModel::getOvertimeByStatus($status,$request->userId);
+        $overtimes = OvertimeModel::getOvertimeByStatus($status,$request->Employee);
 
         return response([
             'status' => true,
@@ -77,7 +75,7 @@ class OvertimeController extends ApiController
 
     public function getManagersEmployees(Request $request)
     {
-        $manager = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID);
+        $manager = EmployeeModel::find($request->Employee);
         $employees = OvertimeModel::getManagersEmployees($manager->Id);
         return response([
             'status' => true,
@@ -87,7 +85,7 @@ class OvertimeController extends ApiController
     }
 
     public function getEmployeesManagers(Request $request){
-        $employee = EmployeeModel::find(UserModel::find( $request->userId)->EmployeeID );
+        $employee = EmployeeModel::find($request->Employee );
         $managers = OvertimeModel::getEmployeesManagers($employee->Id);
         return response([
             'status' => true,
@@ -107,8 +105,7 @@ class OvertimeController extends ApiController
 
     public function managersProjectList(Request $request)
     {
-        $user = UserModel::find($request->userId);
-        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $user->EmployeeID ])->get();
+        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee ])->get();
         $managerProjectList = [];
 
         foreach($managersProjects as $managersProject)
