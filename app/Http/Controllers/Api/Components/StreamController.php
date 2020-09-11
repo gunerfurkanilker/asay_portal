@@ -100,13 +100,13 @@ class StreamController extends ApiController
     }
     
     public function toList(Request $request){
-        $to["AU"] = "Tüm Çalışanlar";
+        $to[] = ["id"=>"AU","name"=>"Tüm Çalışanlar"];
         $employee = EmployeeModel::select("Employee.Id","Employee.FirstName","Employee.LastName")
             ->leftJoin("user","user.EmployeeID","=","Employee.Id")
             ->whereNotNull("user.EmployeeID")
             ->where(["user.active"=>1,"Employee.Active"=>1])->get();
         foreach ($employee as $item) {
-            $to["E_".$item->Id] = $item->FirstName." ".$item->LastName;
+            $to[] = ["id"=>"E_".$item->Id,"name"=>$item->FirstName." ".$item->LastName];
         }
         return response([
             'status'    => true,
