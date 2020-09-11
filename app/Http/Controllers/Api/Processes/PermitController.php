@@ -12,7 +12,6 @@ use App\Model\PermitLeftOverHoursModel;
 use App\Model\PermitModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\PublicHolidayModel;
-use App\Model\UserModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
@@ -23,7 +22,7 @@ class PermitController extends ApiController
 {
     public function permitList(Request $request)
     {
-        $employee = EmployeeModel::find(UserModel::find($request->userId)->EmployeeID);
+        $employee = EmployeeModel::find($request->Employee);
 
         if (!isset($request->status) || $request->status == null)
             return response([
@@ -44,7 +43,7 @@ class PermitController extends ApiController
 
     public function getTransferPersons(Request $request)
     {
-        $employee = EmployeeModel::find(UserModel::find($request->userId)->EmployeeID);
+        $employee = EmployeeModel::find($request->Employee);
         $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $employee->Id])->first();
 
         $transferEmployeesPositions = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->get();
@@ -68,7 +67,7 @@ class PermitController extends ApiController
 
     public function getPermit(Request $request)
     {
-        $employee = EmployeeModel::find(UserModel::find($request->userId)->EmployeeID);
+        $employee = EmployeeModel::find($request->Employee);
         return response([
             'status' => true,
             'message' => "İşlem Başarılı",
@@ -91,7 +90,7 @@ class PermitController extends ApiController
         if ($request->permitId !== null) {
             $EmployeeID = PermitModel::find($request->permitId)->EmployeeID;
         } else
-            $EmployeeID = UserModel::find($request->userId)->EmployeeID;
+            $EmployeeID = $request->Employee;
         //tanımlar
         $endDate = $request->endDate;
         $startDate = $request->startDate;
@@ -196,19 +195,18 @@ class PermitController extends ApiController
             ], 200);
         }
 
-        $user = UserModel::find($request->userId);
         $permitQ = PermitModel::where(["active" => 1])->whereNotIn("netsis", [1]);
         if ($status == 1) {
-            $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerId" => $user->EmployeeID])->pluck("EmployeeID");
+            $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerId" => $request->Employee])->pluck("EmployeeID");
 
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "manager_status" => $ApprovalStatus]);
         } else if ($status == 2) {
-            $hrRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "PropertyValue" => $user->EmployeeID])->pluck("RegionID");
+            $hrRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "PropertyValue" => $request->Employee])->pluck("RegionID");
             $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
 
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "hr_status" => $ApprovalStatus]);
         } else if ($status == 3) {
-            $psRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "PropertyValue" => $user->EmployeeID])->pluck("RegionID");
+            $psRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "PropertyValue" => $request->Employee])->pluck("RegionID");
             $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $psRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
 
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "ps_status" => $ApprovalStatus]);
@@ -225,7 +223,6 @@ class PermitController extends ApiController
 
     public function permitConfirm(Request $request)
     {
-        $user_id = $request->userId;
         $permitId = $request->permitId;
         if ($permitId === null) {
             return response([
@@ -234,7 +231,7 @@ class PermitController extends ApiController
             ], 200);
         }
         $permit = PermitModel::find($permitId);
-        $status = self::permitAuthority($permit, $user_id, "confirm");
+        $status = self::permitAuthority($permit, $request->Employee, "confirm");
         if ($status == false) {
             return response([
                 'status' => false,
@@ -281,7 +278,6 @@ class PermitController extends ApiController
 
     public function permitConfirmTakeBack(Request $request)
     {
-        $user_id = $request->userId;
         $permitId = $request->permitId;
         if ($permitId === null) {
             return response([
@@ -290,7 +286,7 @@ class PermitController extends ApiController
             ], 200);
         }
         $permit = PermitModel::find($permitId);
-        $status = self::permitAuthority($permit, $user_id, "takeBack");
+        $status = self::permitAuthority($permit, $request->Employee, "takeBack");
         if ($status == false) {
             return response([
                 'status' => false,
@@ -338,27 +334,26 @@ class PermitController extends ApiController
 
     }
 
-    public function permitAuthority($permit, $user_id, $authType = "")
+    public function permitAuthority($permit, $EmployeeID, $authType = "")
     {
         $status = false;
         if ($authType == "") return $status;
 
-        $user = UserModel::find($user_id);
         $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $permit->EmployeeID])->first();
 
         if (($permit->status == 1 && $authType == "takeBack") || ($permit->status == 0 && $authType == "confirm")) {
-            if ($permit->EmployeeID == $user->EmployeeID)
+            if ($permit->EmployeeID == $EmployeeID)
                 $status = true;
         } else if (($permit->status == 2 && $authType == "takeBack") || ($permit->status == 1 && $authType == "confirm")) {
-            if ($employeePosition->ManagerID == $user->EmployeeID)
+            if ($employeePosition->ManagerID == $EmployeeID)
                 $status = true;
         } else if (($permit->status == 3 && $authType == "takeBack") || ($permit->status == 2 && $authType == "confirm")) {
             $hrManager = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "RegionId" => $employeePosition->RegionID])->first();
-            if ($hrManager->PropertyValue == $user->EmployeeID && $hrManager->RegionID == $employeePosition->RegionID)
+            if ($hrManager->PropertyValue == $EmployeeID && $hrManager->RegionID == $employeePosition->RegionID)
                 $status = true;
         } else if (($permit->status == 4 && $authType == "takeBack") || ($permit->status == 3 && $authType == "confirm")) {
             $personnelSpecialist = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "RegionId" => $employeePosition->RegionID])->first();
-            if ($personnelSpecialist->PropertyValue == $user->EmployeeID && $personnelSpecialist->RegionID == $employeePosition->RegionID)
+            if ($personnelSpecialist->PropertyValue == $EmployeeID && $personnelSpecialist->RegionID == $employeePosition->RegionID)
                 $status = true;
         }
 

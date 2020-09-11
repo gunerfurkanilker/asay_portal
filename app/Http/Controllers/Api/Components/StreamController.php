@@ -10,7 +10,6 @@ use App\Model\BlogCategoryRightModel;
 use App\Model\BlogModel;
 use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
-use App\Model\UserModel;
 use Illuminate\Http\Request;
 
 class StreamController extends ApiController
@@ -102,9 +101,7 @@ class StreamController extends ApiController
     public function toList(Request $request){
         $to[] = ["id"=>"AU","name"=>"Tüm Çalışanlar"];
         $employee = EmployeeModel::select("Employee.Id","Employee.FirstName","Employee.LastName")
-            ->leftJoin("user","user.EmployeeID","=","Employee.Id")
-            ->whereNotNull("user.EmployeeID")
-            ->where(["user.active"=>1,"Employee.Active"=>1])->get();
+            ->where(["Employee.Active"=>1])->get();
         foreach ($employee as $item) {
             $to[] = ["id"=>"E_".$item->Id,"name"=>$item->FirstName." ".$item->LastName];
         }

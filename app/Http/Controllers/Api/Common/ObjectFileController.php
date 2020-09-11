@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Common;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\ObjectFileModel;
-use App\Model\UserModel;
 use Illuminate\Http\Request;
 
 class ObjectFileController extends ApiController

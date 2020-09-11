@@ -10,7 +10,6 @@ use App\Model\EmployeePositionModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
-use App\Model\UserModel;
 use Illuminate\Http\Request;
 
 class AuthorityController extends ApiController
@@ -45,17 +44,17 @@ class AuthorityController extends ApiController
         $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee, 'active' => 1])->whereIn('group_id',[16,17])->count();
         if ($userGroupCount > 0) {
             $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
-            $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'HRManager', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $user->EmployeeID])->count();
+            $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'HRManager', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $request->Employee])->count();
             if ($processSetting > 0){
                 $isHRPersonel = true;
             }
         }
 
-        $permitPersonelCount = ProcessesSettingsModel::where(['object_type' => 3, 'PropertyCode' => 'PersonnelSpecialist', 'PropertyValue' => $user->EmployeeID])->count();
+        $permitPersonelCount = ProcessesSettingsModel::where(['object_type' => 3, 'PropertyCode' => 'PersonnelSpecialist', 'PropertyValue' => $request->Employee])->count();
         if ($permitPersonelCount > 0)
         {
-            $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $user->EmployeeID])->first();
-            $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'PersonnelSpecialist', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $user->EmployeeID])->count();
+            $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
+            $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'PersonnelSpecialist', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $request->Employee])->count();
             if ($processSetting > 0){
                 $isPermitPersonnelManager = true;
             }

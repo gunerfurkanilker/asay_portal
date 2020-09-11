@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Model\DomainModel;
 use App\Model\EmployeeModel;
 use App\Model\UserMenuModel;
-use App\Model\UserModel;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller

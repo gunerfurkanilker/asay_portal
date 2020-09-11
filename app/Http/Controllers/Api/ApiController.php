@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Model\EmployeeModel;
 use App\Model\UserTokensModel;
 use Illuminate\Http\Request;
-use App\Model\UserModel;
 
 class ApiController extends Controller
 {

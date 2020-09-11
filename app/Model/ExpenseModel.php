@@ -72,7 +72,7 @@ class ExpenseModel extends Model
 
         $employee = EmployeeModel::find($expense->EmployeeID);
         $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $expense->EmployeeID])->first();
-        $managerUser = UserModel::where(['EmployeeID' => $employeePosition->ManagerID])->first();
+        $managerUser = EmployeeModel::where(['Id' => $employeePosition->ManagerID])->first();
 
         $mailTable = $expense->name . ' adlı harcama için onayınız bekleniyor.' . '
 <html lang="en">
@@ -165,7 +165,7 @@ table, th, td {
 </html>
   ';
 
-        Asay::sendMail($managerUser->email, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
+        Asay::sendMail($managerUser->JobEmail, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
             , "Harcama İçin Onayınız Bekleniyor.");
 
 
@@ -221,7 +221,7 @@ table, th, td {
         $expenseProject     = ProjectsModel::find($expense->project_id);
         $projectManagerId   = $expenseCategory->manager_id != null ? $expenseCategory->manager_id : $expenseProject->manager_id;
         $projectManager     = EmployeeModel::find($projectManagerId);
-        $projectManagerUser = UserModel::where(['EmployeeID' => $projectManagerId])->first();
+        $projectManagerUser = EmployeeModel::where(['Id' => $projectManagerId])->first();
 
         $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $expense->EmployeeID])->first();
         $employee = EmployeeModel::find($expense->EmployeeID);
@@ -317,7 +317,7 @@ table, th, td {
 </html>
   ';
 
-        Asay::sendMail($projectManagerUser->email, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
+        Asay::sendMail($projectManagerUser->JobEmail, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
             , "Harcama İçin Onayınız Bekleniyor.");
     }
 
@@ -378,8 +378,8 @@ table, th, td {
             $tempEmployeeHasGroup = EmployeeHasGroupModel::where(['active' => 1, 'group_id' => 12,'EmployeeID' => $accounterPosition->EmployeeID])->first();
             if ($tempEmployeeHasGroup)
             {
-                $tempAccounterUser = UserModel::where(['EmployeeID' => $accounterPosition->EmployeeID])->first();
-                array_push($accountersMails,$tempAccounterUser->email);
+                $tempAccounterUser = EmployeeModel::where(['Id' => $accounterPosition->EmployeeID])->first();
+                array_push($accountersMails,$tempAccounterUser->JobEmail);
             }
         }
 
@@ -390,7 +390,7 @@ table, th, td {
 
 
         $employee = EmployeeModel::find($expense->EmployeeID);
-        $managerUser = UserModel::where(['EmployeeID' => $employeePosition->ManagerID])->first();
+        $managerUser = EmployeeModel::where(['Id' => $employeePosition->ManagerID])->first();
 
 
         $mailTable = $expense->name . ' adlı harcama için onayınız bekleniyor.' . '

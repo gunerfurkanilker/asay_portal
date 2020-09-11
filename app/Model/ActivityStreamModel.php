@@ -8,12 +8,12 @@ class ActivityStreamModel extends Model
 {
     protected $table = "activity_stream";
     protected $appends =[
-        "user"
+        "employee"
     ];
 
 
-    public function getUserAttribute()
+    public function getEmployeeAttribute()
     {
-        return $this->hasMany(UserModel::class, "EmployeeID", "EmployeeID")->first();
+        return $this->hasMany(EmployeeModel::class, "EmployeeID", "Id")->first();
     }
 }

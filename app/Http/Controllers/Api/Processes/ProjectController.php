@@ -10,7 +10,6 @@ use App\Model\CarModel;
 use App\Model\EmployeeModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
-use App\Model\UserModel;
 use App\Model\UserProjectsModel;
 use Illuminate\Http\Request;
 

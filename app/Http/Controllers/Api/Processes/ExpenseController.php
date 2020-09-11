@@ -26,7 +26,6 @@ use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\TaxOfficesModel;
 use App\Model\UserHasGroupModel;
-use App\Model\UserModel;
 use App\Model\UserTokensModel;
 use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\Request;
@@ -149,8 +148,7 @@ class ExpenseController extends ApiController
 
     public function expenseSave(Request $request)
     {
-        $user = UserModel::find($request->userId);
-        $userEmployee = EmployeeModel::find($user->EmployeeID);
+        $userEmployee = EmployeeModel::find($request->Employee);
         $post["type"]                = $request->input("type");
         $post["name"]                = $request->input("name");
         $post["expense_type"]        = $request->input("expense_type");
@@ -210,13 +208,13 @@ class ExpenseController extends ApiController
         }
 
         if ($AsayExpense->id == null)
-            LogsModel::setLog($user->EmployeeID,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
+            LogsModel::setLog($request->Employee,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
         //TODO Edit için log kaydı nasıl oluşacak belirlenmelidir.
         if($AsayExpense->save())
         {
             $AsayExpense->fresh();
             if ($post["type"]=="kaydet")
-                LogsModel::setLog($user->EmployeeID,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
+                LogsModel::setLog($request->Employee,$AsayExpense->id,1,1,'','',$AsayExpense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından oluşturuldu.','','','','','');
 
             return response([
                 'status' => true,
@@ -845,7 +843,7 @@ class ExpenseController extends ApiController
         $documentsQ->update(["active"=>0]);
 
         $creatorOfExpense = EmployeeModel::find($expense->EmployeeID);
-        LogsModel::setLog($user->EmployeeID,$expenseId,1,2,'','',$expense->name.' başlıklı harcama '.$creatorOfExpense->UsageName . '' . $creatorOfExpense->LastName.' tarafından silindi.','','','','','');
+        LogsModel::setLog($request->Employee,$expenseId,1,2,'','',$expense->name.' başlıklı harcama '.$creatorOfExpense->UsageName . '' . $creatorOfExpense->LastName.' tarafından silindi.','','','','','');
 
         return response([
             'status' => true,
@@ -1092,9 +1090,8 @@ class ExpenseController extends ApiController
         }
         $expense = ExpenseModel::find($expenseId);
         $status = self::expenseAuthority($expense,$request->Employee);
-        $loggedUser = UserModel::find($request->userId);
-        $loggedUserEmployee = EmployeeModel::find($loggedUser->EmployeeID);
-        $status = self::expenseAuthority($expense,$user_id);
+        $loggedUserEmployee = EmployeeModel::find($request->Employee);
+        $status = self::expenseAuthority($expense,$request->Employee);
         if($status==false)
         {
             return response([
@@ -1440,8 +1437,8 @@ class ExpenseController extends ApiController
         if($DurumHataSay==0)
         {
             ExpenseModel::where(["id"=>$expenseId])->update(["status"=>4]);
-            $userEmployee = EmployeeModel::find($user->EmployeeID);
-            LogsModel::setLog($user->EmployeeID,$expenseId,1,7,'','',$expense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından NETSIS\'e aktarıldı.','','','','','');
+            $userEmployee = EmployeeModel::find($request->Employee);
+            LogsModel::setLog($request->Employee,$expenseId,1,7,'','',$expense->name.' başlıklı harcama '.$userEmployee->UsageName . '' . $userEmployee->LastName.' tarafından NETSIS\'e aktarıldı.','','','','','');
             return response([
                 'status' => true,
                 'data' => "Masraf Belgeleri Netsise Aktarıldı"
