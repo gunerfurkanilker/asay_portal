@@ -14,6 +14,6 @@ class ActivityStreamModel extends Model
 
     public function getEmployeeAttribute()
     {
-        return $this->hasMany(EmployeeModel::class, "EmployeeID", "Id")->first();
+        return $this->hasMany(EmployeeModel::class, "Id", "EmployeeID")->first();
     }
 }
