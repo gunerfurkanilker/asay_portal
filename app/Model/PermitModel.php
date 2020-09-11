@@ -43,7 +43,7 @@ class PermitModel extends Model
         $newPermit->over_hour   = $totalPermitDayHour['OverHour'];
         $newPermit->holiday     = $totalPermitDayHour['Holidays'];
         $newPermit->weekend     = $totalPermitDayHour['Weekend'];
-        return $newPermit->save() ? true : false;
+        return $newPermit->save() ? $newPermit->fresh() : false;
     }
 
     /*public static function getRemainingDaysYearlyPermit($req)

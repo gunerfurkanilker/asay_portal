@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Library\Asay;
 use App\Model\EducationLevelModel;
 use App\Model\Employee;
+use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
+use App\Model\EmployeePositionModel;
 use App\Model\EmployeesChildModel;
 use App\Model\GenderModel;
+use App\Model\ProcessesSettingsModel;
 use App\Model\RelationshipDegreeModel;
+use App\Model\UserModel;
 use Illuminate\Http\Request;
 
 
@@ -26,10 +31,42 @@ class EmployeeController extends ApiController
         ], 200);
     }
 
+    public function getEmployeesActiveDirectoryAccount(Request $request)
+    {
+        $employeeUserId = $request->activeDirectoryUserId;
+
+        $user = UserModel::find($employeeUserId);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $user
+        ],200);
+
+    }
+
+
+    public function sendActiveDirectoryCreateRequestMail(Request $request)
+    {
+        $loggedUser = UserModel::find($request->userId);
+        $loggedUserEmployee = EmployeeModel::find($loggedUser->EmployeeID);
+        $loggedUserEmployeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $loggedUserEmployee->Id])->first();
+
+        $ITManager = ProcessesSettingsModel::where(['object_type' => 10, 'PropertyCode' => 'ITManager',
+            'RegionID' => $loggedUserEmployeePosition->RegionID])->first();
+        $ITManagerUser = UserModel::where(['EmployeeID' => $ITManager->PropertyValue])->first();
+        Asay::sendMail($ITManagerUser->email,"",'Active Directory Kullanıcısı Oluşturma İsteği',
+            'Sayın ' . $ITManagerUser->full_name . ', ' . $request->employee['FirstName'] .' ' . $request->employee['LastName']. ' adlı çalışma arkadaşımız için active directory hesabı oluşturulması talep edilmektedir. Çalışma arkadaşımızın tercih ettiği ismi ' .$request->employee['UsageName'].' olup, ' . $request->requestedMail . ' mail hesabı ile ilgili hesabı oluşturmanız standartlarmıza uygun olacaktır.',"Active Directory Kullanıcısı Oluşturma İsteği","");
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı'
+        ],200);
+    }
 
     public function getEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
+        $employee->ActiveDirectoryUserId = UserModel::where(['EmployeeID' => $employee->Id])->first()->Id;
 
         if ($employee != null)
             return response([
@@ -129,7 +166,9 @@ class EmployeeController extends ApiController
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
-        $employee->AccessTypes = EmployeeModel::getAccessTypes($employee->Id);
+        $activeDirectoryUser = UserModel::where(['EmployeeID' => $employee->Id])->first();
+        if ($activeDirectoryUser)
+            $employee->setAttribute('ActiveDirectoryUser',$activeDirectoryUser);
 
         if ($employee != null)
             return response([

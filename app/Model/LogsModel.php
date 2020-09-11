@@ -72,9 +72,9 @@ class LogsModel extends Model
         }
     }
 
-    public function LastLogUpdate($objectType,$objectId = "",$logType="")
+    public static function LastLogUpdate($objectType,$objectId = "",$logType="")
     {
-        $LogsQ = LogsModel::where(["ObjectType"=>$objectType,"ObjectId"=>$objectId,"LogType"=>$logType])->whereNotNull("start_date")->orderBy("date","DESC");
+        $LogsQ = LogsModel::where(["ObjectType"=>$objectType,"ObjectId"=>$objectId,"LogType"=>$logType])->whereNotNull("StartDate")->orderBy("StartDate","DESC");
         if($LogsQ->count()>0)
         {
             $Logs = $LogsQ->first();

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\LogsModel;
 use App\Model\PermitKindModel;
 use App\Model\PermitLeftOverHoursModel;
 use App\Model\PermitModel;
@@ -119,12 +120,26 @@ class PermitController extends ApiController
             //Yıllık izin haricindeki tipler kullanım kontrolü
         }
 
-        $status = PermitModel::createPermit($request);
-        if ($status)
+        $permit = PermitModel::createPermit($request);
+        if ($permit)
+        {
+            if ($request->permitId == null)
+            {
+                $user = UserModel::find($request->userId);
+                $userEmployee = EmployeeModel::find($user->EmployeeID);
+                $logStatus = LogsModel::setLog($user->EmployeeID,$permit->id,3,15,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından oluşturuldu.','','','','','');
+            }
+            else
+            {
+                $user = UserModel::find($request->userId);
+                $userEmployee = EmployeeModel::find($user->EmployeeID);
+                $logStatus = LogsModel::setLog($user->EmployeeID,$permit->id,3,17,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından düzenlendi.','','','','','');
+            }
             return response([
                 'status' => true,
                 'message' => "Kayıt Başarılı",
             ], 200);
+        }
         else
             return response([
                 'status' => false,
@@ -224,6 +239,7 @@ class PermitController extends ApiController
     public function permitConfirm(Request $request)
     {
         $permitId = $request->permitId;
+        $user = UserModel::find($user_id);
         if ($permitId === null) {
             return response([
                 'status' => false,
@@ -263,6 +279,22 @@ class PermitController extends ApiController
         $permit->status = $permit->status + 1;
         $permitResult = $permit->save();
         if ($permitResult) {
+            $permitResult->fresh();
+            switch ($permit->status - 1)
+            {
+                case 1:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    $logStatus = LogsModel::setLog($user->EmployeeID,$permit->Id,2,18,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı yönetici tarafından onaylandı.','','','','','');
+                    break;
+                case 2:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    $logStatus = LogsModel::setLog($user->EmployeeID,$permit->Id,2,19,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı insan kaynakları personeli tarafından onaylandı.','','','','','');
+                    break;
+                case 3:
+                    $userEmployee = EmployeeModel::find($user->EmployeeID);
+                    $logStatus = LogsModel::setLog($user->EmployeeID,$permit->Id,2,20,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı evrak onay personeli tarafından onaylandı.','','','','','');
+                    break;
+            }
             return response([
                 'status' => true,
                 'message' => "Onay İşlemi Başarılı"
@@ -366,10 +398,16 @@ class PermitController extends ApiController
         $permit->active = 0;
 
         if ($permit->save())
+        {
+            $user = UserModel::find($request->userId);
+            $userEmployee = EmployeeModel::find($user->EmployeeID);
+            $logStatus = LogsModel::setLog($user->EmployeeID,$permit->id,3,16,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından silindi.','','','','','');
             return response([
                 'status' => true,
                 'message' => 'Silme işlemi başarılı'
             ],200);
+        }
+
     }
 
 

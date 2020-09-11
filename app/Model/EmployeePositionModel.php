@@ -18,7 +18,8 @@ class EmployeePositionModel extends Model
       'Department',
       'City',
       'District',
-      'Manager'
+      'Manager',
+      'Organization'
     ];
 
     public static function getPositionFields()
@@ -186,6 +187,11 @@ class EmployeePositionModel extends Model
 
     public function getManagerAttribute(){
         $manager = $this->hasOne(EmployeeModel::class,'Id','ManagerID');
+        return $manager->first();
+    }
+
+    public function getOrganizationAttribute(){
+        $manager = $this->hasOne(OrganizationModel::class,'id','OrganizationID');
         return $manager->first();
     }
 

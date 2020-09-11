@@ -35,19 +35,8 @@ class EmployeeModel extends Model
         'EmployeeBank',
         'Domain',
         'EmployeePosition',
-        'EmployeeGroup'
+        'AccessTypes'
     ];
-
-    public function getEmployeeGroupAttribute()
-    {
-        $groups = [];
-        $userGroups = $this->hasMany(EmployeeHasGroupModel::class, "EmployeeID", "Id")->get();
-        foreach ($userGroups as $userGroup) {
-            $group = UserGroupModel::find($userGroup->group_id);
-            $groups[$userGroup->group_id] = $group->name;
-        }
-        return $groups;
-    }
 
     public static function addEmployee($requestData)
     {
@@ -58,13 +47,20 @@ class EmployeeModel extends Model
         $employee->UsageName            = $requestData['UsageName'];
         $employee->LastName             = $requestData['LastName'];
         $employee->DomainID             = $requestData['DomainID'];
-        $employee->JobEmail             = $requestData['JobEmail'];
+        $employee->JobEmail             = isset($requestData['JobEmail']) ? $requestData['JobEmail'] : null;
         $employee->JobMobilePhone       = isset($requestData['JobMobilePhone'])  ? $requestData['JobMobilePhone'] : null;
         $employee->InterPhone           = isset($requestData['InterPhone'])  ? $requestData['InterPhone'] : null;
         $employee->ContractTypeID       = $requestData['ContractTypeID'];
 
         $employee->save();
         $employee = $employee->fresh();
+
+        if (isset($requestData['activedirectoryuserid']) && $requestData['activedirectoryuserid'] != null && $requestData['activedirectoryuserid'] != "")
+        {
+            $employeeUser = UserModel::find($requestData['activedirectoryuserid']);
+            $employeeUser->EmployeeID = $employee->Id;
+            $employeeUser->save();
+        }
 
         //Erişim Tiplerini Belirliyoruz.
         self::saveEmployeeAccessType($requestData['AccessTypes'],$employee->Id);
@@ -90,10 +86,11 @@ class EmployeeModel extends Model
     public static function getGeneralInformationsFields($employeeId)
     {
         $data = [];
-        $data['accesstypefield'] = UserGroupModel::all();
-        $data['contractypefield'] = ContractTypeModel::where('Active',1)->get();
-        $data['workingschedulefield'] = WorkingScheduleModel::all();
-        $data['domainfield'] = DomainModel::where('active', 1)->get();
+        $data['accesstypefield']        = UserGroupModel::all();
+        $data['contractypefield']       = ContractTypeModel::where('Active',1)->get();
+        $data['workingschedulefield']   = WorkingScheduleModel::all();
+        $data['domainfield']            = DomainModel::where('active', 1)->get();
+        $data['activedirectoryusers']   = UserModel::where(['active' => 1])->get();
 
         return $data;
 
@@ -115,6 +112,21 @@ class EmployeeModel extends Model
         $employee->ContractTypeID       = $requestData['contracttypeid'];
 
         self::saveEmployeeAccessType($requestData['accesstypes'],$employee->Id);
+        if (isset($requestData['activedirectoryuserid']) && $requestData['activedirectoryuserid'] != null && $requestData['activedirectoryuserid'] != "")
+        {
+            $employeeUser = UserModel::find($requestData['activedirectoryuserid']);
+            $employeeUser->EmployeeID = $employee->Id;
+            $employeeUser->save();
+        }
+        else{
+            $user = UserModel::where(['EmployeeID' => $employee->Id])->first();
+            if ($user)
+            {
+                $user->EmployeeID = null;
+                $user->save();
+            }
+        }
+
 
         if ($employee->save())
             return $employee->fresh();
@@ -499,77 +511,23 @@ class EmployeeModel extends Model
         }
     }
 
-
-    public static function LdapUserLogin($search,$username)
+    public function getAccessTypesAttribute()
     {
-        $userDetail = $search->in('DC=asay,DC=corp')->findBy('samaccountname', $username);
-
-        if($userDetail->useraccountcontrol[0]==66048 || $userDetail->useraccountcontrol[0]==66080  || $userDetail->useraccountcontrol[0]==512)
-            return true;
-        else
-            return false;
-    }
-
-
-    public static function createToken($data)
-    {
-        $tokenSearch = UserTokensModel::where("EmployeeID", $data["EmployeeID"]);
-        $Employee = self::find($data["EmployeeID"]);
-        $token = "";
-        if($Employee->multi_session==1)
+        $accessTypes = $this->hasMany(EmployeeHasGroupModel::class,"EmployeeID","Id")->where('active','=',1);
+        if ($accessTypes)
         {
-            if($tokenSearch->count()>0)
+            $accessTypeIDs = [];
+            foreach ($accessTypes->get() as $accessType)
             {
-                $tokenDetail = $tokenSearch->first();
-                if (self::tokenControl($tokenDetail->user_token)) {
-                    $token = $tokenDetail->user_token;
-                }
+                array_push($accessTypeIDs,$accessType->group_id);
             }
+            return $accessTypeIDs;
         }
-        if($token=="")
+        else
         {
-            $token = md5(bin2hex(openssl_random_pseudo_bytes(16)) . $data["email"]);
+            return "";
         }
-
-        if ($tokenSearch->first()) {
-            $tokenSearch->update(["user_token" => $token]);
-        } else {
-            $userToken = new UserTokensModel();
-            $userToken->EmployeeID = $data["EmployeeID"];
-            $userToken->user_token = $token;
-            $userToken->save();
-        }
-
-        return $token;
     }
 
-
-    public static function tokenControl($token)
-    {
-        global $asayData;
-        $tokenSearch = UserTokensModel::where("user_token", $token)->first();
-        if (!$tokenSearch) {
-            return false;
-        } else {
-
-            $date1 = strtotime($tokenSearch->updated_at);
-            $date2 = strtotime(date("Y-m-d H:i:s"));
-            $asayData["user_id"] = $tokenSearch->user_id;
-            $hours = abs($date2-$date1)/(60*60);
-            if ((int)$hours > 4) {
-                return false;
-            }
-        }
-
-        self::updateToken($token);
-        return true;
-    }
-
-    public static function updateToken($token)
-    {
-        $now = date("Y-m-d H:i:s");
-        $tokenSearch = UserTokensModel::where("user_token", $token);
-        $tokenSearch->update(["updated_at" => $now]);
-    }
 
 }
