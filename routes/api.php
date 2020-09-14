@@ -123,6 +123,7 @@ Route::namespace("Api")->group(function(){
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::get('employee/{id}', "EmployeeController@getEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_byid");
+            Route::get('employee/getEmployee', "EmployeeController@getEmployeeById2")->name("get_employee_byid2");
             Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_general_informations");
             Route::get('employee/general-informations/fields', "EmployeeController@getGeneralInformationFields")->name('fields_of_general_informations');
             Route::get('employee/position-informations/{id}', "PositionController@getJobPositionInformations")->where(['id' => '[0-9]+'])->name("get_employee_position_informations");

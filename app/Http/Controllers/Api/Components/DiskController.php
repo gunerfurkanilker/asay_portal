@@ -247,7 +247,7 @@ class DiskController extends ApiController
             'message' => 'Yükleme Başarılı',
         ],200);
     }
-
+    //Moduleıd yi string olarak dön
     public function addFile(Request $request)
     {
         $fileName   = md5(uniqid("", true));
@@ -308,7 +308,7 @@ class DiskController extends ApiController
         foreach ($groups as $group) {
             $rights[] = "G_".$group;
         }
-        
+
         return $rights;
     }
 

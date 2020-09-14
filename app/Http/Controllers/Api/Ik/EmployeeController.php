@@ -82,6 +82,24 @@ class EmployeeController extends ApiController
 
     }
 
+    public function getEmployeeById2(Request $request)
+    {
+        $employee = EmployeeModel::find($request->id);
+
+        if ($employee != null)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı.',
+                'data' => $employee,
+            ], 200);
+        else
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarısız.',
+            ], 200);
+
+    }
+
     public function saveEmployeesChild(Request $request)
     {
         $result = EmployeesChildModel::saveEmployeesChild($request);
@@ -166,9 +184,6 @@ class EmployeeController extends ApiController
     public function getGeneralInformationsOfEmployeeById($id)
     {
         $employee = EmployeeModel::find($id);
-        $activeDirectoryUser = UserModel::where(['EmployeeID' => $employee->Id])->first();
-        if ($activeDirectoryUser)
-            $employee->setAttribute('ActiveDirectoryUser',$activeDirectoryUser);
 
         if ($employee != null)
             return response([
