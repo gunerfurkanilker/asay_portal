@@ -220,6 +220,78 @@ class EmployeeModel extends Model
 
     }
 
+    public static function LdapUserLogin($search,$username)
+    {
+        $userDetail = $search->in('DC=asay,DC=corp')->findBy('samaccountname', $username);
+
+        if($userDetail->useraccountcontrol[0]==66048 || $userDetail->useraccountcontrol[0]==66080  || $userDetail->useraccountcontrol[0]==512)
+            return true;
+        else
+            return false;
+    }
+
+
+    public static function createToken($data)
+    {
+        $tokenSearch = UserTokensModel::where("EmployeeID", $data["EmployeeID"]);
+        $Employee = self::find($data["EmployeeID"]);
+        $token = "";
+        if($Employee->multi_session==1)
+        {
+            if($tokenSearch->count()>0)
+            {
+                $tokenDetail = $tokenSearch->first();
+                if (self::tokenControl($tokenDetail->user_token)) {
+                    $token = $tokenDetail->user_token;
+                }
+            }
+        }
+        if($token=="")
+        {
+            $token = md5(bin2hex(openssl_random_pseudo_bytes(16)) . $data["email"]);
+        }
+
+        if ($tokenSearch->first()) {
+            $tokenSearch->update(["user_token" => $token]);
+        } else {
+            $userToken = new UserTokensModel();
+            $userToken->EmployeeID = $data["EmployeeID"];
+            $userToken->user_token = $token;
+            $userToken->save();
+        }
+
+        return $token;
+    }
+
+
+    public static function tokenControl($token)
+    {
+        global $asayData;
+        $tokenSearch = UserTokensModel::where("user_token", $token)->first();
+        if (!$tokenSearch) {
+            return false;
+        } else {
+
+            $date1 = strtotime($tokenSearch->updated_at);
+            $date2 = strtotime(date("Y-m-d H:i:s"));
+            $asayData["user_id"] = $tokenSearch->user_id;
+            $hours = abs($date2-$date1)/(60*60);
+            if ((int)$hours > 4) {
+                return false;
+            }
+        }
+
+        self::updateToken($token);
+        return true;
+    }
+
+    public static function updateToken($token)
+    {
+        $now = date("Y-m-d H:i:s");
+        $tokenSearch = UserTokensModel::where("user_token", $token);
+        $tokenSearch->update(["updated_at" => $now]);
+    }
+
 
 
     public function getContractTypeAttribute()
