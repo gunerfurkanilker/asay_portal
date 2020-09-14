@@ -125,15 +125,14 @@ class PermitController extends ApiController
         {
             if ($request->permitId == null)
             {
-                $user = UserModel::find($request->userId);
-                $userEmployee = EmployeeModel::find($user->EmployeeID);
-                $logStatus = LogsModel::setLog($user->EmployeeID,$permit->id,3,15,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından oluşturuldu.','','','','','');
+
+                $userEmployee = EmployeeModel::find($request->Employee);
+                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,15,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından oluşturuldu.','','','','','');
             }
             else
             {
-                $user = UserModel::find($request->userId);
-                $userEmployee = EmployeeModel::find($user->EmployeeID);
-                $logStatus = LogsModel::setLog($user->EmployeeID,$permit->id,3,17,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından düzenlendi.','','','','','');
+                $userEmployee = EmployeeModel::find($request->Employee);
+                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,17,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından düzenlendi.','','','','','');
             }
             return response([
                 'status' => true,

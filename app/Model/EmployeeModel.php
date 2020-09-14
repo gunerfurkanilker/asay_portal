@@ -35,7 +35,8 @@ class EmployeeModel extends Model
         'EmployeeBank',
         'Domain',
         'EmployeePosition',
-        'AccessTypes'
+        'AccessTypes',
+        'EmployeeGroup'
     ];
 
     public static function addEmployee($requestData)
@@ -112,20 +113,6 @@ class EmployeeModel extends Model
         $employee->ContractTypeID       = $requestData['contracttypeid'];
 
         self::saveEmployeeAccessType($requestData['accesstypes'],$employee->Id);
-        if (isset($requestData['activedirectoryuserid']) && $requestData['activedirectoryuserid'] != null && $requestData['activedirectoryuserid'] != "")
-        {
-            $employeeUser = UserModel::find($requestData['activedirectoryuserid']);
-            $employeeUser->EmployeeID = $employee->Id;
-            $employeeUser->save();
-        }
-        else{
-            $user = UserModel::where(['EmployeeID' => $employee->Id])->first();
-            if ($user)
-            {
-                $user->EmployeeID = null;
-                $user->save();
-            }
-        }
 
 
         if ($employee->save())
@@ -290,6 +277,17 @@ class EmployeeModel extends Model
         $now = date("Y-m-d H:i:s");
         $tokenSearch = UserTokensModel::where("user_token", $token);
         $tokenSearch->update(["updated_at" => $now]);
+    }
+
+    public function getEmployeeGroupAttribute()
+    {
+        $groups = [];
+        $userGroups = $this->hasMany(EmployeeHasGroupModel::class, "EmployeeID", "Id")->get();
+        foreach ($userGroups as $userGroup) {
+            $group = UserGroupModel::find($userGroup->group_id);
+            $groups[$userGroup->group_id] = $group->name;
+        }
+        return $groups;
     }
 
 
