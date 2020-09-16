@@ -14,23 +14,38 @@ class EmergencyFieldModel extends Model
         'BloodType'
     ];
 
-    public static function saveEmergencyField($request, $emergencyFieldID)
+    public static function saveEmergencyField($request)
     {
-        $emergencyField = self::find($emergencyFieldID);
+        $emergencyPersonFirst   = EmergencyFieldModel::where(['EmployeeID' => $request->EmployeeID, 'Priority' => 1])->first();
+        $emergencyPersonSecond  = EmergencyFieldModel::where(['EmployeeID' => $request->EmployeeID, 'Priority' => 0])->first();
 
-        if ($emergencyField != null) {
-
-            $emergencyField->BloodTypeID = $request['bloodtype'];
-            $emergencyField->EmergencyPerson = $request['emergencyperson'];
-            $emergencyField->EPDegree = $request['emergencypersondegree'];
-            $emergencyField->EPGsm = $request['emergencypersonno'];
-
-            $emergencyField->save();
-
-            return $emergencyField->fresh();
+        if ($emergencyPersonFirst == null)
+        {
+            $emergencyPersonFirst = new EmergencyFieldModel();
+            $emergencyPersonFirst->EmployeeID = $request->EmployeeID;
+            $emergencyPersonFirst->Priority = 1;
         }
-        else
-            return false;
+
+        if ($emergencyPersonSecond == null)
+        {
+            $emergencyPersonSecond = new EmergencyFieldModel();
+            $emergencyPersonSecond->EmployeeID = $request->EmployeeID;
+            $emergencyPersonSecond->Priority = 0;
+        }
+
+        $emergencyPersonFirst->BloodTypeID          = $request->BloodTypeID;
+        $emergencyPersonFirst->EmergencyPerson      = $request->EmergencyPersonFirst ? $request->EmergencyPersonFirst : "";
+        $emergencyPersonFirst->EPDegree             = $request->EmergencyPersonRelationshipDegreeFirst ? $request->EmergencyPersonRelationshipDegreeFirst : "";
+        $emergencyPersonFirst->EPGsm                = $request->EmergencyPersonPhoneNoFirst ? $request->EmergencyPersonPhoneNoFirst : "";
+
+        $emergencyPersonSecond->BloodTypeID         = $request->BloodTypeID;
+        $emergencyPersonSecond->EmergencyPerson     = $request->EmergencyPersonSecond ? $request->EmergencyPersonSecond : "";
+        $emergencyPersonSecond->EPDegree            = $request->EmergencyPersonRelationshipDegreeSecond ? $request->EmergencyPersonRelationshipDegreeSecond : "";
+        $emergencyPersonSecond->EPGsm               = $request->EmergencyPersonPhoneNoSecond ? $request->EmergencyPersonPhoneNoSecond : "";
+
+
+        return $emergencyPersonFirst->save() && $emergencyPersonSecond->save() ? true : false;
+
     }
 
     public static function addEmergencyField($request,$employee)

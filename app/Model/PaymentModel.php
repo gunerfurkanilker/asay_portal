@@ -48,7 +48,7 @@ class PaymentModel extends Model
     {
         $employee = EmployeeModel::find($request['EmployeeID']);
         $additionalPayments = $request['AdditionalPayments'];
-        if ($request['PaymentID'] == null){
+        if ($request['PaymentID'] == null || !isset($request['PaymentID'])){
             $currentPayment = self::checkCurrentPayment($request['EmployeeID']);
 
 
@@ -75,8 +75,8 @@ class PaymentModel extends Model
             {
                 AdditionalPaymentModel::create([
                     'Pay' => $additionalPayment['Pay'],
-                    'PayPeriodID' => $additionalPayment['PayPeriod'],
-                    'PayMethod' => $additionalPayment['PayMethod'],
+                    'PayPeriodID' => $additionalPayment['PayPeriodID'],
+                    'PayMethodID' => $additionalPayment['PayMethodID'],
                     'AdditionalPaymentTypeID' => $additionalPayment['AdditionalPaymentTypeID'],
                     'PaymentID' => $salary->Id,
                     'AddPayroll' => $additionalPayment['AddPayroll'] ? 1 : 0,

@@ -149,7 +149,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/ssi/fields', "SocialSecurityInformationController@getSSInformationFields")->name("get_ssi_fields");
             Route::get('employee/ssi/{id}', "SocialSecurityInformationController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
             //Route::get('employee/bank/fields', "EmployeeBankController@getSSInformationFields")->name("get_ssi_fields");
-            Route::get('employee/bank/{id}', "EmployeeBankController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
+            Route::get('employee/bank', "EmployeeBankController@getEmployeeBankInformations")->name("get_employee_bank");
             Route::get('employee/children', "EmployeeController@getEmployeesChildren")->where(['id' => '[0-9]+'])->name("get_employees_children");
             Route::get('employee/activeDirectoryAccount', "EmployeeController@getEmployeesActiveDirectoryAccount")->name("get_employees_activeDirectoryAccount");
 

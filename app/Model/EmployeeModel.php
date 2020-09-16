@@ -32,11 +32,11 @@ class EmployeeModel extends Model
         "BodyMeasurements",
         'IDCard',
         'SocialSecurityInformation',
-        'EmployeeBank',
         'Domain',
         'EmployeePosition',
         'AccessTypes',
-        'EmployeeGroup'
+        'EmployeeGroup',
+        'BankAccount'
     ];
 
     public static function addEmployee($requestData)
@@ -91,7 +91,6 @@ class EmployeeModel extends Model
         $data['contractypefield']       = ContractTypeModel::where('Active',1)->get();
         $data['workingschedulefield']   = WorkingScheduleModel::all();
         $data['domainfield']            = DomainModel::where('active', 1)->get();
-        $data['activedirectoryusers']   = UserModel::where(['active' => 1])->get();
 
         return $data;
 
@@ -529,19 +528,6 @@ class EmployeeModel extends Model
         }
     }
 
-    public function getEmployeeBankAttribute()
-    {
-        $employeeBank = $this->hasOne(EmployeeBankModel::class,"Id","EmployeeBankID");
-        if ($employeeBank)
-        {
-            return $employeeBank->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
     public function getLocationAttribute()
     {
         $location = $this->hasOne(LocationModel::class,"Id","LocationID");
@@ -574,6 +560,19 @@ class EmployeeModel extends Model
         if ($position)
         {
             return $position->where(['Active' => 2])->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getBankAccountAttribute()
+    {
+        $bankAccount = $this->hasOne(BankAccountTypeModel::class,"Id","AccountType");
+        if ($bankAccount)
+        {
+            return $bankAccount->where(['Active' => 1])->first();
         }
         else
         {

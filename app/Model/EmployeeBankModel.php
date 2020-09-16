@@ -9,43 +9,60 @@ class EmployeeBankModel extends Model
     protected $primaryKey = "Id";
     protected $table = 'EmployeeBank';
     public $timestamps = false;
-    protected $guarded = [];
+    protected $guarded = [
+        'AccountType'
+    ];
 
-    public static function saveEmployeeBank($request, $employeeBank)
+    public static function saveEmployeeBank($request)
     {
-        $employeeBank = self::find($employeeBank);
 
-        if ($employeeBank != null) {
+        $paymentAccount          = EmployeeBankModel::where(['EmployeeID' => $request->EmployeeID, 'AccountTypeID' => 1])->first();
+        $personalAccount         = EmployeeBankModel::where(['EmployeeID' => $request->EmployeeID, 'AccountTypeID' => 2])->first();
+        $jobAllowanceAccount     = EmployeeBankModel::where(['EmployeeID' => $request->EmployeeID, 'AccountTypeID' => 3])->first();
 
-            $employeeBank->BankName = $request['bankname'];
-            $employeeBank->AccountNo = $request['accountno'];
-            $employeeBank->IBAN = $request['iban'];
-
-
-            $employeeBank->save();
-
-            return $employeeBank->fresh();
-        }
-        else
-            return false;
-    }
-
-    public static function addEmployeeBank($request,$employee)
-    {
-        $employeeBank = self::create([
-            'BankName' => $request['bankname'],
-            'AccountNo' => $request['accountno'],
-            'IBAN' => $request['iban']
-        ]);
-
-        if ($employeeBank != null)
+        if ($paymentAccount == null)
         {
-            $employee->EmployeeBankID = $employeeBank->Id;
-            $employee->save();
-            return $employeeBank;
+            $paymentAccount = new EmployeeBankModel();
+            $paymentAccount->AccountTypeID = 1;
+            $paymentAccount->EmployeeID = $request->Employee;
+        }
+        if ($personalAccount == null)
+        {
+            $personalAccount = new EmployeeBankModel();
+            $personalAccount->AccountTypeID = 2;
+            $personalAccount->EmployeeID = $request->Employee;
+        }
+        if ($jobAllowanceAccount == null)
+        {
+            $jobAllowanceAccount = new EmployeeBankModel();
+            $jobAllowanceAccount->AccountTypeID = 3;
+            $jobAllowanceAccount->EmployeeID = $request->Employee;
         }
 
-        else
-            return false;
+        $paymentAccount->BankName   = ((object)$request->PaymentAccount)->BankName;
+        $paymentAccount->AccountNo  = ((object)$request->PaymentAccount)->AccountNo;
+        $paymentAccount->IBAN       = ((object)$request->PaymentAccount)->IBAN;
+
+        $personalAccount->BankName   = ((object)$request->PersonalAccount)->BankName;
+        $personalAccount->AccountNo  = ((object)$request->PersonalAccount)->AccountNo;
+        $personalAccount->IBAN       = ((object)$request->PersonalAccount)->IBAN;
+
+        $jobAllowanceAccount->BankName   = ((object)$request->JobAllowanceAccount)->BankName;
+        $jobAllowanceAccount->AccountNo  = ((object)$request->JobAllowanceAccount)->AccountNo;
+        $jobAllowanceAccount->IBAN       = ((object)$request->JobAllowanceAccount)->IBAN;
+
+        return $paymentAccount->save() && $personalAccount->save() && $jobAllowanceAccount->save() ? true : false;
+
     }
+
+    public function getAccountTypeAttribute(){
+        $accountType = $this->hasOne(BankAccountTypeModel::class,'id','AccountTypeID');
+        if ($accountType)
+        {
+            $accountType->first();
+        }
+        else
+            return null;
+    }
+
 }
