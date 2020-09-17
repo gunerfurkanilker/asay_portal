@@ -16,23 +16,24 @@ class SocialSecurityInformationModel extends Model
         'ObjectFile'
     ];
 
-    public static function saveSocialSecurityInformation($request, $socialSecurityInformationID)
+    public static function saveSocialSecurityInformation($request)
     {
-        $socialSecurityInformation = self::find($socialSecurityInformationID);
+        $employee = EmployeeModel::find($request->EmployeeID);
+        $socialSecurityInformation = self::where("EmployeeID",$request->EmployeeID)->first();
 
-        if ($socialSecurityInformation != null) {
+        if ($socialSecurityInformation == null)
+            $socialSecurityInformation = new SocialSecurityInformationModel();
 
-            $socialSecurityInformation->SSICreateDate = new Carbon($request->sgkcreatedate);
-            $socialSecurityInformation->SSINo = $request->sgkno;
-            $socialSecurityInformation->SSIRecord = $request->sgkrecord;
-            $socialSecurityInformation->FirstLastName = $request->firstlastname;
-            $socialSecurityInformation->DisabledDegreeID = $request->disableddegree;
-            $socialSecurityInformation->DisabledReport = $request->disabledreport;
-            $socialSecurityInformation->JobCodeID = $request->jobcode;
-            $socialSecurityInformation->JobDescription = $request->jobdescription;
-            $socialSecurityInformation->CriminalRecord = $request->criminalrecord;
-            $socialSecurityInformation->ConvictRecord = $request->convictrecord;
-            $socialSecurityInformation->TerrorismComp = $request->terrorismcomp;
+            $socialSecurityInformation->SSICreateDate       = $request->SSICreateDate;
+            $socialSecurityInformation->SSINo               = $request->SSINo;
+            $socialSecurityInformation->SSIRecord           = $request->SSIRecord;
+            $socialSecurityInformation->FirstLastName       = $request->FirstLastName;
+            $socialSecurityInformation->DisabledDegreeID    = $request->DisabledDegreeID;
+            $socialSecurityInformation->JobCodeID           = $request->JobCodeID;
+            $socialSecurityInformation->JobDescription      = $request->JobDescription;
+            $socialSecurityInformation->CriminalRecord      = $request->CriminalRecord;
+            $socialSecurityInformation->ConvictRecord       = $request->ConvictRecord;
+            $socialSecurityInformation->TerrorismComp       = $request->TerrorismComp;
             $result = $socialSecurityInformation->save();
 
             if ($result && $request->hasFile('disability_file')) {
@@ -43,47 +44,36 @@ class SocialSecurityInformationModel extends Model
 
                     'multipart' => [
                         [
-                            'name' => 'token',
-                            'contents' => $request->token
-                        ],
-                        [
-                            'name' => 'ObjectType',
-                            'contents' => 6 // Mezuniyet Belgesi
-                        ],
-                        [
-                            'name' => 'ObjectTypeName',
-                            'contents' => 'Disability'
-                        ],
-                        [
-                            'name' => 'ObjectId',
-                            'contents' => $socialSecurityInformation->Id
-                        ],
-                        [
                             'name' => 'file',
                             'contents' => $file,
-                            'filename' => 'mezuniyet_belgesi_' . $socialSecurityInformation->Id . '.' . $request->disability_file->getClientOriginalExtension()
+                            'filename' => 'DisabilityDoc_' . $employee->Id . '.' . $request->disability_file->getClientOriginalExtension()
                         ],
+                        [
+                            'name' => 'moduleId',
+                            'contents' => 'socialsecurity'
+                        ],
+                        [
+                            'name' => 'token',
+                            'contents' => $request->token
+                        ]
 
                     ],
                 ];
 
                 $client = new \GuzzleHttp\Client();
-                $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
+                $res = $client->request("POST", 'http://portal.asay.com.tr/api/disk/addFile', $guzzleParams);
                 $responseBody = json_decode($res->getBody());
 
-                if ($responseBody->status == false)
-                    return false;
-                else {
-                    return $socialSecurityInformation;
+                if ($responseBody->status == true)
+                {
+                    $socialSecurityInformation->DisabledReport = $responseBody->data;
+                    $socialSecurityInformation->save();
                 }
 
 
             }
 
-            return $socialSecurityInformation->fresh();
-        }
-        else
-            return false;
+            return $result;
     }
 
     public static function addSocialSecurityInformation($request,$employee)

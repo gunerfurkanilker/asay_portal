@@ -18,29 +18,18 @@ class EducationController extends ApiController
 
     public function saveEducation(Request $request)
     {
-        if ($request->EducationID != null)
-            $education = EducationModel::saveEducation($request);
-        else
-        {
-            $education = EducationModel::addEducation($request);
+        $status = EducationModel::saveEducation($request);
+
+        if ($status)
             return response([
                 'status' => true,
-                'message' => 'Augustus'
-            ],200);
-        }
-
-
-            if ($education)
-                return response([
-                    'status' => true,
-                    'message' => 'İşlem Başarılı',
-                    'data' =>$education
-                ],200);
-            else
-                return response([
-                    'status' => false,
-                    'message' => "İşlem Başarısız.",'data' => $request->EducationID
-                ],200);
+                'message' => 'İşlem Başarılı'
+            ], 200);
+        else
+            return response([
+                'status' => false,
+                'message' => "İşlem Başarısız.", 'data' => $request->EducationID
+            ], 200);
 
     }
 
@@ -50,22 +39,21 @@ class EducationController extends ApiController
 
         $extension = $file->getClientOriginalExtension();
 
-        if ($extension != 'pdf')
-        {
+        if ($extension != 'pdf') {
             return response([
                 'status' => false,
                 'message' => "Desteklenmeyen Dosya Formatı.",
                 'data' => $request->file('blob')->getClientOriginalExtension()
-            ],200);
+            ], 200);
         }
 
-        $uploadFilePath = DocumentFileModel::uploadEducationDocument($file,$request->employeeID);
+        $uploadFilePath = DocumentFileModel::uploadEducationDocument($file, $request->employeeID);
 
         return response([
             'status' => false,
             'message' => "Dosya Başarıyla Yüklendi",
             'data' => $uploadFilePath
-        ],200);
+        ], 200);
 
     }
 
@@ -78,21 +66,21 @@ class EducationController extends ApiController
                 'status' => false,
                 'message' => 'Eğitim Bilgisi Bulunamadı!',
                 'data' => null
-            ],200);
-        else
-        {
+            ], 200);
+        else {
             $education = EducationModel::where(['EmployeeID' => $employee->EducationID, 'Active' => 1])->get();
 
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
                 'data' => $education
-            ],200);
+            ], 200);
         }
 
     }
 
-    public function downloadEducationDocument(Request $request){
+    public function downloadEducationDocument(Request $request)
+    {
         $request = $request->all();
 
         $employee = EmployeeModel::find($request['employeeid']);
@@ -113,11 +101,12 @@ class EducationController extends ApiController
             'status' => true,
             'message' => "İşlem Başarılı.",
             'data' => $fields
-        ],200);
+        ], 200);
 
     }
 
-    public function deleteEducation(Request $request){
+    public function deleteEducation(Request $request)
+    {
 
         $education = EducationModel::find($request->EducationID);
 
@@ -125,8 +114,7 @@ class EducationController extends ApiController
         $objectFile = ObjectFileModel::where(['ObjectType' => 5, 'ObjectId' => $education->Id])->first();
 
         $education->Active = 0;
-        if ($objectFile)
-        {
+        if ($objectFile) {
             $objectFile->Active = 0;
             $objectFile->save();
         }
@@ -136,12 +124,12 @@ class EducationController extends ApiController
             return response([
                 'status' => true,
                 'message' => 'Silme İşlemi Başarılı'
-            ],200);
+            ], 200);
 
         return response([
             'status' => false,
             'message' => 'Silme İşlemi Başarısız'
-        ],200);
+        ], 200);
 
     }
 

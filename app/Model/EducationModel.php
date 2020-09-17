@@ -20,117 +20,56 @@ class EducationModel extends Model
     public static function saveEducation($request)
     {
         $education = EducationModel::find($request->EducationID);
-        if ($education != null) {
-            $education->EmployeeID = $request->EmployeeID;
-            $education->StatusID = $request->EducationStatus;
-            $education->Institution = $request->Institution;
-            $education->LevelID = $request->EducationLevel;
-            $result = $education->save();
 
-            if ($result && $request->hasFile('education_file')) {
+        if ($education == null)
+            $education = new EducationModel();
 
+        $employee = EmployeeModel::find($request->EmployeeID);
 
-                $file = file_get_contents($request->education_file->path());
-                $guzzleParams = [
-
-                    'multipart' => [
-                        [
-                            'name' => 'token',
-                            'contents' => $request->token
-                        ],
-                        [
-                            'name' => 'ObjectType',
-                            'contents' => 5 // Mezuniyet Belgesi
-                        ],
-                        [
-                            'name' => 'ObjectTypeName',
-                            'contents' => 'Education'
-                        ],
-                        [
-                            'name' => 'ObjectId',
-                            'contents' => $education->Id
-                        ],
-                        [
-                            'name' => 'file',
-                            'contents' => $file,
-                            'filename' => 'mezuniyet_belgesi_' . $education->Id . '.' . $request->education_file->getClientOriginalExtension()
-                        ],
-
-                    ],
-                ];
-
-                $client = new \GuzzleHttp\Client();
-                $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
-                $responseBody = json_decode($res->getBody());
-
-                if ($responseBody->status == false)
-                    return false;
-
-            }
-
-            return $education->fresh();
-        } else
-            return false;
-    }
-
-    public static function addEducation($request)
-    {
-        $education = new EducationModel();
         $education->EmployeeID = $request->EmployeeID;
         $education->StatusID = $request->EducationStatus;
         $education->Institution = $request->Institution;
         $education->LevelID = $request->EducationLevel;
         $result = $education->save();
-        if ($result) {
-            if ($request->hasFile('education_file')) {
 
-                $file = file_get_contents($request->education_file->path());
-                $guzzleParams = [
+        if ($result && $request->hasFile('education_file')) {
 
-                    'multipart' => [
-                        [
-                            'name' => 'token',
-                            'contents' => $request->token
-                        ],
-                        [
-                            'name' => 'ObjectType',
-                            'contents' => 5 // Mezuniyet Belgesi
-                        ],
-                        [
-                            'name' => 'ObjectTypeName',
-                            'contents' => 'Education'
-                        ],
-                        [
-                            'name' => 'ObjectId',
-                            'contents' => $education->Id
-                        ],
-                        [
-                            'name' => 'file',
-                            'contents' => $file,
-                            'filename' => 'mezuniyet_belgesi_' . $education->Id . '.' . $request->education_file->getClientOriginalExtension()
-                        ],
 
+            $file = file_get_contents($request->education_file->path());
+            $guzzleParams = [
+
+                'multipart' => [
+                    [
+                        'name' => 'file',
+                        'contents' => $file,
+                        'filename' => 'GraduationDoc_' . $employee->Id . '.' . $request->education_file->getClientOriginalExtension()
                     ],
-                ];
+                    [
+                        'name' => 'moduleId',
+                        'contents' => 'education'
+                    ],
+                    [
+                        'name' => 'token',
+                        'contents' => $request->token
+                    ]
 
-                $client = new \GuzzleHttp\Client();
-                $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
-                $responseBody = json_decode($res->getBody());
+                ],
+            ];
 
-                if ($responseBody->status == false)
-                    return $responseBody;
-                else {
-                    return $education;
-                }
+            $client = new \GuzzleHttp\Client();
+            $res = $client->request("POST", 'http://portal.asay.com.tr/api/disk/addFile', $guzzleParams);
+            $responseBody = json_decode($res->getBody());
 
-
+            if ($responseBody->status == true)
+            {
+                $education->EducationFile = $responseBody->data;
+                $education->save();
             }
-            return $education;
-
 
         }
-        else
-            return false;
+
+        return $result;
+
     }
 
     public static function getEducationFields()
@@ -157,7 +96,7 @@ class EducationModel extends Model
     public function getObjectFileAttribute()
     {
         $document = $this->hasOne(ObjectFileModel::class, "ObjectId", "Id");
-        return $document->where(['Active' => 1,'ObjectType' => 5])->first();
+        return $document->where(['Active' => 1, 'ObjectType' => 5])->first();
     }
 
 }
