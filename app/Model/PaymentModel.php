@@ -18,14 +18,13 @@ class PaymentModel extends Model
         "PayMethod"
     ];
 
-    public static function checkCurrentPayment($employeeID){
+    public static function checkCurrentPayment($employeeID)
+    {
 
-        $payments = self::where('EmployeeID',$employeeID)->get();
+        $payments = self::where('EmployeeID', $employeeID)->get();
 
-        foreach ($payments as $payment)
-        {
-            if ($payment->EndDate == null)
-            {
+        foreach ($payments as $payment) {
+            if ($payment->EndDate == null) {
                 return $payment;
             }
         }
@@ -48,7 +47,7 @@ class PaymentModel extends Model
     {
         $employee = EmployeeModel::find($request['EmployeeID']);
         $additionalPayments = $request['AdditionalPayments'];
-        if ($request['PaymentID'] == null || !isset($request['PaymentID'])){
+        if ($request['PaymentID'] == null || !isset($request['PaymentID'])) {
             $currentPayment = self::checkCurrentPayment($request['EmployeeID']);
 
 
@@ -59,20 +58,18 @@ class PaymentModel extends Model
                 'CurrencyID' => $request['CurrencyID'],
                 'StartDate' => $request['StartDate'],
                 'PayPeriodID' => $request['PayPeriod'],
-                'PayMethodID' => $request['PayMethod'] ? 2:1,
-                'LowestPayID' => $request['LowestPay'] ? 1:0,
+                'PayMethodID' => $request['PayMethod'] ? 2 : 1,
+                'LowestPayID' => $request['LowestPay'] ? 1 : 0,
             ]);
 
-            if ($currentPayment != null)
-            {
+            if ($currentPayment != null) {
                 $currentPayment->EndDate = $salary->StartDate;
                 $currentPayment->save();
             }
 
             $additionalPayments = $request['AdditionalPayments'];
 
-            foreach ($additionalPayments as $additionalPayment)
-            {
+            foreach ($additionalPayments as $additionalPayment) {
                 AdditionalPaymentModel::create([
                     'Pay' => $additionalPayment['Pay'],
                     'PayPeriodID' => $additionalPayment['PayPeriodID'],
@@ -88,9 +85,7 @@ class PaymentModel extends Model
 
             $employee->PaymentID = $salary->Id;
             $employee->save();
-        }
-        else
-        {
+        } else {
 
             $salary = PaymentModel::find($request['PaymentID']);
 
@@ -99,33 +94,51 @@ class PaymentModel extends Model
             $salary->StartDate = $request['StartDate'];
             $salary->PayPeriodID = $request['PayPeriod'];
             $salary->PayMethodID = $request['PayMethod'] ? 2 : 1;
-            $salary->LowestPayID = $request['LowestPay'] ? 1 : 0 ;
+            $salary->LowestPayID = $request['LowestPay'] ? 1 : 0;
 
+            $allAdditionalPaymentTypeIDs = [1, 2, 3, 4, 5];
+            $currentAdditionalPaymentIDs = [];
+            foreach ($additionalPayments as $additionalPayment) {
+                if (isset($additionalPayment['Id']))
+                    $tempPayment = AdditionalPaymentModel::find($additionalPayment['Id']);
+                else
+                    $tempPayment = new AdditionalPaymentModel();
 
-            foreach ($additionalPayments as $additionalPayment)
-            {
-                $tempPayment = AdditionalPaymentModel::find($additionalPayment['Id']);
+                $tempPayment->Pay = $additionalPayment['Pay'];
+                $tempPayment->PaymentID = $salary->Id;
+                $tempPayment->CurrencyID = $additionalPayment['CurrencyID'];
+                $tempPayment->PayMethodID = $additionalPayment['PayMethodID'];
+                $tempPayment->AdditionalPaymentTypeID = $additionalPayment['AdditionalPaymentTypeID'];
+                $tempPayment->AddPayroll = $additionalPayment['AddPayroll'];
+                $tempPayment->PayPeriodID = $additionalPayment['PayPeriodID'];
+                $tempPayment->Description = $additionalPayment['Description'];
 
-                $tempPayment->Pay           = $additionalPayment['Pay'];
-                $tempPayment->CurrencyID    = $additionalPayment['CurrencyID'];
-                $tempPayment->PayMethodID   = $additionalPayment['PayMethodID'];
-                $tempPayment->AddPayroll    = $additionalPayment['AddPayroll'];
-                $tempPayment->PayPeriodID   = $additionalPayment['PayPeriodID'];
-                $tempPayment->Description   = $additionalPayment['Description'];
+                array_push($currentAdditionalPaymentIDs, $additionalPayment['AdditionalPaymentTypeID']);
 
                 $tempPayment->save();
 
             }
+
+            $diffs = array_diff($allAdditionalPaymentTypeIDs, $currentAdditionalPaymentIDs);
+
+            foreach ($diffs as $diff) {
+                $tempAPayment = AdditionalPaymentModel::where(['PaymentID' => $salary->Id, 'AdditionalPaymentTypeID' => $diff])->first();
+                if (!$tempAPayment)
+                    continue;
+                $tempAPayment->Active = 0;
+                $tempAPayment->save();
+            }
+
 
             $salary->save();
 
         }
 
 
-        return $salary->fresh();
+        return $salary;
     }
 
-    public static function editPayment($payment,$request)
+    public static function editPayment($payment, $request)
     {
         $payment->EmployeeID = $request['employeeid'];
         $payment->Pay = $request['pay'];
@@ -134,8 +147,8 @@ class PaymentModel extends Model
         $payment->StartDate = new Carbon($request['startdate']);
         $payment->EndDate = new Carbon($request['enddate']);
         $payment->PayPeriodID = $request['payperiod'];
-        $payment->PayMethodID = $request['paymethod'] ? 2:1;
-        $payment->LowestPayID = $request['lowestpay'] ? 1:0;
+        $payment->PayMethodID = $request['paymethod'] ? 2 : 1;
+        $payment->LowestPayID = $request['lowestpay'] ? 1 : 0;
         if ($payment->save())
             return $payment->fresh();
         else
@@ -144,16 +157,20 @@ class PaymentModel extends Model
 
     public static function deletePayment($id)
     {
-        $position = PaymentModel::find($id);
-        try
+        $payment = PaymentModel::find($id);
+
+        $payment->Active = 0;
+
+        $additionalPayments = AdditionalPaymentModel::where('PaymentID',$id)->get();
+
+        foreach($additionalPayments as $additionalPayment)
         {
-            $position->delete();
-            return true;
+            $additionalPayment->Active = 0;
+            $additionalPayment->save();
         }
-        catch(\Exception $e)
-        {
-            return $e->getMessage();
-        }
+
+        return $payment->save();
+
 
     }
 

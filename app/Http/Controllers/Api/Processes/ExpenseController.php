@@ -269,48 +269,38 @@ class ExpenseController extends ApiController
 
                 'multipart' =>[
                     [
-                        'name' => 'token',
-                        'contents' => $request->token
-                    ],
-                    [
-                        'name' => 'ObjectType',
-                        'contents' => 1 // Harcama Masraf
-                    ],
-                    [
-                        'name' => 'ObjectTypeName',
-                        'contents' =>  'Expense'
-                    ],
-                    [
-                        'name' => 'ObjectId',
-                        'contents' => $expenseDocument->id
-                    ],
-                    [
                         'name' => 'file',
                         'contents' => $file,
-                        'filename' => 'harcama_' . $expenseDocument->expense_id . '_' . $expenseDocument->id . '.' . $request->expense_document_file->getClientOriginalExtension()
+                        'filename' => 'ExpenseDocumentDoc_'.$expenseDocument->id.'.'.$request->expense_document_file->getClientOriginalExtension()
                     ],
+                    [
+                        'name' => 'moduleId',
+                        'contents' => 'expensedocument'
+                    ],
+                    [
+                        'name' => 'token',
+                        'contents' => $request->token
+                    ]
 
                 ],
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res    = $client->request("POST",'http://lifi.asay.com.tr/connectUpload',$guzzleParams);
+            $res    = $client->request("POST",'http://portal.asay.com.tr/api/disk/addFile',$guzzleParams);
             $responseBody = json_decode($res->getBody());
 
-            if ($responseBody->status == false)
-                return response([
-                    'status' => false,
-                    'message' => 'Dosya Yükleme İşlemi Başarısız Oldu',
-                ],200);
-            else
+            if ($responseBody->status == true)
             {
-                return response([
-                    'status' => true,
-                    'message' => "Belge Kaydı Yapıldı",
-                    'data' => ExpenseDocumentModel::find($expenseDocument->id)
-                ], 200);
+                $expenseDocument->file = $responseBody->data;
+                $expenseDocument->save();
             }
 
+
+            return response([
+                'status' => true,
+                'message' => "Kayıt Başarılı",
+                'data' => ExpenseDocumentModel::find($expenseDocument->id)
+            ], 200);
 
         }
 
@@ -345,7 +335,7 @@ class ExpenseController extends ApiController
         $requestArray = $request->all();
         $documentElement->document_id        = $request->documentId;
         $documentElement->expense_account    = $requestArray['expense_account'];
-        $documentElement->car_id             = $requestArray['carId'];
+        $documentElement->car_plate          = $requestArray['carPlate'];
         $documentElement->content            = $requestArray['content'];
         $documentElement->quantity           = $requestArray['quantity'];
         $documentElement->kdv                = $requestArray['kdv'];

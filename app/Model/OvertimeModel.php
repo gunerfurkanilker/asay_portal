@@ -1042,22 +1042,22 @@ table, th, td {
         $assignedEmployeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
         $assignedEmployeesManager = EmployeeModel::find($assignedEmployeePosition->ManagerID);
         $isgPositions = EmployeePositionModel::where(['Active' => 2,'RegionID' => $assignedEmployeePosition->RegionID])->get();
-        $mailString = "";
+        $mailToArray = [];
         $isgGroupIDs = [];
 
         foreach ($isgPositions as $isgPosition){
-            $userIsg = EmployeeModel::where(['EmployeeID' => $isgPosition->EmployeeID])->first();
+            $userIsg = EmployeeModel::where(['Id' => $isgPosition->EmployeeID])->first();
             $hasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $isgPosition->Id, 'group_id' => 24, 'active' => 1])->first();
             if ($hasGroup)
             {
-                $mailString == "" ? $mailString = $mailString . $userIsg->JobEmail :  $mailString = $mailString .','.$userIsg->JobEmail;
+                array_push($mailToArray,$isgPosition->JobEmail);
             }
 
         }
         $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
         $objectFile = ObjectFileModel::where(['ObjectType' => 4, 'ObjectId' => $overtimeRecord->id, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
-        Asay::sendMail($mailString, "", "Fazla çalışma çalışan tarafından onaylandı.", 'Fazla çalışma, çalışan tarafından onaylandı.' . '
+        Asay::sendMail($mailToArray, "", "Fazla çalışma çalışan tarafından onaylandı.", 'Fazla çalışma, çalışan tarafından onaylandı.' . '
 <html lang="en">
 <head>
 <title>Fazla Mesai Mail</title>
@@ -1383,36 +1383,31 @@ table, th, td {
 
                 'multipart' => [
                     [
-                        'name' => 'token',
-                        'contents' => $overtimeRequest->token
-                    ],
-                    [
-                        'name' => 'ObjectType',
-                        'contents' => 4 // Harcama Masraf
-                    ],
-                    [
-                        'name' => 'ObjectTypeName',
-                        'contents' => 'Overtime'
-                    ],
-                    [
-                        'name' => 'ObjectId',
-                        'contents' => $overtimeRecord->id
-                    ],
-                    [
                         'name' => 'file',
                         'contents' => $file,
-                        'filename' => 'fazla_calisma_' . $overtimeRecord->id . '.' . $overtimeRequest->WorkingReport->getClientOriginalExtension()
+                        'filename' => 'IDCardPhoto_'.$overtimeRecord->Id.'.'. $overtimeRequest->WorkingReport->getClientOriginalExtension()
                     ],
+                    [
+                        'name' => 'moduleId',
+                        'contents' => 'overtime'
+                    ],
+                    [
+                        'name' => 'token',
+                        'contents' => $overtimeRequest->token
+                    ]
 
                 ],
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("POST", 'http://lifi.asay.com.tr/connectUpload', $guzzleParams);
+            $res = $client->request("POST", 'http://portal.asay.com.tr/api/disk/addFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
-            if ($responseBody->status == false)
-                return ['status' => false, 'message' => 'Belge yüklenirken bir hata oluştu'];
+            if ($responseBody->status == true)
+            {
+                $overtimeRecord->File = $responseBody->data;
+                $overtimeRecord->save();
+            }
         }
 
         $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
@@ -1421,7 +1416,6 @@ table, th, td {
         $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $objectFile = ObjectFileModel::where(['ObjectType' => 4, 'ObjectId' => $overtimeRecord->id, 'EmployeeID' => $overtimeRecord->AssignedID])->first();
         Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma tamamlandı.", 'Fazla çalışma, ' . $employee->UsageName . ' ' . $employee->LastName . ' tarafından tamamlandı. İlgili fazla çalışma onayınızı beklemektedir.' . '
 <html lang="en">
 <head>
@@ -1551,16 +1545,6 @@ table, th, td {
   <tr>
     <td colspan="2">
         ' . $overtimeRecord->Description  . '
-    </td>
-  </tr>
-  <tr style="background-color: rgb(0,31,91);color:white">
-    <td  colspan="2">
-        <b>Çalışma Belgesi Linki</b>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2">
-        ' . $objectFile->File  . '
     </td>
   </tr>
 </table>

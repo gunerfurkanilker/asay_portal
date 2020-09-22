@@ -13,63 +13,41 @@ class LocationController extends ApiController
 {
     public function saveLocation(Request $request)
     {
-        $requestData = $request->all();
-        $employee = EmployeeModel::find($requestData['employeeid']);
-       if (!is_null($employee))
-       {
-            if ($employee->LocationID != null)
-                $location = LocationModel::saveLocation($requestData,$employee->LocationID);
-            else
-                $location = LocationModel::addLocation($requestData,$employee);
+        $location = LocationModel::saveLocation($request);
 
-            if ($location)
-                return response([
-                    'status' => true,
-                    'message' => $location->Id . " ID No'lu Lokasyon Kaydedildi",
-                    'data' =>$location
-                ],200);
-            else
-                return response([
-                    'status' => false,
-                    'message' => "İşlem Başarısız.",
-                    'data' =>''.$location
-                ],200);
-       }
-       else
-       {
-        return response([
-            'status' => false,
-            'message' => $employeeId. " ID No'lu Çalışan bulunamadı."
-        ],200);
-       }
-    }
-
-    public function getLocation($id){
-        $employee = EmployeeModel::find($id);
-
-        if ($employee->LocationID == null)
+        if ($location)
             return response([
                 'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => null
-            ],200);
+                'message' =>"İşlem Başarılı",
+                'data' => $location
+            ], 200);
         else
             return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => LocationModel::find($employee->LocationID)
-            ],200);
+                'status' => false,
+                'message' => "İşlem Başarısız.",
+                'data' => '' . $location
+            ], 200);
+    }
+
+    public function getLocation($id)
+    {
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => LocationModel::where("EmployeeID", $id)->first()
+        ], 200);
 
     }
 
-    public function getLocationInformationFields(){
+    public function getLocationInformationFields()
+    {
         $fields = LocationModel::getLocationFields();
 
         return response([
             'status' => true,
             'message' => "İşlem Başarılı.",
             'data' => $fields
-        ],200);
+        ], 200);
 
     }
 }

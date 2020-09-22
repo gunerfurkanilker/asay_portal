@@ -127,7 +127,7 @@ class PermitController extends ApiController
             {
 
                 $userEmployee = EmployeeModel::find($request->Employee);
-                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,15,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından oluşturuldu.','','','','','');
+                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,15,'','','İzin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından oluşturuldu.','','','','','');
             }
             else
             {
@@ -277,20 +277,19 @@ class PermitController extends ApiController
         $permit->status = $permit->status + 1;
         $permitResult = $permit->save();
         if ($permitResult) {
-            $permitResult->fresh();
             switch ($permit->status - 1)
             {
                 case 1:
                     $userEmployee = EmployeeModel::find($request->Employee);
-                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,18,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı yönetici tarafından onaylandı.','','','','','');
+                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,18,'','','İzin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı yönetici tarafından onaylandı.','','','','','');
                     break;
                 case 2:
                     $userEmployee = EmployeeModel::find($request->Employee);
-                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,19,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı insan kaynakları personeli tarafından onaylandı.','','','','','');
+                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,19,'','','İzin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı insan kaynakları personeli tarafından onaylandı.','','','','','');
                     break;
                 case 3:
                     $userEmployee = EmployeeModel::find($request->Employee);
-                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,20,'','',$permit->PermitKind->name.' başlıklı avans '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı evrak onay personeli tarafından onaylandı.','','','','','');
+                    $logStatus = LogsModel::setLog($request->Employee,$permit->Id,2,20,'','','İzin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı evrak onay personeli tarafından onaylandı.','','','','','');
                     break;
             }
             return response([
@@ -394,11 +393,11 @@ class PermitController extends ApiController
     {
         $permit = PermitModel::find($request->permitId);
         $permit->active = 0;
-
         if ($permit->save())
         {
+            $permit->fresh();
             $userEmployee = EmployeeModel::find($request->Employee);
-            LogsModel::setLog($request->Employee,$permit->id,3,16,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından silindi.','','','','','');
+            LogsModel::setLog($request->Employee,$permit->id,3,16,'','','İzin '.$userEmployee->UsageName . ' ' . $userEmployee->LastName.' adlı çalışan tarafından silindi.','','','','','');
             return response([
                 'status' => true,
                 'message' => 'Silme işlemi başarılı'

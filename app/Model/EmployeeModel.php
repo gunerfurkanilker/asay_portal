@@ -3,8 +3,10 @@
 namespace App\Model;
 
 
+use App\Library\Asay;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 
 class EmployeeModel extends Model
 {
@@ -39,32 +41,63 @@ class EmployeeModel extends Model
         'BankAccount'
     ];
 
-    public static function addEmployee($requestData)
+    public static function addEmployee($request)
     {
         $employee = new EmployeeModel();
 
-        $employee->StaffID              = isset($requestData['staffId']) ? $requestData['staffId'] : null ;
-        $employee->FirstName            = $requestData['FirstName'];
-        $employee->UsageName            = $requestData['UsageName'];
-        $employee->LastName             = $requestData['LastName'];
-        $employee->DomainID             = $requestData['DomainID'];
-        $employee->JobEmail             = isset($requestData['JobEmail']) ? $requestData['JobEmail'] : null;
-        $employee->JobMobilePhone       = isset($requestData['JobMobilePhone'])  ? $requestData['JobMobilePhone'] : null;
-        $employee->InterPhone           = isset($requestData['InterPhone'])  ? $requestData['InterPhone'] : null;
-        $employee->ContractTypeID       = $requestData['ContractTypeID'];
+        $employee->StaffID              = isset($request->staffId) ? $request->staffId : null ;
+        $employee->FirstName            = $request->FirstName;
+        $employee->UsageName            = $request->UsageName;
+        $employee->LastName             = $request->LastName;
+        $employee->DomainID             = $request->DomainID;
+        $employee->JobEmail             = isset($request->JobEmail) ? $request->JobEmail : null;
+        $employee->JobMobilePhone       = isset($request->JobMobilePhone)  ? $request->JobMobilePhone : null;
+        $employee->InterPhone           = isset($request->InterPhone)  ? $request->InterPhone : null;
 
-        $employee->save();
-        $employee = $employee->fresh();
 
-        if (isset($requestData['activedirectoryuserid']) && $requestData['activedirectoryuserid'] != null && $requestData['activedirectoryuserid'] != "")
+        try
         {
-            $employeeUser = UserModel::find($requestData['activedirectoryuserid']);
-            $employeeUser->EmployeeID = $employee->Id;
-            $employeeUser->save();
+            $employee->save();
+            $employee = $employee->fresh();
+
+        }catch (QueryException $queryException)
+        {
+            $errorCode = $queryException->errorInfo[1];
+            if ($errorCode == 1062)// Duplicate Entry Code
+            {
+                $i=1;
+                while (true)
+                {
+                    try
+                    {
+                        $mailPreSection = explode("@",$request->JobEmail)[0];
+                        $mailPostSection = explode("@",$request->JobEmail)[1];
+
+                        $mailPreSection = $mailPreSection . $i;
+                        $mailFull = $mailPreSection .'@'. $mailPostSection;
+                        $employee->JobEmail = $mailFull;
+                        $employee->save();
+                        break;
+
+                    }catch (QueryException $queryException1)
+                    {
+                        $i++;
+                    }
+                }
+
+            }
+
         }
 
+        $ikPosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
+        $ikEmployee = EmployeeModel::find($request->Employee);
+        $ITSpecialist = ProcessesSettingsModel::where(['object_type' => 10,'RegionID' => $ikPosition->RegionID,'PropertyCode' => 'ITManager'])->first();
+        $ITSpecialistEmployee = EmployeeModel::where(['Active' => 1,'Id' => $ITSpecialist->PropertyValue])->first();
+
+        Asay::sendMail($ITSpecialistEmployee->JobEmail,$ikEmployee->JobEmail,"Active Directory Kullanıcısı Oluşturma İsteği","Sayın " .$ITSpecialistEmployee->UsageName . ' ' . $ITSpecialistEmployee->LastName. ' ' . $employee->JobEmail . ' adında bir mail adresi oluşturmanız talep edilmektedir. Bu kullanıcıyı farklı bir mail adresi ile oluşturmanız durumunda lütfen bu maile dönüş yapınız.' );
+
         //Erişim Tiplerini Belirliyoruz.
-        self::saveEmployeeAccessType($requestData['AccessTypes'],$employee->Id);
+        self::saveEmployeeAccessType($request->AccessTypes,$employee->Id);
 
         return $employee->fresh();
     }
@@ -109,7 +142,6 @@ class EmployeeModel extends Model
         $employee->JobEmail             = $requestData['jobemail'];
         $employee->JobMobilePhone       = $requestData['jobphone'];
         $employee->InterPhone           = $requestData['internalphone'];
-        $employee->ContractTypeID       = $requestData['contracttypeid'];
 
         self::saveEmployeeAccessType($requestData['accesstypes'],$employee->Id);
 
@@ -476,10 +508,10 @@ class EmployeeModel extends Model
     public function getEmergencyFieldAttribute()
     {
 
-        $emergencyField = $this->hasOne(EmergencyFieldModel::class,"Id","EmergencyFieldID");
+        $emergencyField = $this->hasMany(EmergencyFieldModel::class,"EmployeeID","Id");
         if ($emergencyField)
         {
-            return $emergencyField->first();
+            return $emergencyField->get();
         }
         else
         {
@@ -490,7 +522,7 @@ class EmployeeModel extends Model
     public function getBodyMeasurementsAttribute()
     {
 
-        $bodyMeasurements = $this->hasOne(BodyMeasurementModel::class,"Id","BodyMeasurementID");
+        $bodyMeasurements = $this->hasOne(BodyMeasurementModel::class,"EmployeeID","Id");
         if ($bodyMeasurements)
         {
             return $bodyMeasurements->first();
@@ -530,7 +562,7 @@ class EmployeeModel extends Model
 
     public function getLocationAttribute()
     {
-        $location = $this->hasOne(LocationModel::class,"Id","LocationID");
+        $location = $this->hasOne(LocationModel::class,"EmployeeID","Id");
         if ($location)
         {
             return $location->first();

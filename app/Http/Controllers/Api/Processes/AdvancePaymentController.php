@@ -154,6 +154,10 @@ class AdvancePaymentController extends ApiController
                 $error = true;
             }
         }
+        else if($status == 2)
+        {
+            $statusArray = [2,3];
+        }
         else if($status==1)
         {
             $statusArray = [1,2];
@@ -230,7 +234,7 @@ class AdvancePaymentController extends ApiController
         }
         $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
 
-        $status = self::advanceAuthority($AdvancePayment,$request->Employee);
+        $status = self::advanceAuthority($AdvancePayment,$request->Employee,"takeBack");
         if($status==false)
         {
             return response([
@@ -285,7 +289,7 @@ class AdvancePaymentController extends ApiController
             ], 200);
         }
         $AdvancePayment = AdvancePaymentModel::find($AdvancePaymentId);
-        $status = self::advanceAuthority($AdvancePayment,$request->Employee);
+        $status = self::advanceAuthority($AdvancePayment,$request->Employee,"confirm");
         if($status==false)
         {
             return response([
@@ -418,16 +422,24 @@ class AdvancePaymentController extends ApiController
         }
     }
 
-    public function advanceAuthority($advancePayment,$EmployeeID)
+    public function advanceAuthority($advancePayment,$EmployeeID, $authType = "")
     {
         $status = false;
-        if($advancePayment->Status==1)
+
+        if ($authType == "") return $status;
+
+        if ( ($advancePayment->Status == 0 && $authType = 'confirm') || ($advancePayment->Status == 1 && $authType == "takeBack") )
+        {
+            $status = $advancePayment->EmployeeID == $EmployeeID ? true : false;
+        }
+
+        if( ($advancePayment->Status == 1 && $authType == "confirm") || ($advancePayment->Status == 2 && $authType == "takeBack") )
         {
             $employeePosition = EmployeePositionModel::where(["Active"=>2,"EmployeeID"=>$advancePayment->EmployeeID])->first();
             if($employeePosition->ManagerID==$EmployeeID)
                 $status = true;
         }
-        else if($advancePayment->Status==2) {
+        else if( ($advancePayment->Status==2 && $authType == "confirm") || ($advancePayment->Status==3 && $authType == "takeBack") ) {
             if($advancePayment->CategoryId<>""){
                 $projetCategories = ProjectCategoriesModel::find($advancePayment->CategoryId);
                 if($EmployeeID==$projetCategories->manager_id)
@@ -440,7 +452,7 @@ class AdvancePaymentController extends ApiController
             }
 
         }
-        else if($advancePayment->Status==3 || $advancePayment->Status==4) {
+        else if( ($advancePayment->Status==3 && $authType == "confirm") || ($advancePayment->Status==4 && $authType == "takeBack") ) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
             $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$EmployeeID, "group_id"=>12, 'active' => 1])->count();
             if($userGroupCount>0)

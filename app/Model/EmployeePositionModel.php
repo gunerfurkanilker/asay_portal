@@ -19,7 +19,11 @@ class EmployeePositionModel extends Model
       'City',
       'District',
       'Manager',
-      'Organization'
+      'Organization',
+      'Region',
+      'Office',
+      'WorkingField',
+      'UnitSupervisor'
     ];
 
     public static function getPositionFields()
@@ -193,6 +197,42 @@ class EmployeePositionModel extends Model
     public function getOrganizationAttribute(){
         $manager = $this->hasOne(OrganizationModel::class,'id','OrganizationID');
         return $manager->first();
+    }
+    public function getRegionAttribute(){
+        $office = $this->hasOne(RegionModel::class,'id','RegionID');
+        if ($office)
+        {
+            return $office->where("Active",1)->first();
+        }
+        else
+            return null;
+    }
+    public function getOfficeAttribute(){
+        $office = $this->hasOne(OfficeModel::class,'id','OfficeID');
+        if ($office)
+        {
+            return $office->where("Active",1)->first();
+        }
+        else
+            return null;
+    }
+    public function getWorkingFieldAttribute(){
+        $workingField = $this->hasOne(WorkingFieldModel::class,'id','WorkingFieldID');
+        if ($workingField)
+        {
+            return $workingField->where("Active",1)->first();
+        }
+        else
+            return null;
+    }
+    public function getUnitSupervisorAttribute(){
+        $unitSupervisor = $this->hasOne(EmployeeModel::class,'Id','UnitSupervisorID');
+        if ($unitSupervisor)
+        {
+            return $unitSupervisor->where("Active",1)->first();
+        }
+        else
+            return null;
     }
 
  }

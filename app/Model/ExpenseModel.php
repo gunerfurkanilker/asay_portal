@@ -322,6 +322,7 @@ table, th, td {
     }
 
     public static function sendMailToAccounters($request){
+
         $expenseDocuments = ExpenseDocumentModel::where(["expense_id"=>$request->expenseId,"active"=>1])->get();
         $documentIds = [];
         foreach ($expenseDocuments as $expenseDocument)
@@ -380,13 +381,9 @@ table, th, td {
             {
                 $tempAccounterUser = EmployeeModel::where(['Id' => $accounterPosition->EmployeeID])->first();
                 array_push($accountersMails,$tempAccounterUser->JobEmail);
+
             }
         }
-
-        if (count($accountersMails) > 0)
-            $mailToString = implode(',', $accountersMails);
-        else
-            $mailToString = '';
 
 
         $employee = EmployeeModel::find($expense->EmployeeID);
@@ -484,8 +481,9 @@ table, th, td {
 </html>
   ';
 
-        Asay::sendMail($mailToString, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
+        Asay::sendMail($accountersMails, "", $expense->name . " adlı harcama onayınızı bekliyor.", $mailTable
             , "Harcama İçin Onayınız Bekleniyor.");
+
     }
 
     public function getProjectAttribute()

@@ -16,26 +16,24 @@ class BodyMeasurementModel extends Model
         'SSize'
     ];
 
-    public static function saveBodyMeasurements($request, $bodyMeasurementID)
+    public static function saveBodyMeasurements($request)
     {
-        $bodyMeasurement = self::find($bodyMeasurementID);
-
-        if ($bodyMeasurement != null) {
-
-            $bodyMeasurement->UpperBody = $request['upperbody'];
-            $bodyMeasurement->LowerBody = $request['lowerbody'];
-            $bodyMeasurement->ShoeSize = $request['shoesize'];
-
-
-            $bodyMeasurement->save();
-
-            return $bodyMeasurement->fresh();
-        }
+        if ($request->BodyMeasurementID != null)
+            $bodyMeasurement = self::find($request->BodyMeasurementID)->first();
         else
-            return false;
+            $bodyMeasurement = new BodyMeasurementModel();
+
+        $bodyMeasurement->EmployeeID = $request->EmployeeID;
+        $bodyMeasurement->UpperBody = $request->UpperBody;
+        $bodyMeasurement->LowerBody = $request->LowerBody;
+        $bodyMeasurement->ShoeSize = $request->ShoeSize;
+
+
+        return $bodyMeasurement->save();
+
     }
 
-    public static function addBodyMeasurements($request,$employee)
+    public static function addBodyMeasurements($request, $employee)
     {
 
         $bodyMeasurement = self::create([
@@ -44,14 +42,11 @@ class BodyMeasurementModel extends Model
             'ShoeSize' => $request['shoesize']
         ]);
 
-        if ($bodyMeasurement != null)
-        {
+        if ($bodyMeasurement != null) {
             $employee->BodyMeasurementID = $bodyMeasurement->Id;
             $employee->save();
             return $bodyMeasurement;
-        }
-
-        else
+        } else
             return false;
     }
 
@@ -67,20 +62,20 @@ class BodyMeasurementModel extends Model
 
     public function getUBodyAttribute()
     {
-        $upperBody = $this->hasOne(UpperBodyModel::class,"Id","UpperBody");
-        return $upperBody->where("Active",1)->first();
+        $upperBody = $this->hasOne(UpperBodyModel::class, "Id", "UpperBody");
+        return $upperBody->where("Active", 1)->first();
     }
 
     public function getLBodyAttribute()
     {
-        $lowerBody = $this->hasOne(LowerBodyModel::class,"Id","LowerBody");
-        return $lowerBody->where("Active",1)->first();
+        $lowerBody = $this->hasOne(LowerBodyModel::class, "Id", "LowerBody");
+        return $lowerBody->where("Active", 1)->first();
     }
 
     public function getSSizeAttribute()
     {
-        $shoeSize = $this->hasOne(ShoeSizeModel::class,"Id","ShoeSize");
-        return $shoeSize->where("Active",1)->first();
+        $shoeSize = $this->hasOne(ShoeSizeModel::class, "Id", "ShoeSize");
+        return $shoeSize->where("Active", 1)->first();
     }
 
 }

@@ -79,8 +79,8 @@ class LogsModel extends Model
         {
             $Logs = $LogsQ->first();
             $EndDate = date("Y-m-d H:i:s");
-            $Logs->resulation_time = ceil((strtotime($EndDate)-strtotime($Logs->start_date))/60);
-            $Logs->end_date = $EndDate;
+            $Logs->ResulationTime = ceil((strtotime($EndDate)-strtotime($Logs->start_date))/60);
+            $Logs->EndDate = $EndDate;
             $Logs->save();
         }
 
