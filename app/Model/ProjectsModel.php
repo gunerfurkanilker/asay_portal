@@ -10,6 +10,7 @@ class ProjectsModel extends Model
     protected $primaryKey = "id";
     protected $appends = [
         'Manager',
+        'ProjectCategory'
     ];
 
     public $timestamps = false;
@@ -26,6 +27,22 @@ class ProjectsModel extends Model
         if ($manager)
         {
             return $manager->first();
+        }
+        else
+        {
+            return null;
+        }
+
+    }
+
+    public function getProjectCategoryAttribute()
+    {
+
+        $category = $this->hasOne(ProjectCategoriesModel::class,"project_id","id");
+
+        if ($category)
+        {
+            return $category->first();
         }
         else
         {

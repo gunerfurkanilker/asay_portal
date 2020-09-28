@@ -38,7 +38,7 @@ class EmergencyFieldController extends ApiController
 
         $data['FirstPerson']    = EmergencyFieldModel::where(['EmployeeID' => $id, 'Priority' => 1])->first();
         $data['SecondPerson']   = EmergencyFieldModel::where(['EmployeeID' => $id, 'Priority' => 0])->first();
-        $data['BloodTypeID']    = EmergencyFieldModel::where(['EmployeeID' => $id])->first()->BloodTypeID;
+        $data['BloodTypeID']    = EmergencyFieldModel::where(['EmployeeID' => $id])->first() ? EmergencyFieldModel::where(['EmployeeID' => $id])->first()->BloodTypeID : null;
 
             return response([
                 'status' => true,

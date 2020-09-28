@@ -15,27 +15,28 @@ class DrivingLicenseModel extends Model
         'DrivingLicenseType'
     ];
 
-    public static function saveDrivingLicense($request, $drivingLicenseID)
+    public static function saveDrivingLicense($request)
     {
-        $drivingLicenseID = self::find($drivingLicenseID);
 
-        if ($drivingLicenseID != null) {
+        if ($request->DrivingLicenseID != null)
+            $drivingLicense = self::find($request->DrivingLicenseID);
+        else
+            $drivingLicense = new DrivingLicenseModel();
 
-            $drivingLicenseID->DrivingLicenceType = $request['licensetype'];
-            $drivingLicenseID->BirthDate = new Carbon($request['birthdate']);
-            $drivingLicenseID->BirthPlace = $request['birthplace'];
-            $drivingLicenseID->StartDate = new Carbon($request['licensebegindate']);
-            $drivingLicenseID->EffectiveDate = new Carbon($request['licenseenddate']);
-            $drivingLicenseID->PlaceOfIssue = $request['licenselocation'];
-            $drivingLicenseID->DocumentNo = $request['licensedocumentno'];
+        $drivingLicense->EmployeeID             = $request->EmployeeID;
+        $drivingLicense->HasDrivingLicense      = $request->HasDrivingLicense;
+        $drivingLicense->DrivingLicenseKind     = $request->DrivingLicenseKind;
+        $drivingLicense->DrivingLicenceType     = $request->DrivingLicenceType;
+        $drivingLicense->BirthDate              = $request->BirthDate;
+        $drivingLicense->BirthPlace             = $request->BirthPlace;
+        $drivingLicense->StartDate              = $request->StartDate;
+        $drivingLicense->EffectiveDate          = $request->EffectiveDate;
+        $drivingLicense->PlaceOfIssue           = $request->PlaceOfIssue;
+        $drivingLicense->DocumentNo             = $request->DocumentNo;
             //$drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
 
-            $drivingLicenseID->save();
+        return $drivingLicense->save() ? true : false;
 
-            return $drivingLicenseID->fresh();
-        }
-        else
-            return false;
     }
 
     public static function addDrivingLicense($request,$employee)

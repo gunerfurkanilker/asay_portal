@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Library\Asay;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -126,6 +127,17 @@ class EmployeePositionModel extends Model
             }
 
             $position->Active = 2;
+
+            
+            $employee = EmployeeModel::where(['Active' => 1, 'Id' => $position->EmployeeID])->first();
+            $ikPosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
+            $ikEmployee = EmployeeModel::find($request->Employee);
+            $ITSpecialist = ProcessesSettingsModel::where(['object_type' => 10,'RegionID' => $ikPosition->RegionID,'PropertyCode' => 'ITManager'])->first();
+            $ITSpecialistEmployee = EmployeeModel::where(['Active' => 1,'Id' => $ITSpecialist->PropertyValue])->first();
+
+            Asay::sendMail($ITSpecialistEmployee->JobEmail,$ikEmployee->JobEmail,"Active Directory Kullanıcısı Oluşturma İsteği","Sayın " .$ITSpecialistEmployee->UsageName . ' ' . $ITSpecialistEmployee->LastName. ' ' . $employee->JobEmail . ' adında bir mail adresi oluşturmanız talep edilmektedir. Bu kullanıcıyı farklı bir mail adresi ile oluşturmanız durumunda lütfen bu maile dönüş yapınız.' );
+
+
         }
 
         if ($position->save())
@@ -138,15 +150,10 @@ class EmployeePositionModel extends Model
     public static function deleteJobPosition($id)
     {
         $position = EmployeePositionModel::find($id);
-        try
-        {
-            $position->delete();
+
+            $position->Active = 0;
+            $position->save();
             return true;
-        }
-        catch(\Exception $e)
-        {
-            return $e->getMessage();
-        }
 
     }
 

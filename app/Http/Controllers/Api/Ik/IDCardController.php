@@ -21,7 +21,6 @@ class IDCardController extends ApiController
             return response([
                 'status' => true,
                 'message' => "İşlem Başarılı",
-                'data' => $request->IDCardPhoto->path(),
             ], 200);
         else
             return response([

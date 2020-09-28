@@ -176,7 +176,7 @@ class PaymentModel extends Model
 
     public static function getSalaries($employeeId)
     {
-        $salariesOfEmployee = PaymentModel::where('EmployeeID', $employeeId)->get();
+        $salariesOfEmployee = PaymentModel::where(['EmployeeID' => $employeeId ,'Active' => 1])->get();
 
         if ($salariesOfEmployee != null)
             return $salariesOfEmployee;

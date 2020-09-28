@@ -61,21 +61,15 @@ class EducationController extends ApiController
     {
         $employee = EmployeeModel::find($employeeid);
 
-        if ($employee->EducationID == null)
-            return response([
-                'status' => false,
-                'message' => 'Eğitim Bilgisi Bulunamadı!',
-                'data' => null
-            ], 200);
-        else {
-            $education = EducationModel::where(['EmployeeID' => $employee->EducationID, 'Active' => 1])->get();
 
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $education
-            ], 200);
-        }
+        $education = EducationModel::where(['EmployeeID' => $employeeid, 'Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $education
+        ], 200);
+
 
     }
 

@@ -24,19 +24,19 @@ class EmployeeBankModel extends Model
         {
             $paymentAccount = new EmployeeBankModel();
             $paymentAccount->AccountTypeID = 1;
-            $paymentAccount->EmployeeID = $request->Employee;
+            $paymentAccount->EmployeeID = $request->EmployeeID;
         }
         if ($personalAccount == null)
         {
             $personalAccount = new EmployeeBankModel();
             $personalAccount->AccountTypeID = 2;
-            $personalAccount->EmployeeID = $request->Employee;
+            $personalAccount->EmployeeID = $request->EmployeeID;
         }
         if ($jobAllowanceAccount == null)
         {
             $jobAllowanceAccount = new EmployeeBankModel();
             $jobAllowanceAccount->AccountTypeID = 3;
-            $jobAllowanceAccount->EmployeeID = $request->Employee;
+            $jobAllowanceAccount->EmployeeID = $request->EmployeeID;
         }
 
         $paymentAccount->BankName   = ((object)$request->PaymentAccount)->BankName;

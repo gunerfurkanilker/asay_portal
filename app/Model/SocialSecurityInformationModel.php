@@ -27,13 +27,14 @@ class SocialSecurityInformationModel extends Model
             $socialSecurityInformation->SSICreateDate       = $request->SSICreateDate;
             $socialSecurityInformation->SSINo               = $request->SSINo;
             $socialSecurityInformation->SSIRecord           = $request->SSIRecord;
-            $socialSecurityInformation->FirstLastName       = $request->FirstLastName;
+            $socialSecurityInformation->FirstLastName       = $request->FirstLastName ? $request->FirstLastName : '';
             $socialSecurityInformation->DisabledDegreeID    = $request->DisabledDegreeID;
             $socialSecurityInformation->JobCodeID           = $request->JobCodeID;
-            $socialSecurityInformation->JobDescription      = $request->JobDescription;
+            $socialSecurityInformation->JobDescription      = $request->JobDescription ? $request->JobDescription :'';
             $socialSecurityInformation->CriminalRecord      = $request->CriminalRecord;
             $socialSecurityInformation->ConvictRecord       = $request->ConvictRecord;
             $socialSecurityInformation->TerrorismComp       = $request->TerrorismComp;
+            $socialSecurityInformation->EmployeeID          = $request->EmployeeID;
             $result = $socialSecurityInformation->save();
 
             if ($result && $request->hasFile('disability_file')) {
@@ -73,8 +74,51 @@ class SocialSecurityInformationModel extends Model
 
             }
 
+            if ($request->hasFile('DisabilityTaxDecrease'))
+            {
+                $socialSecurityInformation->DisabledTaxDecrease = self::saveDisabiltyTaxDecreaseFile($request,$socialSecurityInformation->Id);
+                $result = $socialSecurityInformation->save();
+            }
+
+
             return $result;
     }
+
+    public static function saveDisabiltyTaxDecreaseFile($request,$id)
+    {
+        $file = file_get_contents($request->DisabilityTaxDecrease->path());
+        $guzzleParams = [
+
+            'multipart' => [
+                [
+                    'name' => 'file',
+                    'contents' => $file,
+                    'filename' => 'DisabilityTaxDecreaseDoc_' . $id . '.' . $request->DisabilityTaxDecrease->getClientOriginalExtension()
+                ],
+                [
+                    'name' => 'moduleId',
+                    'contents' => 'socialsecurity'
+                ],
+                [
+                    'name' => 'token',
+                    'contents' => $request->token
+                ]
+
+            ],
+        ];
+
+        $client = new \GuzzleHttp\Client();
+        $res = $client->request("POST", 'http://portal.asay.com.tr/api/disk/addFile', $guzzleParams);
+        $responseBody = json_decode($res->getBody());
+
+        if ($responseBody->status == true)
+        {
+            return $responseBody->data;
+        }
+        else
+            return false;
+    }
+
 
     public static function addSocialSecurityInformation($request,$employee)
     {

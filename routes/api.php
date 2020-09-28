@@ -28,6 +28,7 @@ Route::namespace("Api")->group(function(){
         Route::get('processes/project/carList','ProjectController@getProjectCars')->name("project_cars");
 
         Route::prefix('processes/expense')->group(function () {
+            Route::get('monthlyAll', "ExpenseController@expenseAllMonthly")->name("expense_allMonthly");
             Route::get('list', "ExpenseController@expenseList")->name("expense_expenseList");
             Route::post('expenseSave', "ExpenseController@expenseSave")->name("expense_expenseSave");
             Route::post('documentSave', "ExpenseController@documentSave")->name("expense_documentSave");
@@ -140,6 +141,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/agi-informations/{id}', "AGIController@getAgiInformations")->name("get_employee_agi_informations");
             Route::get('employee/driving-license-informations/{id}', "DrivingLicenseController@getDrivingLicense")->where(['id' => '[0-9]+'])->name("get_employee_driving_license_informations");
             Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_driving_license_fields");
+            Route::get('employee/drivingLicenseClasses', "DrivingLicenseController@getDrivingLicenseClasses")->name("get_driving_license_classes");
             Route::get('employee/emergency-informations/{id}', "EmergencyFieldController@getEmergencyInformations")->where(['id' => '[0-9]+'])->name("get_employee_emergency_informations");
             Route::get('employee/emergency-informations/fields', "EmergencyFieldController@getEmergencyInformationFields")->name("get_emergency_fields");
             Route::get('employee/body-measurements/fields', "BodyMeasurementsController@getBodyMeasurementsFields")->name("get_body_measurements_fields");
@@ -168,6 +170,7 @@ Route::namespace("Api")->group(function(){
 
             Route::post('employee/job-position/edit/{id}/{positionId}', "PositionController@editJobPosition")->where(['id' => '[0-9]+'])->name("employee_edit_job_position");
             Route::post('employee/job-position/save', "PositionController@saveJobPosition")->name("employee_save_job_position");
+            Route::delete('employee/job-position/delete',"PositionController@deleteJobPosition")->name("position_delete");
             Route::post('employee/payment/edit/{id}/{paymentId}', "PaymentController@editPayment")->where(['id' => '[0-9]+'])->name("employee_edit_payment");
             Route::post('employee/payment/save', "PaymentController@savePayment")->name("save_payment");
             Route::post('employee/payment/delete', "PaymentController@deletePayment")->name("employee_delete_payment");

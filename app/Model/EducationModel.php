@@ -14,7 +14,6 @@ class EducationModel extends Model
     protected $appends = [
         'EducationLevel',
         'EducationStatus',
-        'ObjectFile'
     ];
 
     public static function saveEducation($request)
@@ -93,10 +92,5 @@ class EducationModel extends Model
         return $educationStatus->where("Active", 1)->first();
     }
 
-    public function getObjectFileAttribute()
-    {
-        $document = $this->hasOne(ObjectFileModel::class, "ObjectId", "Id");
-        return $document->where(['Active' => 1, 'ObjectType' => 5])->first();
-    }
 
 }

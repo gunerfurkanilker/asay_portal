@@ -55,15 +55,26 @@ class EmployeeModel extends Model
         $employee->InterPhone           = isset($request->InterPhone)  ? $request->InterPhone : null;
 
 
+
+
+
         try
         {
             $employee->save();
             $employee = $employee->fresh();
 
+            $position = new EmployeePositionModel();
+
+            $position->EmployeeID       = $employee->Id;
+            $position->Active           = 2;
+            $position->CompanyID        = $request->CompanyID;
+            $position->OrganizationID   = $request->OrganizationID;
+            $position->save();
+
         }catch (QueryException $queryException)
         {
             $errorCode = $queryException->errorInfo[1];
-            if ($errorCode == 1062)// Duplicate Entry Code
+            if ($errorCode == 1062)// Duplicate Entry Code JobEmail İçin
             {
                 $i=1;
                 while (true)
@@ -89,13 +100,6 @@ class EmployeeModel extends Model
 
         }
 
-        $ikPosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
-        $ikEmployee = EmployeeModel::find($request->Employee);
-        $ITSpecialist = ProcessesSettingsModel::where(['object_type' => 10,'RegionID' => $ikPosition->RegionID,'PropertyCode' => 'ITManager'])->first();
-        $ITSpecialistEmployee = EmployeeModel::where(['Active' => 1,'Id' => $ITSpecialist->PropertyValue])->first();
-
-        Asay::sendMail($ITSpecialistEmployee->JobEmail,$ikEmployee->JobEmail,"Active Directory Kullanıcısı Oluşturma İsteği","Sayın " .$ITSpecialistEmployee->UsageName . ' ' . $ITSpecialistEmployee->LastName. ' ' . $employee->JobEmail . ' adında bir mail adresi oluşturmanız talep edilmektedir. Bu kullanıcıyı farklı bir mail adresi ile oluşturmanız durumunda lütfen bu maile dönüş yapınız.' );
-
         //Erişim Tiplerini Belirliyoruz.
         self::saveEmployeeAccessType($request->AccessTypes,$employee->Id);
 
@@ -120,6 +124,8 @@ class EmployeeModel extends Model
     public static function getGeneralInformationsFields($employeeId)
     {
         $data = [];
+        $data['Companies']              = CompanyModel::where(['Active' => 1])->get();
+        $data['Organizations']          = OrganizationModel::where(['Active' => 1])->get();
         $data['accesstypefield']        = UserGroupModel::all();
         $data['contractypefield']       = ContractTypeModel::where('Active',1)->get();
         $data['workingschedulefield']   = WorkingScheduleModel::all();

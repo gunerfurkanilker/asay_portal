@@ -13,7 +13,7 @@ class PositionController extends ApiController
 {
     public function getJobPositionInformations($id)
     {
-        $positions = EmployeePositionModel::where('EmployeeID',$id)->get()->toArray();
+        $positions = EmployeePositionModel::where('EmployeeID',$id)->whereIn('Active',[0,1,2])->get()->toArray();
 
         if ($positions != null)
             return response([
