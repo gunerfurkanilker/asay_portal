@@ -1163,17 +1163,7 @@ class ExpenseController extends ApiController
         $employee = EmployeeModel::find($request->Employee);
         $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
         $company = CompanyModel::find($employeePosition->CompanyID);
-        //Çalışan İşletme Belirlenmesi
-        if ($company->NetsisName == "Elektronik") {
-            $company = "Asay_Elektronik";
-        } elseif ($company->NetsisName == "Enerji") {
-            $company = "Asay_Enerji";
-        } elseif ($company->NetsisName == "iletisim") {
-            $company = "Asay_Iletisim";
-        } elseif ($company->NetsisName == "VAD") {
-            $company = "Asay_Vad_Otomasyon";
-        }
-
+        $companyCode = $company->NetsisName;
 
         if ($expense->expense_type == 1)//İş Avansı
         {
@@ -1312,7 +1302,7 @@ class ExpenseController extends ApiController
 
             $dbA = date("Y", strtotime($value->document_date));
             try {
-                $data = $soap->MasrafFormuKaydet(array("_MasrafForm" => $MasrafFormu, "_IsletmeKodu" => $company, "SirketAdi" => "ASAYGROUP" . $dbA));
+                $data = $soap->MasrafFormuKaydet(array("_MasrafForm" => $MasrafFormu, "_IsletmeKodu" => $companyCode, "SirketAdi" => "ASAYGROUP" . $dbA));
             } catch (Exception $e) {
                 return response([
                     'status' => false,

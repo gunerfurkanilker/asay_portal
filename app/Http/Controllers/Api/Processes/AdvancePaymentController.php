@@ -9,6 +9,7 @@ use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\LogsModel;
+use App\Model\ProcessesSettingsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserHasGroupModel;
@@ -459,5 +460,113 @@ class AdvancePaymentController extends ApiController
                 $status = true;
         }
         return $status;
+    }
+
+
+    public function SendNetsis(Request $request)
+    {
+        $AdvancePaymentId = $request->AdvancePaymentId;
+
+        //MASRAF DETAYLARI
+        $advancePayment = AdvancePaymentModel::find($AdvancePaymentId);
+        if($advancePayment->Netsis==1 && $advancePayment->AccountingStatus==0){
+            return response([
+                'status' => false,
+                'message' => "Aktarımı Tamamlanmış Yada Onaylanmamış Kayıtlar Gönderilemez"
+            ], 200);
+        }
+        $status = self::advanceAuthority($advancePayment,$request->Employee);
+        if($status==false)
+        {
+            return response([
+                'status' => false,
+                'message' => "Yetkisiz İşlem"
+            ], 200);
+        }
+
+        //Personel bilgileri kontrol ediliyor.
+        $employee = EmployeeModel::find($request->Employee);
+        $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
+        $company = CompanyModel::find($employeePosition->CompanyID);
+        $companyCode = $company->NetsisName;
+
+
+        if ($advancePayment->ExpenseType == 1)//İş Avansı
+        {
+            $Query = "CARI_KOD LIKE 'P%' AND CARI_KOD NOT LIKE 'PS%'";
+        }
+        elseif ($advancePayment->ExpenseType == 2)//Seyahat Avansı
+        {
+            $Query = "CARI_KOD LIKE 'PS%'";
+        }
+
+        //CARİ KOD ÖĞREN
+        $PersonelCariKodu = "";
+        $CariKod = DB::connection('sqlsrvn')->select("SELECT CARI_KOD FROM TBLCASABIT WHERE " . $Query . " and EMAIL= :email", ["email" => $employee->JobEmail]);
+        if (count($CariKod) > 0)
+            $PersonelCariKodu = $CariKod[0]->CARI_KOD;
+
+
+        if ($PersonelCariKodu == "") {
+            $Log = "Personel Cari Kodu Netsisde Bulunamadı. Mail adresini kontrol ediniz.<br>Mail Adresi:" . $employee->JobEmail;
+            return response([
+                'status' => false,
+                'message' => $Log
+            ], 200);
+        }
+
+        $bankCode = ProcessesSettingsModel::where(["object_type"=>2,"Property"=>$companyCode,"PropertyCode"=>"BankCode"])->first()->PropertyValue;
+
+        $tarih = date("Y-m-d");
+        $AvansOdeme = new \stdClass();
+        $AvansOdeme->Tarih      = new Carbon($tarih);
+        $AvansOdeme->CariKod    = $PersonelCariKodu;
+        $AvansOdeme->BankaKodu  = $bankCode;
+        $AvansOdeme->Aciklama   = $advancePayment->Description;
+        $AvansOdeme->Tutar      = $advancePayment->Amount;
+
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+        try
+        {
+            $dbA = date("Y", strtotime($tarih));
+            $soap = new \SoapClient($wsdl, $options);
+            $data = $soap->AvansOdemeKaydet(array( "_IsletmeKodu" => $companyCode, "_AvansOdeme" => $AvansOdeme, "SirketAdi" => "ASAYGROUP" . $dbA));
+            if ($data->AvansOdemeKaydetResult->Sonuc == 1) {
+                $advancePayment->Netsis = 1;
+                $advancePayment->save();
+                return response([
+                    'status' => true,
+                    'data' => "Avans Netsise Aktarıldı"
+                ], 200);
+            } else {
+                return response([
+                    'status' => false,
+                    'data' => "Hata Oluştu"
+                ], 200);
+            }
+            //TODO: log yazılacak
+        }
+        catch(Exception $e)
+        {
+            //TODO: log yazılacak
+        }
+
     }
 }
