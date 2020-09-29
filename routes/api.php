@@ -100,6 +100,7 @@ Route::namespace("Api")->group(function(){
             Route::put('complete', 'AdvancePaymentController@complete')->name('AdvancePayment_complete');
             Route::delete('deleteAdvance', 'AdvancePaymentController@deleteAdvance')->name('AdvancePayment_deleteAdvance');
             Route::post('SendNetsis', 'AdvancePaymentController@SendNetsis')->name('AdvancePayment_SendNetsis');
+            Route::get('BankCodes', 'AdvancePaymentController@BankCodes')->name('AdvancePayment_BankCodes');
         });
 
         Route::prefix('processes/Overtime/')->group(function () {

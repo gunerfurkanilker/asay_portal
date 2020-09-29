@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Model\AdvancePaymentModel;
+use App\Model\CompanyModel;
 use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
@@ -565,8 +566,43 @@ class AdvancePaymentController extends ApiController
         }
         catch(Exception $e)
         {
+            return response([
+                'status' => false,
+                'data' => "Hata Oluştu"
+            ], 200);
             //TODO: log yazılacak
         }
 
+    }
+
+
+    public function BankCodes(Request $request)
+    {
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+
+        $soap = new \SoapClient($wsdl, $options);
+        $data = $soap->BankaTanimListesi(array( "_IsletmeKodu" => "ASAYILET"));
+
+        return response([
+            'status' => false,
+            'data' => $data->BankaTanimListesiResult
+        ], 200);
     }
 }
