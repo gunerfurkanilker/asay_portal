@@ -48,6 +48,19 @@ class PermitSenNetsis extends Command
             $employee = EmployeeModel::where(["Id"=>$permit->EmployeeID,"Active"=>1])->first();
             $company = CompanyModel::find($employee->EmployeePosition->CompanyID);
             $companyCode = $company->NetsisName;
+            if($companyCode=="Asay_Elektronik"){
+                $companyCode = "ASAYELEK";
+            }
+            elseif($companyCode=="Asay_Enerji"){
+                $companyCode = "ASAYENER";
+            }
+            elseif($companyCode=="Asay_Iletisim"){
+                $companyCode = "ASAYILET";
+            }
+            elseif($companyCode=="Asay_Vad_Otomasyon"){
+                $companyCode = "YASAYVAD";
+            }
+
 
             $izin["_Isyeri"]                = $companyCode; // İş Yeri ne olacak ?
             $izin["_SicilNo"]               = EmployeeModel::where('Id',$permit->EmployeeID)->first()->StaffID;

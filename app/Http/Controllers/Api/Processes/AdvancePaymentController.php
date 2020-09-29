@@ -598,7 +598,7 @@ class AdvancePaymentController extends ApiController
         );
 
         $soap = new \SoapClient($wsdl, $options);
-        $data = $soap->BankaTanimListesi(array( "_IsletmeKodu" => "ASAYILET"));
+        $data = $soap->BankaTanimListesi(["_IsletmeKodu" => "Asay_Iletisim"]);
 
         return response([
             'status' => false,
