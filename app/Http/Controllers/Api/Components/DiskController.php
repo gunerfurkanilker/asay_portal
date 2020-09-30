@@ -297,7 +297,8 @@ class DiskController extends ApiController
         $fileObject["downloadFile"]   = "http://".parse_url(request()->root())['host']."/file/".$file->module_id."/downloadFile/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
         return response([
             'status'    => true,
-            'data'      => $fileObject
+            'data'      => $fileObject,
+            'file'      => $file
         ],200);
     }
 
