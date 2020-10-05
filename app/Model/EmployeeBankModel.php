@@ -42,14 +42,17 @@ class EmployeeBankModel extends Model
         $paymentAccount->BankName   = ((object)$request->PaymentAccount)->BankName;
         $paymentAccount->AccountNo  = ((object)$request->PaymentAccount)->AccountNo;
         $paymentAccount->IBAN       = ((object)$request->PaymentAccount)->IBAN;
+        $paymentAccount->BranchNo   = ((object)$request->PaymentAccount)->BranchNo;
 
         $personalAccount->BankName   = ((object)$request->PersonalAccount)->BankName;
         $personalAccount->AccountNo  = ((object)$request->PersonalAccount)->AccountNo;
         $personalAccount->IBAN       = ((object)$request->PersonalAccount)->IBAN;
+        $personalAccount->BranchNo   = ((object)$request->PersonalAccount)->BranchNo;
 
         $jobAllowanceAccount->BankName   = ((object)$request->JobAllowanceAccount)->BankName;
         $jobAllowanceAccount->AccountNo  = ((object)$request->JobAllowanceAccount)->AccountNo;
         $jobAllowanceAccount->IBAN       = ((object)$request->JobAllowanceAccount)->IBAN;
+        $jobAllowanceAccount->BranchNo   = ((object)$request->JobAllowanceAccount)->BranchNo;
 
         return $paymentAccount->save() && $personalAccount->save() && $jobAllowanceAccount->save() ? true : false;
 

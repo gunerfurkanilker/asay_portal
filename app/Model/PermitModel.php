@@ -2,11 +2,17 @@
 
 namespace App\Model;
 
+use App\Library\Asay;
 use Carbon\Carbon;
 use Cassandra\Date;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use DateTime;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpWord\Exception\CopyFileException;
+use PhpOffice\PhpWord\Exception\CreateTemporaryFileException;
+use PhpOffice\PhpWord\Exception\Exception;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class PermitModel extends Model
 {
@@ -33,16 +39,17 @@ class PermitModel extends Model
 
 
 
-        $newPermit->EmployeeID  = $EmployeeID;
-        $newPermit->kind        = $req->kind;
-        $newPermit->description = $req->description;
-        $newPermit->start_date  = $req->startDate;
-        $newPermit->end_date    = $req->endDate;
-        $newPermit->transfer_id = $req->transfer_id;
-        $newPermit->used_day    = $totalPermitDayHour['UsedDay'];
-        $newPermit->over_hour   = $totalPermitDayHour['OverHour'];
-        $newPermit->holiday     = $totalPermitDayHour['Holidays'];
-        $newPermit->weekend     = $totalPermitDayHour['Weekend'];
+        $newPermit->EmployeeID      = $EmployeeID;
+        $newPermit->kind            = $req->kind;
+        $newPermit->description     = $req->description;
+        $newPermit->start_date      = $req->startDate;
+        $newPermit->end_date        = $req->endDate;
+        $newPermit->transfer_id     = $req->transfer_id;
+        $newPermit->permit_address  = $req->permitAddress;
+        $newPermit->used_day        = $totalPermitDayHour['UsedDay'];
+        $newPermit->over_hour       = $totalPermitDayHour['OverHour'];
+        $newPermit->holiday         = $totalPermitDayHour['Holidays'];
+        $newPermit->weekend         = $totalPermitDayHour['Weekend'];
         return $newPermit->save() ? $newPermit->fresh() : false;
     }
 
@@ -359,7 +366,144 @@ class PermitModel extends Model
             return null;
     }
 
+    public static function createPermitDocumentAndSendMailToEmployee($request)
+    {
 
+        $permit = PermitModel::find($request->permitId);
+        $employee = EmployeeModel::find($permit->EmployeeID);
+        $hrPerson = EmployeeModel::find($request->Employee);
+
+        $file = null;
+
+        if ($permit->kind == 12)
+            $file = Storage::disk("connect")->path('template/permit_yearly.docx');
+        else if($permit->kind == 14)
+            $file = Storage::disk("connect")->path('template/permit_rest.docx');
+        else
+            $file = Storage::disk("connect")->path('template/permit_social.docx');
+
+        $filePath = Storage::disk("connect")->path("permitDocs"."/"."izin_formu".date("Ymd_Hms").".docx");
+
+        $employeeFullName = $employee->UsageName . ' ' . $employee->LastName;
+        $employeeDepartment = $employee->EmployeePosition->Department->Sym;
+        $employeeTitle = $employee->EmployeePosition->Title->Sym;
+        $employeeRegistry = $employee->StaffID;
+        $permitKind = $permit->PermitKind['name'];
+        $permitStartDate = date("d.m.Y H:i:s", strtotime($permit->start_date));
+        $permitEndDate = date("d.m.Y H:i:s", strtotime($permit->end_date));
+        $permitCount = $permit->used_day. ' gün, ' . $permit->over_hour . ' saat';
+        $permitAddress = $permit->permit_address;
+        $employeeManagerFullName = $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName;
+        $employeePositionStartDate =  date("d.m.Y H:i:s", strtotime($employee->EmployeePosition->StartDate));
+        $hrPerson = $hrPerson->UsageName . ' ' . $hrPerson->LastName;
+        $yearlyPermitEarnDate = "";
+        $restPermitEarnDate = "";
+
+        $d = date("d");
+        $m = date("m");
+        $y = date("YYYY");
+
+
+
+        try {
+            $templateProcessor = new TemplateProcessor($file);
+            if($permit->kind != 12 && $permit->kind != 14)
+            {
+                $templateProcessor->setValue('d',$d);
+                $templateProcessor->setValue('m',$m);
+                $templateProcessor->setValue('y',$y);
+                $templateProcessor->setValue('employeeFullName',$employeeFullName);
+                $templateProcessor->setValue('employeeDepartment',$employeeDepartment);
+                $templateProcessor->setValue('employeeTitle',$employeeTitle);
+                $templateProcessor->setValue('employeeRegistry',$employeeRegistry);
+                $templateProcessor->setValue('permitKind',$permitKind );//Social
+                $templateProcessor->setValue('permitStartDate',$permitStartDate);
+                $templateProcessor->setValue('permitEndDate',$permitEndDate);
+                $templateProcessor->setValue('permitCount',$permitCount);
+                $templateProcessor->setValue('permitAddress',$permitAddress);
+                $templateProcessor->setValue('employeeManagerFullName', $employeeManagerFullName);
+                $templateProcessor->setValue('employeePositionStartDate', $employeePositionStartDate);
+                $templateProcessor->setValue('hrPerson', $hrPerson);
+                $templateProcessor->saveAs($filePath);
+
+                Asay::sendMail($employee->JobEmail, "", "İzin Evrak Formu","Sayın " .$employee->UsageName . ' ' . $employee->LastName. ' izin evrak formu ektedir.' ,
+                    "İzin Evrak Formu",$filePath,"Izin_Evrak_Formu.docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            }
+            else if ($permit->kind == 12)
+            {
+
+                $yearlyPermitRemainingVal = self::netsisRemainingPermit($employee->Id);
+                $yearlyPermitRemaining = $yearlyPermitRemainingVal['daysLeft'].' gün, ' . $yearlyPermitRemainingVal['hoursLeft'] . ' saat';
+                $yearlyPermitYear = date("YYYY",strtotime($permitStartDate));
+
+                $templateProcessor->setValue('d',$d);
+                $templateProcessor->setValue('m',$m);
+                $templateProcessor->setValue('y',$y);
+                $templateProcessor->setValue('employeeFullName',$employeeFullName);
+                $templateProcessor->setValue('employeeDepartment',$employeeDepartment);
+                $templateProcessor->setValue('employeeTitle',$employeeTitle);
+                $templateProcessor->setValue('employeeRegistry',$employeeRegistry);
+                $templateProcessor->setValue('permitStartDate',$permitStartDate);
+                $templateProcessor->setValue('permitEndDate',$permitEndDate);
+                $templateProcessor->setValue('permitCount',$permitCount);
+                $templateProcessor->setValue('permitAddress',$permitAddress);
+                $templateProcessor->setValue('employeeManagerFullName', $employeeManagerFullName);
+                $templateProcessor->setValue('employeePositionStartDate', $employeePositionStartDate);
+                $templateProcessor->setValue('yearlyPermitRemaining', $yearlyPermitRemaining);
+                $templateProcessor->setValue('hrPerson', $hrPerson);
+                $templateProcessor->setValue('yearlyPermitStartDate',$permitStartDate);
+                $templateProcessor->setValue('yearlyPermitEndDate',$permitEndDate);
+                $templateProcessor->setValue('yearlyPermitEarnDate',$yearlyPermitEarnDate);
+                $templateProcessor->setValue('yearlyPermitYear',$yearlyPermitYear);
+                $templateProcessor->setValue('hrPerson', $hrPerson);
+                $templateProcessor->saveAs($filePath);
+
+                Asay::sendMail($employee->JobEmail, "", "İzin Evrak Formu","Sayın " .$employee->UsageName . ' ' . $employee->LastName. ' izin evrak formu ektedir.' ,
+                    "İzin Evrak Formu",$filePath,"Izin_Evrak_Formu.docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            }
+            else if($permit->kind == 14)
+            {
+
+                $restPermitYear = date("YYYY",strtotime($permitStartDate));
+
+                $templateProcessor->setValue('d',$d);
+                $templateProcessor->setValue('m',$m);
+                $templateProcessor->setValue('y',$y);
+                $templateProcessor->setValue('employeeFullName',$employeeFullName);
+                $templateProcessor->setValue('employeeDepartment',$employeeDepartment);
+                $templateProcessor->setValue('employeeTitle',$employeeTitle);
+                $templateProcessor->setValue('employeeRegistry',$employeeRegistry);
+                $templateProcessor->setValue('permitStartDate',$permitStartDate);
+                $templateProcessor->setValue('permitEndDate',$permitEndDate);
+                $templateProcessor->setValue('permitCount',$permitCount);
+                $templateProcessor->setValue('permitAddress',$permitAddress);
+                $templateProcessor->setValue('employeeManagerFullName', $employeeManagerFullName);
+                $templateProcessor->setValue('employeePositionStartDate', $employeePositionStartDate);
+                $templateProcessor->setValue('restPermitEarnDate', $restPermitEarnDate);
+                $templateProcessor->setValue('restPermitYear', $restPermitYear);
+                $templateProcessor->setValue('restPermitRemainingYear', "");
+                $templateProcessor->setValue('hrPerson', $hrPerson);
+                $templateProcessor->setValue('restPermitStartDate', $permitStartDate);
+                $templateProcessor->setValue('restPermitEndDate', $permitEndDate);
+                $templateProcessor->saveAs($filePath);
+
+                Asay::sendMail($employee->JobEmail, "", "İzin Evrak Formu","Sayın " .$employee->UsageName . ' ' . $employee->LastName. ' izin evrak formu ektedir.' ,
+                    "İzin Evrak Formu",$filePath,"Izin_Evrak_Formu.docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            }
+
+
+        } catch (CopyFileException $e) {
+            return $e->getMessage();
+        } catch (CreateTemporaryFileException $e) {
+            return $e->getMessage();
+        } catch (Exception $e) {
+        }
+
+
+    }
 
 
 }

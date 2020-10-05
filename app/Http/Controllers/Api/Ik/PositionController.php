@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Ik;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\ServiceCodesModel;
 use Illuminate\Http\Request;
 
 class PositionController extends ApiController
@@ -75,6 +76,29 @@ class PositionController extends ApiController
             'data' => $status
         ]);
 
+
+    }
+
+    public function getServiceCodes(Request $request)
+    {
+
+        $company = $request->CompanyID;
+        $organization = $request->OrganizationID;
+        $department = $request->DepartmentID;
+
+        $serviceCode = ServiceCodesModel::where(['CompanyID' => $company, 'OrganizationID' => $organization, 'DepartmentID' => $department])->first();
+
+        if ($serviceCode)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $serviceCode->Code
+            ],200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'Hizmet Kodu Bulunamadı'
+            ],200);
 
     }
 

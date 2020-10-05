@@ -83,6 +83,16 @@ class OvertimeController extends ApiController
         ],200);
     }
 
+    public function getHREmployees(Request $request)
+    {
+        $employees = OvertimeModel::getHREmployees($request);
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $employees
+        ],200);
+    }
+
     public function getEmployeesManagers(Request $request){
         $employee = EmployeeModel::find($request->Employee );
         $managers = OvertimeModel::getEmployeesManagers($employee->Id);

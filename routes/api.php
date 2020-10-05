@@ -107,6 +107,7 @@ Route::namespace("Api")->group(function(){
             Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
             Route::get('Managers/all','OvertimeController@getManagersOvertimeRequests')->name('overtime_manager_all');
             Route::get('statuses','OvertimeController@getOvertimeStatuses')->name('overtime_statuses');
+            Route::get('hrEmployees','OvertimeController@getHREmployees')->name('overtime_hr_employees');
             Route::get('managersEmployees','OvertimeController@getManagersEmployees')->name('overtime_managers_employees');
             Route::get('employeesManagers','OvertimeController@getEmployeesManagers')->name('overtime_employees_managers');
             Route::get('overtimeKinds','OvertimeController@overtimeKinds')->name('overtime_kinds');
@@ -143,6 +144,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/agi-informations/{id}', "AGIController@getAgiInformations")->name("get_employee_agi_informations");
             Route::get('employee/driving-license-informations/{id}', "DrivingLicenseController@getDrivingLicense")->where(['id' => '[0-9]+'])->name("get_employee_driving_license_informations");
             Route::get('employee/driving-license-informations/fields', "DrivingLicenseController@getDrivingLicenseFields")->name("get_driving_license_fields");
+            Route::delete('employee/drivingLicense/delete', "DrivingLicenseController@deleteDrivingLicenseInfo")->name("driving_license_delete");
             Route::get('employee/drivingLicenseClasses', "DrivingLicenseController@getDrivingLicenseClasses")->name("get_driving_license_classes");
             Route::get('employee/emergency-informations/{id}', "EmergencyFieldController@getEmergencyInformations")->where(['id' => '[0-9]+'])->name("get_employee_emergency_informations");
             Route::get('employee/emergency-informations/fields', "EmergencyFieldController@getEmergencyInformationFields")->name("get_emergency_fields");
@@ -201,6 +203,7 @@ Route::namespace("Api")->group(function(){
 
             Route::post('employee/bank/save', "EmployeeBankController@saveEmployeeBank")->name("save_bank");
 
+            Route::get('employee/position-informations/serviceCodes', "PositionController@getServiceCodes")->name('get_service_codes');
 
 
         });

@@ -34,11 +34,19 @@ class DrivingLicenseController
 
     public function getDrivingLicense($id)
     {
+        $drivingLicense = DrivingLicenseModel::where(['EmployeeID' => $id, 'Active' => 1])->first();
+        if ($drivingLicense)
+        {
+            if (!is_null($drivingLicense->DrivingLicenseClasses))
+                $drivingLicense->DrivingLicenseClasses = array_map('intval', explode(",",$drivingLicense->DrivingLicenseClasses));
+        }
+
 
         return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => DrivingLicenseModel::where(['EmployeeID' => $id])->get()
+            'status'    => true,
+            'message'   => 'İşlem Başarılı',
+            //'data' => DrivingLicenseModel::where(['EmployeeID' => $id, 'Active' => 1])->get()
+            'data'      => $drivingLicense
         ], 200);
     }
 
@@ -66,6 +74,31 @@ class DrivingLicenseController
             'data' => $drivingLicenseClasses,
             'kind' => $kind
         ], 200);
+
+    }
+
+    public function deleteDrivingLicenseInfo(Request $request)
+    {
+        $drivingLicenseId = $request->drivingLicenseId;
+
+        $drivingLicense = DrivingLicenseModel::find($drivingLicenseId);
+        $drivingLicense->Active = 0;
+
+        if ($drivingLicense->save())
+        {
+            return response([
+                'status' => true,
+                'message' => "İşlem Başarılı.",
+            ], 200);
+        }
+        else
+            return response([
+                'status' => false,
+                'message' => "İşlem Başarısız.",
+            ], 200);
+
+
+
 
     }
 

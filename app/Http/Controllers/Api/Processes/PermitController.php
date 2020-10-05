@@ -17,7 +17,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
 use Exception;
+use PhpOffice\PhpWord\TemplateProcessor;
 use SoapClient;
+use Whoops\Util\TemplateHelper;
 
 class PermitController extends ApiController
 {
@@ -132,7 +134,7 @@ class PermitController extends ApiController
             else
             {
                 $userEmployee = EmployeeModel::find($request->Employee);
-                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,17,'','',$permit->PermitKind->name.' başlıklı izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından düzenlendi.','','','','','');
+                $logStatus = LogsModel::setLog($request->Employee,$permit->id,3,17,'','',$permit->id.' id nolu izin '.$userEmployee->UsageName . '' . $userEmployee->LastName.' adlı çalışan tarafından düzenlendi.','','','','','');
             }
             return response([
                 'status' => true,
@@ -271,9 +273,13 @@ class PermitController extends ApiController
             if ($confirm == 2) {
                 $permit->ps_status = 2;
             }
+            else
+            {
+                PermitModel::createPermitDocumentAndSendMailToEmployee($request);
+            }
+
         } else if ($permit->status == 3)
             $permit->ps_status = $confirm;
-
         $permit->status = $permit->status + 1;
         $permitResult = $permit->save();
         if ($permitResult) {

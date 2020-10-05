@@ -12,7 +12,7 @@ class DrivingLicenseModel extends Model
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = [
-        'DrivingLicenseType'
+        'DrivingLicenseType',
     ];
 
     public static function saveDrivingLicense($request)
@@ -26,41 +26,20 @@ class DrivingLicenseModel extends Model
         $drivingLicense->EmployeeID             = $request->EmployeeID;
         $drivingLicense->HasDrivingLicense      = $request->HasDrivingLicense;
         $drivingLicense->DrivingLicenseKind     = $request->DrivingLicenseKind;
-        $drivingLicense->DrivingLicenceType     = $request->DrivingLicenceType;
+        //$drivingLicense->DrivingLicenceClass    = $request->DrivingLicenceClass;
+        $drivingLicense->DrivingLicenseClasses  = implode(",",$request->DrivingLicenseClass);
         $drivingLicense->BirthDate              = $request->BirthDate;
         $drivingLicense->BirthPlace             = $request->BirthPlace;
         $drivingLicense->StartDate              = $request->StartDate;
         $drivingLicense->EffectiveDate          = $request->EffectiveDate;
         $drivingLicense->PlaceOfIssue           = $request->PlaceOfIssue;
         $drivingLicense->DocumentNo             = $request->DocumentNo;
+        $drivingLicense->EditPerson             = $request->EditPerson;
+        $drivingLicense->BackSerialNo           = $request->BackSerialNo;
             //$drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
 
         return $drivingLicense->save() ? true : false;
 
-    }
-
-    public static function addDrivingLicense($request,$employee)
-    {
-        $drivingLicense = self::create([
-            'DrivingLicenceType' => $request['licensetype'],
-            'BirthDate' => new Carbon($request['birthdate']),
-            'BirthPlace' => $request['birthplace'],
-            'StartDate' => new Carbon($request['licensebegindate']),
-            'EffectiveDate' => new Carbon($request['licenseenddate']),
-            'PlaceOfIssue' => $request['licenselocation'],
-            'DocumentNo' => $request['licensedocumentno'],
-            //'DrivingLicenceClass' => $request['licenseclass']
-        ]);
-
-        if ($drivingLicense != null)
-        {
-            $employee->DrivingLicenceID = $drivingLicense->Id;
-            $employee->save();
-            return $drivingLicense;
-        }
-
-        else
-            return false;
     }
 
     public static function getDrivingLicenseFields()
@@ -73,8 +52,9 @@ class DrivingLicenseModel extends Model
 
     public function getDrivingLicenseTypeAttribute()
     {
-        $drivingLicenseType = $this->hasOne(DrivingLicenceType::class,"Id","DrivingLicenceType");
+        $drivingLicenseType = $this->hasOne(DrivingLicenceType::class,"Id","DrivingLicenceClass");
         return $drivingLicenseType->where("Active",1)->first();
     }
+
 
 }

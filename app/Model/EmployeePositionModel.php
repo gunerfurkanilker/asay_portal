@@ -128,12 +128,28 @@ class EmployeePositionModel extends Model
 
             $position->Active = 2;
 
-            
+
             $employee = EmployeeModel::where(['Active' => 1, 'Id' => $position->EmployeeID])->first();
             $ikPosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
             $ikEmployee = EmployeeModel::find($request->Employee);
             $ITSpecialist = ProcessesSettingsModel::where(['object_type' => 10,'RegionID' => $ikPosition->RegionID,'PropertyCode' => 'ITManager'])->first();
             $ITSpecialistEmployee = EmployeeModel::where(['Active' => 1,'Id' => $ITSpecialist->PropertyValue])->first();
+
+            $connections = [
+                'asay.corp' => [
+                    'hosts' => ["asay.corp"],
+                ],
+            ];
+
+            $ad = new \Adldap\Adldap($connections);
+
+            try{
+
+            }catch(\Adldap\Auth\BindException $e)
+            {
+
+            }
+
 
             Asay::sendMail($ITSpecialistEmployee->JobEmail,$ikEmployee->JobEmail,"Active Directory Kullanıcısı Oluşturma İsteği","Sayın " .$ITSpecialistEmployee->UsageName . ' ' . $ITSpecialistEmployee->LastName. ' ' . $employee->JobEmail . ' adında bir mail adresi oluşturmanız talep edilmektedir. Bu kullanıcıyı farklı bir mail adresi ile oluşturmanız durumunda lütfen bu maile dönüş yapınız.' );
 
