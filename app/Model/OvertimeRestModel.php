@@ -8,6 +8,7 @@ class OvertimeRestModel extends Model
 {
     protected $primaryKey = "id";
     protected $table = "OvertimeRest";
+    public $timestamps = false;
 
     public function getRemainingOvertimeRest($request)
     {

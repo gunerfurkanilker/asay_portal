@@ -17,15 +17,17 @@ class AuthorityController extends ApiController
 
     public function loggedUserAuthorizations(Request $request){
 
-        $isEmployeeManager = false;
-        $isProjectManager = false;
-        $isAccounter = false;
-        $isHRPersonel = false;
-        $isPermitPersonnelManager= false;
+        $isEmployeeManager          = false;
+        $isProjectManager           = false;
+        $isAccounter                = false;
+        $isHRPersonel               = false;
+        $isPermitPersonnelManager   = false;
+        $isUnitSupervisor           = false;
 
         $employeeManagers = EmployeePositionModel::where(["Active"=>2,"ManagerID"=>$request->Employee]);
         $projects   = ProjectsModel::where(["manager_id"=>$request->Employee]);
         $categories = ProjectCategoriesModel::where(["manager_id"=>$request->Employee]);
+        $unitSupervisors = EmployeePositionModel::where(["Active"=>2,"UnitSupervisorID"=>$request->Employee]);
 
         if ($projects->count() > 0)
             $isProjectManager = true;
@@ -33,6 +35,8 @@ class AuthorityController extends ApiController
             $isProjectManager = true;
         if( $employeeManagers->count() > 0 )
             $isEmployeeManager = true;
+        if( $unitSupervisors->count() > 0 )
+            $isUnitSupervisor = true;
 
         $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee,"group_id"=>12, 'active' => 1])->count();
         if ($userGroupCount > 0)
@@ -61,11 +65,12 @@ class AuthorityController extends ApiController
         }
 
 
-        $data['isEmployeeManager'] = $isEmployeeManager;
-        $data['isProjectManager'] = $isProjectManager;
-        $data['isAccounter'] = $isAccounter;
-        $data['isHRPersonel'] = $isHRPersonel;
-        $data['isPermitPersonnelManager'] = $isPermitPersonnelManager;
+        $data['isEmployeeManager']          = $isEmployeeManager;
+        $data['isProjectManager']           = $isProjectManager;
+        $data['isAccounter']                = $isAccounter;
+        $data['isHRPersonel']               = $isHRPersonel;
+        $data['isPermitPersonnelManager']   = $isPermitPersonnelManager;
+        $data['isUnitSupervisor']           = $isUnitSupervisor;
 
 
 
