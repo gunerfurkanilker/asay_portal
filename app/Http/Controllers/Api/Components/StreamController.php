@@ -78,7 +78,7 @@ class StreamController extends ApiController
         $rights[] = "AU";
 
         $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
-            ->where(["activity_stream.is_active"=>1])->get();
+            ->where(["activity_stream.is_active"=>1])->orderBy("created_at","desc")->get();
         if($request->categoryId!==null){
             $stremk = [];
             foreach ($streams as $key=>$stream) {
@@ -97,7 +97,7 @@ class StreamController extends ApiController
             'data' =>  $streams
         ], 200);
     }
-    
+
     public function toList(Request $request){
         $to[] = ["id"=>"AU","name"=>"Tüm Çalışanlar"];
         $employee = EmployeeModel::select("Employee.Id","Employee.FirstName","Employee.LastName")

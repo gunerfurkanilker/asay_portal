@@ -13,14 +13,8 @@ class ExpenseDocumentModel extends Model
 
     protected $hidden = [];
     protected $casts = [];
-    protected $appends = [
-        'ObjectFile'
-    ];
 
-    public function getObjectFileAttribute(){
-        $objectFile = $this->hasOne(ObjectFileModel::class,'ObjectId','id');
-        return $objectFile->where(['Active' => 1, 'ObjectType' => 1])->first();//Harcama Belgesi
-    }
+
 
 
 }

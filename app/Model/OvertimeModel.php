@@ -169,90 +169,175 @@ class OvertimeModel extends Model
         $beginTime2 = isset($request->WorkBeginTime) && !is_null($request->WorkBeginTime) ? Carbon::createFromFormat("H:i", $request->WorkBeginTime) : null;
         $endTime2 = isset($request->WorkEndTime) && !is_null($request->WorkEndTime) ? Carbon::createFromFormat("H:i", $request->WorkEndTime) : null;
 
+        if (!is_null($beginDate2))
+        {
+            $publicHolidayRecCount = PublicHolidayModel::whereDate('start_date',">=",$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day)
+                ->whereRaw('? < DATE(end_date)', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day])
+                ->count();
+            if ($publicHolidayRecCount > 0)
+                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+        }
+        else
+        {
+            $publicHolidayRecCount = PublicHolidayModel::whereDate('start_date',">=",$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day)
+                ->whereRaw('? < DATE(end_date)', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day])
+                ->count();
+            if ($publicHolidayRecCount > 0)
+                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+        }
 
-        $dailyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $publicHolidays     = PublicHolidayModel::whereYear("start_date","=",$beginDate->year)->get();
+        $publicHolidays2    = !is_null($beginDate2) ? PublicHolidayModel::whereYear("start_date","=",$beginDate2->year)->get() : [];
+
+        $publicHolidaysArray = [];
+        $publicHolidaysArray2 = [];
+
+        foreach ($publicHolidays as $publicHoliday)
+        {
+            $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
+            array_push($publicHolidaysArray,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+        }
+
+        foreach ($publicHolidays2 as $item)
+        {
+            $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$item->start_date)[0]);
+            array_push($publicHolidaysArray2,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+        }
+
+
+
+        $dailyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray) {
             if ($beginDate2)
+            {
                 $query->whereBetween('BeginDate', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day
                     , $beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
             else
+            {
                 $query->whereBetween('BeginDate', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day
                     , $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
             $query->whereNotIn('StatusID', [3, 5]);
         }); // Günlük tanımlanmış saatleri çekiyoruz.
 
-        $dailyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [4, 6, 7, 8, 9, 10])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $dailyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [4, 6, 7, 8, 9, 10])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray2) {
             $query->whereNotIn('StatusID', [3, 5]);
 
             if ($beginDate2)
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day
                     , $beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
             else
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day
                     , $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
 
         }); // Günlük tanımlanmış saatleri çekiyoruz.
 
         $dailyTimes = array();
         foreach ($dailyTimesQ->get() as $item)
-            array_push($dailyTimes,$item);
+            array_push($dailyTimes, $item);
         foreach ($dailyTimesQ2->get() as $item)
             array_push($dailyTimes, $item);
 
 
-
-        $monthlyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $monthlyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray) {
             if ($beginDate2)
+            {
                 $query->whereBetween('BeginDate', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->startOfMonth()->day
                     , $beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->endOfMonth()->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
             else
+            {
                 $query->whereBetween('BeginDate', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->startOfMonth()->day
                     , $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->endOfMonth()->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
             $query->whereNotIn('StatusID', [3, 5]);
         });
 
-        $monthlyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [4, 6, 7, 8, 9, 10])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $monthlyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [4, 6, 7, 8, 9, 10])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray2) {
             $query->whereNotIn('StatusID', [3, 5]);
             if ($beginDate2)
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->startOfMonth()->day
                     , $beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->endOfMonth()->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
             else
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->startOfMonth()->day
                     , $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->endOfMonth()->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
 
         });
 
 
         $monthlyTimes = array();
         foreach ($monthlyTimesQ->get() as $item)
-            array_push($monthlyTimes,$item);
+            array_push($monthlyTimes, $item);
         foreach ($monthlyTimesQ2->get() as $item)
             array_push($monthlyTimes, $item);
 
-        $yearlyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $yearlyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray) {
             if ($beginDate2)
+            {
                 $query->whereBetween('BeginDate', [$beginDate2->startOfYear()->year . '-' . $beginDate2->startOfYear()->month . '-' . $beginDate2->startOfYear()->day
                     , $beginDate2->endOfYear()->year . '-' . $beginDate2->endOfYear()->month . '-' . $beginDate2->endOfYear()->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
             else
+            {
                 $query->whereBetween('BeginDate', [$beginDate->startOfYear()->year . '-' . $beginDate->startOfYear()->month . '-' . $beginDate->startOfYear()->day
                     , $beginDate->endOfYear()->year . '-' . $beginDate->endOfYear()->month . '-' . $beginDate->endOfYear()->day]);
+                $query->whereNotIn('BeginDate', $publicHolidaysArray);
+            }
+
+
         });
 
-        $yearlyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2) {
+        $yearlyTimesQ2 = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray2) {
 
             if ($beginDate2)
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate2->startOfYear()->year . '-' . $beginDate2->startOfYear()->month . '-' . $beginDate2->startOfYear()->day
                     , $beginDate2->endOfYear()->year . '-' . $beginDate2->endOfYear()->month . '-' . $beginDate2->endOfYear()->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
             else
+            {
                 $query->whereBetween('WorkBeginDate', [$beginDate->startOfYear()->year . '-' . $beginDate->startOfYear()->month . '-' . $beginDate->startOfYear()->day
                     , $beginDate->endOfYear()->year . '-' . $beginDate->endOfYear()->month . '-' . $beginDate->endOfYear()->day]);
+                $query->whereNotIn('WorkBeginDate', $publicHolidaysArray2);
+            }
+
+
             $query->whereNotIn('StatusID', [3, 5]);
         });
 
         $yearlyTimes = array();
         foreach ($yearlyTimesQ->get() as $item)
-            array_push($yearlyTimes,$item);
+            array_push($yearlyTimes, $item);
         foreach ($yearlyTimesQ2->get() as $item)
-            array_push($yearlyTimes,$item);
+            array_push($yearlyTimes, $item);
 
         $dailyMinutes = 0;
         $dailyHours = 0;
@@ -282,7 +367,7 @@ class OvertimeModel extends Model
             if (($endTime->hour - $beginTime->hour) + $dailyHours > $dailyHoursLimit || ($endTime2->hour - $beginTime2->hour) + $dailyHours > $dailyHoursLimit)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
             elseif (($endTime->hour - $beginTime->hour) + $dailyHours == $dailyHoursLimit || ($endTime2->hour - $beginTime2->hour) + $dailyHours == $dailyHoursLimit) {
-                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 15 || abs($endTime2->minute - $beginTime2->minute) + $dailyMinutes > 15) {
+                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 30 || abs($endTime2->minute - $beginTime2->minute) + $dailyMinutes > 30) {
                     return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
                 }
             }
@@ -290,7 +375,7 @@ class OvertimeModel extends Model
             if (($endTime->hour - $beginTime->hour) + $dailyHours > $dailyHoursLimit)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
             elseif (($endTime->hour - $beginTime->hour) + $dailyHours == $dailyHoursLimit) {
-                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 15) {
+                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 30) {
                     return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
                 }
             }
@@ -319,20 +404,22 @@ class OvertimeModel extends Model
             $monthlyHours += $tempTime->hour;
         }
 
+
+
         if ($beginDate2 && !is_null($beginDate2)) {
             if (($endTime->hour - $beginTime->hour) + $monthlyHours > $monthlyHoursLimit || ($endTime2->hour - $beginTime2->hour) + $monthlyHours > $monthlyHoursLimit)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
-            elseif (($endTime->hour - $beginTime->hour) + $dailyHours == $dailyHoursLimit || ($endTime2->hour - $beginTime2->hour) + $dailyHours == $dailyHoursLimit) {
-                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 15 || abs($endTime2->minute - $beginTime2->minute) + $dailyMinutes > 15) {
+            elseif (($endTime->hour - $beginTime->hour) + $monthlyHours == $monthlyHoursLimit || ($endTime2->hour - $beginTime2->hour) + $monthlyHours == $monthlyHoursLimit) {
+                if (abs($endTime->minute - $beginTime->minute) + $monthlyMinutes > 30 || abs($endTime2->minute - $beginTime2->minute) + $monthlyMinutes > 30) {
                     return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
                 }
             }
         } else {
             if (($endTime->hour - $beginTime->hour) + $monthlyHours > $monthlyHoursLimit)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
-            elseif (($endTime->hour - $beginTime->hour) + $dailyHours == $dailyHoursLimit) {
-                if (abs($endTime->minute - $beginTime->minute) + $dailyMinutes > 15) {
-                    return ['status' => false, 'message' => 'AGirilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
+            elseif (($endTime->hour - $beginTime->hour) + $monthlyHours == $monthlyHoursLimit) {
+                if (abs($endTime->minute - $beginTime->minute) + $monthlyMinutes > 30) {
+                    return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
                 }
             }
         }
@@ -369,6 +456,33 @@ class OvertimeModel extends Model
         }
 
         return ['status' => true, 'message' => 'Girilen fazla çalışma süresi herhangi bir limiti aşmıyor.', 'data' => $monthlyHours];
+
+    }
+
+    public static function checkOvertimeExists($request,$neglectRecord = null)
+    {
+        $recordsCount = 999;
+        if ($neglectRecord == null)
+        {
+            $recordsQ = OvertimeModel::where(['Active' => 1]);
+            $recordsQ->where(['BeginDate' => $request->BeginDate,'AssignedID' => $request->AssignedID]);
+            $recordsQ->whereIn('StatusID',[0,1,2,4]);
+            $recordsQ->whereBetween('BeginTime',[$request->BeginTime,$request->EndTime]);
+            $recordsCount = $recordsQ->count();
+
+            $recordsQ2 = OvertimeModel::where(['Active' => 1]);
+            $recordsQ2->where(['WorkBeginDate' => $request->BeginDate,'AssignedID' => $request->AssignedID]);
+            $recordsQ2->whereIn('StatusID',[6,7,8,9]);
+            $recordsQ2->whereBetween('WorkBeginDate',[$request->BeginTime,$request->EndTime]);
+            $recordsCount+= $recordsQ2->count();
+
+            if ($recordsCount > 0)
+                return ['status' => false,'message' => 'Çalışmayı oluşturduğunuz tarih ve saatlerde ilgili çalışanın başka bir çalışması bulunmaktadır ' .$recordsCount];
+
+        }
+
+        return ['status' => false,'message' => $recordsCount];
+
 
     }
 
@@ -515,8 +629,11 @@ class OvertimeModel extends Model
                 //Limit Kontrol
                 if ($request->OvertimeId == null) {
                     $limitCheck = self::overtimeLimitCheck($request);
-                    if ($limitCheck['status'] == false)
+                    //$existsCheck = self::checkOvertimeExists($request);
+                    if ($limitCheck['status'] == false )
                         return $limitCheck;
+                    //if ($existsCheck['status'] == false)
+                      //  return $existsCheck;
                 } else {
                     $overtimeRecord = OvertimeModel::find($request->OvertimeId);
                     $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
@@ -547,7 +664,7 @@ class OvertimeModel extends Model
             case 4:
                 return self::overtimeApproveRequestFromEmployee($request);
             case 5:
-                return self::overtimeCancelRequestFromEmployee($request);
+                return self::overtimeCancelRequestFromManager($request);
             case 6:
                 $overtimeRecord = OvertimeModel::find((int)$request->OvertimeId);
                 $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
@@ -680,18 +797,23 @@ class OvertimeModel extends Model
         $overtimeRecord->UsingCar = $overtimeRequest->UsingCar;
         $overtimeRecord->PlateNumber = $overtimeRequest->PlateNumber;
         $overtimeRecord->Description = $overtimeRequest->Description;
+        $overtimeRecord->ProcessDescription = $overtimeRequest->ProcessReason;
 
         $dirtyFields = $overtimeRecord->getDirty();
         $dirtyFieldsString = "";
         $dirtyFieldsArray = [];
         foreach ($dirtyFields as $field => $newdata) {
             $olddata = $overtimeRecord->getOriginal($field);
+            if (self::columnNameToTurkish($field) == 'Onaylayacak Olan Yönetici' || $field == 'ProcessDescription')
+                continue;
             if ($olddata != $newdata) {
                 $dataObject = new \stdClass();
                 $dataObject->changedFieldName = self::columnNameToTurkish($field);
                 $dataObject->oldData = $olddata;
                 $dataObject->newData = $newdata;
                 array_push($dirtyFieldsArray, $dataObject);
+                $overtimeRecord->ProcessDescription .= "\n\n" . $dataObject->changedFieldName ." (İlk Değer) : " . $dataObject->oldData . "\n" .
+                    $dataObject->changedFieldName ." (Düzenlenen Değer) : " . $dataObject->newData;
             }
         }
 
@@ -738,6 +860,7 @@ class OvertimeModel extends Model
         $overtimeRecord->UsingCar = $overtimeRequest->UsingCar;
         $overtimeRecord->PlateNumber = $overtimeRequest->PlateNumber;
         $overtimeRecord->Description = $overtimeRequest->Description;
+        $overtimeRecord->ProcessDescription = $overtimeRequest->ProcessReason;
 
         $dirtyFields = $overtimeRecord->getDirty();
 
@@ -753,7 +876,7 @@ class OvertimeModel extends Model
 
         $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
-        $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
+        $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
 
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
@@ -811,11 +934,19 @@ class OvertimeModel extends Model
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
     }
 
-    public static function overtimeCancelRequestFromEmployee($overtimeRequest)
+    public static function overtimeCancelRequestFromManager($overtimeRequest)
     {
-
         $overtimeRecord = OvertimeModel::where(['id' => $overtimeRequest->OvertimeId, 'Active' => 1])->first();
+
+        if($overtimeRecord->StatusID == 0)
+        {
+            $overtimeRecord->Active = 0;
+            $overtimeRecord->save();
+            return ['status' => true, 'message' => 'İşlem Başarılı'];
+        }
+
         $overtimeRecord->StatusID = 5;
+        $overtimeRecord->ProcessDescription = $overtimeRequest->ProcessReason;
 
         //TODO Loglama ve mail göndeirmi yapılacak
 
@@ -828,7 +959,7 @@ class OvertimeModel extends Model
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord];
         $mailTable = view('mails.overtime', $mailData);
-        Asay::sendMail($assignedEmployeesManager->JobEmail, "", $overtimeRecord->JobOrderNo . " iş emri kodlu fazla çalışma çalışan tarafından iptal edildi.", $mailTable, "Fazla Çalışma İptal Edildi");
+        Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışmanız yöneticiniz tarafından iptal edildi", $mailTable, "Fazla Çalışma İptal Edildi");
 
 
         if ($overtimeRecord->save()) {
@@ -933,12 +1064,15 @@ class OvertimeModel extends Model
         $overtimeRecord->UsingCar = $overtimeRequest->UsingCar;
         $overtimeRecord->PlateNumber = $overtimeRequest->PlateNumber;
         $overtimeRecord->Description = $overtimeRequest->Description;
+        $overtimeRecord->ProcessDescription = $overtimeRequest->ProcessReason;
 
         $dirtyFields = $overtimeRecord->getDirty();
         $dirtyFieldsString = "";
         $dirtyFieldsArray = [];
         foreach ($dirtyFields as $field => $newdata) {
             $olddata = $overtimeRecord->getOriginal($field);
+            if (self::columnNameToTurkish($field) == 'Onaylayacak Olan Yönetici' || $field == 'ProcessDescription')
+                continue;
             if ($olddata != $newdata) {
                 //TODO Loglama İşlemi burada yapılacak.
                 $dataObject = new \stdClass();
@@ -946,6 +1080,8 @@ class OvertimeModel extends Model
                 $dataObject->oldData = $olddata;
                 $dataObject->newData = $newdata;
                 array_push($dirtyFieldsArray, $dataObject);
+                $overtimeRecord->ProcessDescription .= "\n\n" . $dataObject->changedFieldName ." (İlk Değer) : " . $dataObject->oldData . "\n" .
+                    $dataObject->changedFieldName ." (Düzenlenen Değer) : " . $dataObject->newData;
             }
         }
 
@@ -1077,8 +1213,8 @@ class OvertimeModel extends Model
         $overtimeRecord->BeginDate = $overtimeRequest->BeginDate;
         $overtimeRecord->BeginTime = $overtimeRequest->BeginTime . ':00';
         $overtimeRecord->WorkBeginDate = $overtimeRequest->WorkBeginDate;
-        $overtimeRecord->WorkBeginTime = $overtimeRequest->WorkBeginTime;
-        $overtimeRecord->WorkEndTime = $overtimeRequest->WorkEndTime;
+        $overtimeRecord->WorkBeginTime = $overtimeRequest->WorkBeginTime.':00';
+        $overtimeRecord->WorkEndTime = $overtimeRequest->WorkEndTime.':00';
         $overtimeRecord->WorkNo = $overtimeRequest->WorkNo;
         $overtimeRecord->ProjectID = $overtimeRequest->ProjectID;
         $overtimeRecord->JobOrderNo = $overtimeRequest->JobOrderNo;
@@ -1089,13 +1225,14 @@ class OvertimeModel extends Model
         $overtimeRecord->UsingCar = $overtimeRequest->UsingCar;
         $overtimeRecord->PlateNumber = $overtimeRequest->PlateNumber;
         $overtimeRecord->Description = $overtimeRequest->Description;
+        $overtimeRecord->ProcessDescription = $overtimeRequest->ProcessReason;
 
         $dirtyFields = $overtimeRecord->getDirty();
         $dirtyFieldsArray = [];
 
         foreach ($dirtyFields as $field => $newdata) {
             $olddata = $overtimeRecord->getOriginal($field);
-            if (self::columnNameToTurkish($field) == 'Onaylayacak Olan Yönetici')
+            if (self::columnNameToTurkish($field) == 'Onaylayacak Olan Yönetici' || $field == 'ProcessDescription')
                 continue;
             if ($olddata != $newdata) {
                 //TODO Loglama İşlemi burada yapılacak.
@@ -1104,6 +1241,8 @@ class OvertimeModel extends Model
                 $dataObject->oldData = $olddata;
                 $dataObject->newData = $newdata;
                 array_push($dirtyFieldsArray, $dataObject);
+                $overtimeRecord->ProcessDescription .= "\n\n" . $dataObject->changedFieldName ." (İlk Değer) : " . $dataObject->oldData . "\n" .
+                    $dataObject->changedFieldName ." (Düzenlenen Değer) : " . $dataObject->newData;
             }
         }
 
@@ -1179,9 +1318,9 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->File) {
             $returnVal = self::getFileOfOvertime($overtimeRequest);
-            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışma tamamlandı.", $mailTable, "Fazla Çalışma Tamamlandı", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "Fazla Çalışma Onaylandı", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
         } else
-            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışma tamamlandı.", $mailTable, "Fazla Çalışma Tamamlandı", "", "", "");
+            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "Fazla Çalışma Onaylandı", "", "", "");
 
 
         if ($overtimeRecord->save()) {
@@ -1189,7 +1328,8 @@ class OvertimeModel extends Model
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 29, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
 
             //Fazla Çalışma tüm onay süreçlerinden geçerse kişi her saat başına yarım saat dinlenme izni kullanmak için hak kazanır. Bu izin YILDA 105 SAAT olarak sınırlandırılmıştır.
-            self::addRestPermitToEmployee($overtimeRequest);
+
+            $resp = self::addRestPermitToEmployee($overtimeRequest);
 
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -1233,31 +1373,35 @@ class OvertimeModel extends Model
         $workBeginTime = Carbon::createFromFormat("H:i", $request->WorkBeginTime);
         $workEndTime = Carbon::createFromFormat("H:i", $request->WorkEndTime);
 
-        $workTotalTimeMinute = abs((int)($workEndTime->hour - $workBeginTime->hour)) * 60; //Dakikaya Çevrildi
+        $workTotalTimeMinute = abs((int)($workEndTime->hour - $workBeginTime->hour)) * 60 + (abs($workBeginTime->minute - $workEndTime->minute)); //Dakikaya Çevrildi
 
-        $earnedRestTime = ($workTotalTimeMinute / 2); //NetSaat hesabı
 
-        $earnedRestMinute = 0;
-        $earnedRestHour = 0;
-        if ($earnedRestTime % 60 != 0) {
-            $earnedRestMinute = abs($earnedRestTime - 60);
-        }
-        $earnedRestHour = (int)($workTotalTimeMinute / 60 + ($workTotalTimeMinute / 2) / 60);
+
+        $earnedRestMinute = (($workTotalTimeMinute * 1.5)) % 60;
+        $earnedRestHour = (int)(($workTotalTimeMinute * 1.5) / 60);
+
 
         $overtimeRestHourLimit = 105;
         $overtimeRests = OvertimeRestModel::selectRaw(" SUM(Hour) as TotalHour, SUM(Minute) as TotalMinute")->where(['EmployeeID' => $request->AssignedID, 'Active' => 1])->whereYear('Date', "=", $workBeginDate->year)->first();
 
         if ($earnedRestHour + $overtimeRests->TotalHour > $overtimeRestHourLimit)
             return ['status' => false, 'message' => 'Yıllık Dinlenme İzni Limiti Dolmuştur'];
-        if ($earnedRestHour + $overtimeRests->TotalHour == $overtimeRestHourLimit || $earnedRestMinute > 0)
-            return ['status' => false, 'message' => 'Yıllık Dinlenme İzni Limiti Dolmuştur'];
+
+        else if ($earnedRestHour + $overtimeRests->TotalHour == $overtimeRestHourLimit)
+            if ($earnedRestMinute > 0)
+                return ['status' => false, 'message' => 'Yıllık Dinlenme İzni Limiti Dolmuştur. Toplam hakedilmiş izin : ' . $overtimeRestHourLimit];
+
         if ($earnedRestMinute + $overtimeRests->TotalMinute > 60) {
-            if ($earnedRestHour + ($earnedRestMinute + $overtimeRests->TotalMinute / 60) > $overtimeRestHourLimit) {
+            if ($earnedRestHour + ((int)($earnedRestMinute + $overtimeRests->TotalMinute / 60)) > $overtimeRestHourLimit) {
                 return ['status' => false, 'message' => 'Yıllık Dinlenme İzni Limiti Dolmuştur'];
             }
         }
 
-        $newOvertimeRest = new OvertimeRestModel();
+
+
+        $newOvertimeRest = OvertimeRestModel::where(['Active' => 1, 'EmployeeID' => $request->AssignedID, 'OvertimeID' => $request->OvertimeId])->first();
+        if (!$newOvertimeRest)
+            $newOvertimeRest = new OvertimeRestModel();
         $newOvertimeRest->OvertimeID = $request->OvertimeId;
         $newOvertimeRest->EmployeeID = $request->AssignedID;
         $newOvertimeRest->Date = $request->BeginDate;

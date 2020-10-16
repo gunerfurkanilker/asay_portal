@@ -48,6 +48,7 @@ class PermitModel extends Model
         $newPermit->permit_address  = $req->permitAddress;
         $newPermit->used_day        = $totalPermitDayHour['UsedDay'];
         $newPermit->over_hour       = $totalPermitDayHour['OverHour'];
+        $newPermit->over_minute     = $totalPermitDayHour['OverMinute'];
         $newPermit->holiday         = $totalPermitDayHour['Holidays'];
         $newPermit->weekend         = $totalPermitDayHour['Weekend'];
         return $newPermit->save() ? $newPermit->fresh() : false;
@@ -92,7 +93,7 @@ class PermitModel extends Model
         foreach ($holidays as $holiday) {
             $ResmiTatil[] = $holiday;
         }
-
+        $minute = 0;
         $st = strtotime($startDate);
         $saat       = 0;
         $hssaat     = 0;
@@ -133,6 +134,13 @@ class PermitModel extends Model
             }
         }
 
+        $minute = abs(60-(abs(strtotime($endDate) - $st) / 60)) ;
+        $minute != 0 ? $saat-- : '';
+        if ($minute == 60)
+        {
+            $minute = 0;
+            $saat++;
+        }
         $devirSaat 		= $saat % 8;
         $aktarilacakGun = floor($saat / 8);
 
@@ -143,7 +151,8 @@ class PermitModel extends Model
             "UsedDay" => $aktarilacakGun,
             "OverHour" => $devirSaat,
             "Weekend" => $haftasonu,
-            "Holidays" => $resmigun
+            "Holidays" => $resmigun,
+            'OverMinute' => $minute
         ];
     }
 
@@ -274,8 +283,6 @@ class PermitModel extends Model
         return $holidays;
     }
 
-
-
     public static function netsisRemainingPermit($employeeId="")
     {
         $employee = EmployeeModel::where(["Id"=>$employeeId,"Active"=>1])->first();
@@ -350,22 +357,6 @@ class PermitModel extends Model
         return ["daysLeft"=>$gun,"hoursLeft"=>$kalansaat];
     }
 
-
-    public function getPermitKindAttribute()
-    {
-        $permitKind = $this->hasOne(PermitKindModel::class, "id", "kind");
-        return $permitKind->where("active", 1)->first()->toArray();
-    }
-
-    public function getTransferEmployeeAttribute()
-    {
-        $transferEmployee = $this->hasOne(EmployeeModel::class, "Id", "transfer_id");
-        if($transferEmployee)
-            return $transferEmployee->where("Active", 1)->first();
-        else
-            return null;
-    }
-
     public static function createPermitDocumentAndSendMailToEmployee($request)
     {
 
@@ -394,14 +385,14 @@ class PermitModel extends Model
         $permitCount = $permit->used_day. ' gün, ' . $permit->over_hour . ' saat';
         $permitAddress = $permit->permit_address;
         $employeeManagerFullName = $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName;
-        $employeePositionStartDate =  date("d.m.Y H:i:s", strtotime($employee->EmployeePosition->StartDate));
+        $employeePositionStartDate =  date("d.m.Y", strtotime($employee->EmployeePosition->StartDate));
         $hrPerson = $hrPerson->UsageName . ' ' . $hrPerson->LastName;
-        $yearlyPermitEarnDate = "";
-        $restPermitEarnDate = "";
+        $yearlyPermitEarnDate = $employee->EmployeePosition->StartDate;
 
         $d = date("d");
         $m = date("m");
-        $y = date("YYYY");
+        $y = date("Y");
+
 
 
 
@@ -432,10 +423,9 @@ class PermitModel extends Model
             }
             else if ($permit->kind == 12)
             {
-
                 $yearlyPermitRemainingVal = self::netsisRemainingPermit($employee->Id);
                 $yearlyPermitRemaining = $yearlyPermitRemainingVal['daysLeft'].' gün, ' . $yearlyPermitRemainingVal['hoursLeft'] . ' saat';
-                $yearlyPermitYear = date("YYYY",strtotime($permitStartDate));
+                $yearlyPermitYear = date("Y",strtotime($permitStartDate));
 
                 $templateProcessor->setValue('d',$d);
                 $templateProcessor->setValue('m',$m);
@@ -466,7 +456,28 @@ class PermitModel extends Model
             else if($permit->kind == 14)
             {
 
-                $restPermitYear = date("YYYY",strtotime($permitStartDate));
+                $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => $permit->EmployeeID, 'Active' => 1])
+                    ->whereYear("Date", "=", $permit->start_date)->first();
+                $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour")->where(['Active' => 1, 'EmployeeID' => $permit->EmployeeID, 'kind' => 14])
+                    ->whereYear("start_date", "=", $permit->start_date)->first();
+
+
+                $totalMinute = ((int)$employeeOvertimeRestTotalHour->total_hour * 60) + (int)$employeeOvertimeRestTotalHour->total_minute;
+                $earnedDayCount = (int)(($totalMinute / 60) / 8); //Bir iş günü toplam 8 saattir.
+                $earnedHourCount = (int)($totalMinute / 60) > 8 ? (int)($totalMinute / 60) - 8 : (int)($totalMinute / 60);
+
+                $permitUsedHours = (int)($totalRestPermits->over_hour) > 8 ? (int)($totalRestPermits->over_hour) % 8 : (int)($totalRestPermits->over_hour) == 8 ? 0 : (int)($totalRestPermits->over_hour);
+                $permitUsedDays = ((int)$totalRestPermits->total_day) + ((int)($totalRestPermits->over_hour / 8));
+
+                $remainingRestPermitDay = $earnedDayCount - $permitUsedDays;
+                $remainingRestPermitHour = abs($earnedHourCount - $permitUsedHours);
+
+                $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat';
+
+                $lastEarnedPermit = OvertimeRestModel::where(['EmployeeID' => $permit->EmployeeID, 'Active' => 1])->orderBy('Date', 'desc')->first();
+                $restPermitEarnDate = date('d.m.Y',strtotime($lastEarnedPermit->Date));
+                $restPermitYear = date("Y",strtotime($permitStartDate));
+
 
                 $templateProcessor->setValue('d',$d);
                 $templateProcessor->setValue('m',$m);
@@ -483,7 +494,7 @@ class PermitModel extends Model
                 $templateProcessor->setValue('employeePositionStartDate', $employeePositionStartDate);
                 $templateProcessor->setValue('restPermitEarnDate', $restPermitEarnDate);
                 $templateProcessor->setValue('restPermitYear', $restPermitYear);
-                $templateProcessor->setValue('restPermitRemainingYear', "");
+                $templateProcessor->setValue('restPermitRemainingYear', $restPermitRemainingYear);
                 $templateProcessor->setValue('hrPerson', $hrPerson);
                 $templateProcessor->setValue('restPermitStartDate', $permitStartDate);
                 $templateProcessor->setValue('restPermitEndDate', $permitEndDate);
@@ -505,5 +516,19 @@ class PermitModel extends Model
 
     }
 
+    public function getPermitKindAttribute()
+    {
+        $permitKind = $this->hasOne(PermitKindModel::class, "id", "kind");
+        return $permitKind->where("active", 1)->first()->toArray();
+    }
+
+    public function getTransferEmployeeAttribute()
+    {
+        $transferEmployee = $this->hasOne(EmployeeModel::class, "Id", "transfer_id");
+        if($transferEmployee)
+            return $transferEmployee->where("Active", 1)->first();
+        else
+            return null;
+    }
 
 }

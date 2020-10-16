@@ -352,7 +352,7 @@ class ExpenseController extends ApiController
         $requestArray = $request->all();
         $documentElement->document_id = $request->documentId;
         $documentElement->expense_account = $requestArray['expense_account'];
-        $documentElement->car_plate = $requestArray['carPlate'];
+        $documentElement->car_plate = isset($requestArray['carPlate']) ? $requestArray['carPlate'] : null;
         $documentElement->content = $requestArray['content'];
         $documentElement->quantity = $requestArray['quantity'];
         $documentElement->kdv = $requestArray['kdv'];
@@ -740,6 +740,8 @@ class ExpenseController extends ApiController
             ->leftJoin("ExpenseDocumentElement", "ExpenseDocumentElement.document_id", "=", "ExpenseDocument.id")
             ->where(["Expense.active" => 1]);
 
+
+
         $expenseQ->where(function ($query) use ($projects, $categories, $employeeManagers, $status) {
             if (count($projects) > 0 && ($status == 2 || $status == ""))
                 $query->whereIn("project_id", $projects);
@@ -766,13 +768,23 @@ class ExpenseController extends ApiController
         $expenseQ->whereIn("Expense.status", $statusArray);
 
         $data["expenses"] = $expenseQ->get();
-        $employee = EmployeeModel::find($request->Employee);
         return response([
             'status' => true,
             'data' => $data,
-            'UGCount' => $employee,
             'statusVal' => $request->singleStatus
         ], 200);
+    }
+
+    public function expensePendingListCount(Request $request)
+    {
+        $expenseQ = ExpenseModel::where(["Expense.active" => 1])->groupBy('status');
+
+        $counts = $expenseQ->get();
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $counts
+        ],200);
     }
 
     public function expenseDelete(Request $request)

@@ -64,10 +64,19 @@ class OvertimeController extends ApiController
 
         $overtimes = OvertimeModel::getOvertimeByStatus($status,$request->Employee);
 
+        $userEmployees = EmployeePositionModel::where(['Active' => 2])->orWhere(['UnitSupervisorID' => $request->Employee, 'ManagerID' => $request->Employee])->get();
+        $userEmployeesIDs = [];
+        foreach ($userEmployees as $userEmployee) {
+            array_push($userEmployeesIDs, $userEmployee->EmployeeID);
+        }
+
+
+        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->groupBy("StatusID")->get();
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $overtimes
+            'data' => $overtimes,
+            'dataCounts' => $counts
         ],200);
 
     }
@@ -169,6 +178,20 @@ class OvertimeController extends ApiController
             'status' => true,
             'message' => $request->all(),
         ],200);*/
+
+
+        if (strtotime($request->BeginTime) > strtotime($request->EndTime))
+            return response([
+                'status' => false,
+                'message' => 'Başlangıç saati, bitiş saatinden büyük olamaz.'
+            ],200);
+
+        if (isset($request->WorkBeginTime) && isset($request->WorkEndTime))
+            if (strtotime($request->WorkBeginTime) > strtotime($request->WorkEndTime))
+                return response([
+                    'status' => false,
+                    'message' => 'İş Başlangıç saati, bitiş saatinden büyük olamaz.'
+                ],200);
 
 
         $status = OvertimeModel::saveOvertimeByProcessType($request->processType,$request);

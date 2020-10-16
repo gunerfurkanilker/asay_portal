@@ -37,6 +37,7 @@ Route::namespace("Api")->group(function(){
             Route::get('getExpenseDocument', "ExpenseController@getExpenseDocument")->name("expense_getExpenseDocument");
             Route::get('expenseDocumentList', "ExpenseController@expenseDocumentList")->name("expense_expenseDocumentList");
             Route::get('expensePendingList', "ExpenseController@expensePendingList")->name("expense_expensePendingList");
+            Route::get('expensePendingListCount', "ExpenseController@expensePendingListCount")->name("expense_expensePendingListCount");
             Route::get('printExpense',"ExpenseController@printExpense")->name("expense_print");
             Route::delete('expenseDelete', "ExpenseController@expenseDelete")->name("expense_expenseDelete");
             Route::delete('deleteDocument', "ExpenseController@deleteDocument")->name("expense_deleteDocument");

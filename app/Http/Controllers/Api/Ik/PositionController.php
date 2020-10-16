@@ -86,13 +86,13 @@ class PositionController extends ApiController
         $organization = $request->OrganizationID;
         $department = $request->DepartmentID;
 
-        $serviceCode = ServiceCodesModel::where(['CompanyID' => $company, 'OrganizationID' => $organization, 'DepartmentID' => $department])->first();
+        $serviceCode = ServiceCodesModel::where(['CompanyID' => $company, 'OrganizationID' => $organization, 'DepartmentID' => $department])->get();
 
         if ($serviceCode)
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
-                'data' => $serviceCode->Code
+                'data' => $serviceCode
             ],200);
         else
             return response([

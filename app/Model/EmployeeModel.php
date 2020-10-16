@@ -321,8 +321,11 @@ class EmployeeModel extends Model
         $groups = [];
         $userGroups = $this->hasMany(EmployeeHasGroupModel::class, "EmployeeID", "Id")->get();
         foreach ($userGroups as $userGroup) {
-            $group = UserGroupModel::find($userGroup->group_id);
-            $groups[$userGroup->group_id] = $group->name;
+            if ($userGroup->active == 1)
+            {
+                $group = UserGroupModel::find($userGroup->group_id);
+                $groups[$userGroup->group_id] = $group->name;
+            }
         }
         return $groups;
     }
