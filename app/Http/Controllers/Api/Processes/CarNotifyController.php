@@ -23,9 +23,12 @@ class CarNotifyController extends ApiController
 
     public function saveCarNotify(Request $request){
 
+        $result = CarNotifyModel::saveCarNotify($request);
 
-
-
+        return response([
+            'status' => $result['status'],
+            'message' => $result['message']
+        ],200);
 
     }
 

@@ -127,7 +127,7 @@ Route::namespace("Api")->group(function(){
             Route::get('carDefects','CarNotifyController@getCarDefects')->name('carnotify_getCarDefects');
             Route::get('ticketCode','CarNotifyController@getTicketCode')->name('carnotify_getTicketCode');
 
-            Route::post('saveCarNotify','CarNotifyController@getTicketCode')->name('carnotify_saveCarNotify');
+            Route::post('saveCarNotify','CarNotifyController@saveCarNotify')->name('carnotify_saveCarNotify');
         });
 
     });
