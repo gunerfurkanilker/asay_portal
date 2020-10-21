@@ -117,6 +117,19 @@ Route::namespace("Api")->group(function(){
             Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');
         });
 
+        Route::prefix('processes/CarNotify/')->group(function () {
+            Route::get('employees','CarNotifyController@getEmployeeList')->name('carnotify_employee_all');
+            Route::get('notifyKinds','CarNotifyController@getNotifyKinds')->name('carnotify_notify_kinds');
+            Route::get('carPlates','CarNotifyController@getCarPlates')->name('carnotify_notify_kinds');
+            Route::get('regions','CarNotifyController@getRegions')->name('carnotify_getRegions');
+            Route::get('cities','CarNotifyController@getCities')->name('carnotify_getCities');
+            Route::get('issueKinds','CarNotifyController@getIssueKinds')->name('carnotify_getIssueKinds');
+            Route::get('carDefects','CarNotifyController@getCarDefects')->name('carnotify_getCarDefects');
+            Route::get('ticketCode','CarNotifyController@getTicketCode')->name('carnotify_getTicketCode');
+
+            Route::post('saveCarNotify','CarNotifyController@getTicketCode')->name('carnotify_saveCarNotify');
+        });
+
     });
 
 

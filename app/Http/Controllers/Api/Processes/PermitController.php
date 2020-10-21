@@ -270,6 +270,16 @@ class PermitController extends ApiController
             $remainingRestPermitHour = (int) (abs($earnedHourCount - $permitUsedHours) == 1 ? 0 : abs($earnedHourCount - $permitUsedHours))  ;
             $remainingRestPermitMinute = abs($leftOverMinute - ($totalRestPermits->total_minute));
 
+            if ($earnedHourCount - $permitUsedHours < 0)
+            {
+                $remainingRestPermitDay--;
+                $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
+            }
+            else
+            {
+                $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
+            }
+
             $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat, ' . ($remainingRestPermitMinute) . 'dakika';
             /*if ($calculatePermit['OverHour'] > $earnedHourCount)
                 return response([
