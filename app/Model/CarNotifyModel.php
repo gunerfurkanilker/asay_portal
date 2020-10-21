@@ -15,11 +15,11 @@ class CarNotifyModel extends Model
             $carNotify = CarNotifyModel::find($request->CarNotifyID);
         else
             $carNotify = new CarNotifyModel();
-
-        $ticketNoExists = CarNotifyModel::where(['Active' => 1,'TicketNo' => explode("-",$request->TicketNo)[2]])->first();
+        $ticketNo = explode("-",$request->TicketNo)[2];
+        $ticketNoExists = CarNotifyModel::where([ 'Active' => 1,'TicketNo' => $ticketNo ])->first();
         if ($ticketNoExists)
         {
-            $request->TicketNo = self::ticketNoExistsCheck($request->TicketNo);
+            $request->TicketNo = "TKT-ARC-". self::ticketNoExistsCheck(explode("-",$request->TicketNo)[2]);
         }
 
         $carNotify->RequestedFrom = $request->RequestedFrom;
@@ -80,11 +80,10 @@ class CarNotifyModel extends Model
     }
 
     public static function ticketNoExistsCheck($ticketNo){
-        $maxTicketNo = CarNotifyModel::max("TicketNo") + 1;
 
-        while($maxTicketNo != $ticketNo)
+        while(CarNotifyModel::max("TicketNo") >= $ticketNo)
         {
-            $ticketNo++;
+            ++$ticketNo;
         }
 
         return $ticketNo;
