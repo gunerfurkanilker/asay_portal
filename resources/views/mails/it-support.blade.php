@@ -78,49 +78,49 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ 'Ticket No\'su' }}
+                {{ $itSupport->id }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Talep Tarih, Saat</td>
             <td colspan="2"  >
-                {{ 'Talep Tarih ve Saat' }}
+                {{ date('d.m.Y H:i', strtotime($itSupport->CreatedDate)) }}
             </td>
         </tr>
         <tr>
             <td colspan="1">İstek Türü</td>
             <td colspan="2"  >
-                {{ 'İstek Türü : Arıza,Hata' }}
+                {{ $itSupport->RequestTypeName }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Öncelik</td>
             <td colspan="2"  >
-                {{ 'Öncelik : Düşük,Orta,Yüksek' }}
+                {{ $itSupport->PriorityName }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Kategori</td>
             <td colspan="2"  >
-                {{ 'Kategori' }}
+                {{ $itSupport->CategoryName }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Alt Kategori</td>
             <td colspan="2"  >
-                {{ 'Alt Kategori' }}
+                {{ $itSupport->SubCategoryName }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Alt Kategori İçeriği</td>
             <td colspan="2"  >
-                {{ 'Alt Kategori İçeriği' }}
+                {{ $itSupport->SubCategoryContentName }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Konu</td>
             <td colspan="2"  >
-                {{ 'Konu' }}
+                {{ $itSupport->Subject }}
             </td>
         </tr>
         <tr>
@@ -128,7 +128,7 @@
         </tr>
         <tr>
             <td colspan="3"  >
-                {!! 'Açıklama' !!}
+                {!! $itSupport->Content !!}
             </td>
         </tr>
     </table>

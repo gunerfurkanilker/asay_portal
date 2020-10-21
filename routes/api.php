@@ -130,6 +130,13 @@ Route::namespace("Api")->group(function(){
             Route::post('saveCarNotify','CarNotifyController@saveCarNotify')->name('carnotify_saveCarNotify');
         });
 
+        Route::prefix('processes/itsupport/')->group(function () {
+            Route::get('supportCategories','ItSupportController@supportCategories');
+            Route::get('requestTypes','ItSupportController@requestTypes');
+            Route::get('priority','ItSupportController@priority');
+            Route::post('supportSave','ItSupportController@supportSave');
+        });
+
     });
 
 
