@@ -78,13 +78,13 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ $itSupport->id }}
+                {{ 'TKT-IT-'.$itSupport->id }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Talep Tarih, Saat</td>
             <td colspan="2"  >
-                {{ date('d.m.Y H:i', strtotime($itSupport->CreatedDate)) }}
+                {{ $itSupport->CreatedDate }}
             </td>
         </tr>
         <tr>

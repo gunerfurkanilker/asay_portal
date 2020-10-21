@@ -18,35 +18,34 @@ class ITSupportModel extends Model
         "PriorityName",
         "CategoryName",
         "SubCategoryName",
-        "SubCategoryContentName",
-        "FileUrl"
+        "SubCategoryContentName"
     ];
 
     public function getRequestTypeNameAttribute()
     {
-        return $this->hasMany(ITSupportRequestTypeModel::class,"RequestType","id")->first()->Name;
+        return $this->hasMany(ITSupportRequestTypeModel::class,"id","RequestType")->first()->Name;
     }
 
     public function getPriorityNameAttribute()
     {
-        return $this->hasMany(PriorityModel::class,"Priority","id")->first()->Name;
+        return $this->hasMany(PriorityModel::class,"id","Priority")->first()->Name;
     }
 
     public function getCategoryNameAttribute()
     {
-        return $this->hasMany(ITSupportCategoryModel::class,"Category","id")->first()->Name;
+        return $this->hasMany(ITSupportCategoryModel::class,"id","Category")->first()->Name;
     }
     public function getSubCategoryNameAttribute()
     {
         if($this->attributes["SubCategory"]!==null)
-            return $this->hasMany(ITSupportCategoryModel::class,"Category","id")->first()->Name;
+            return $this->hasMany(ITSupportCategoryModel::class,"id","SubCategory")->first()->Name;
         else
             return null;
     }
     public function getSubCategoryContentNameAttribute()
     {
         if($this->attributes["SubCategoryContent"]!==null)
-            return $this->hasMany(ITSupportCategoryModel::class,"Category","id")->first()->Name;
+            return $this->hasMany(ITSupportCategoryModel::class,"id","SubCategoryContent")->first()->Name;
         else
             return null;
     }
