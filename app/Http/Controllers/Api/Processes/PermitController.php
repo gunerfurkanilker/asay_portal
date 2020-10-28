@@ -198,32 +198,31 @@ class PermitController extends ApiController
                         ], 200);
                     break;
                 case 6:
-                    $totalIllnessPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour")->where(['Active' => 1, 'EmployeeID' => $EmployeeID, 'kind' => $request->kind])
+                    $totalIllnessPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as over_minute")->where(['Active' => 1, 'EmployeeID' => $EmployeeID, 'kind' => $request->kind])
                         ->where('id', "<>", $request->permitId)
                         ->whereYear("start_date", "=", $request->startDate)->first();
-                    $permitUsedHours = (int)($totalIllnessPermits->over_hour) > 8 ? (int)($totalIllnessPermits->over_hour) % 8 : (int)($totalIllnessPermits->over_hour) == 8 ? 0 : (int)($totalIllnessPermits->over_hour);
-                    $permitUsedDays = ((int)$totalIllnessPermits->total_day) + ((int)($totalIllnessPermits->over_hour / 8));
-                    if ($calculatePermit['UsedDay'] + $permitUsedDays >= $getLimitOfKind->dayLimitPerYear) {
+                    $totalIllnessPermitMinute = ($totalIllnessPermits->total_day*8*60) + ($totalIllnessPermits->over_hour*60) + $totalIllnessPermits->over_minute;
+                    $requestedIllnessPermitMinute = ($calculatePermit['UsedDay'] * 8 * 60) + ($calculatePermit['OverHour']*60) + $calculatePermit['OverMinute'];
+
+                    $remainingMinutes = (($getLimitOfKind->dayLimitPerYear*8*60) - ($totalIllnessPermitMinute)) % 60;
+                    $remainingDays = (int) ((int)(($getLimitOfKind->dayLimitPerYear*8*60) - ($totalIllnessPermitMinute)) / 60) / 8;
+                    $remainingHours =(int) ((int)(($getLimitOfKind->dayLimitPerYear*8*60) - ($totalIllnessPermitMinute)) / 60) % 8;
+
+
+                    if ($totalIllnessPermitMinute + $requestedIllnessPermitMinute > ($getLimitOfKind->dayLimitPerYear*8*60))
                         return response([
                             'status' => false,
-                            'message' => 'Talep ettiğiniz izin yıllık hastalık limitini aşmış veya yıllık hastalık izni hakkınız kalmamıştır'
-                        ], 200);
-
-                    } else if ($permitUsedHours + $calculatePermit['OverHour'] > 8) {
-                        $overDay = (int)($permitUsedHours + $calculatePermit['OverHour'] / 8);
-                        if ($calculatePermit['UsedDay'] + $permitUsedDays + $overDay >= $getLimitOfKind->dayLimitPerYear) {
-                            return response([
-                                'status' => false,
-                                'message' => 'Talep ettiğiniz izin yıllık hastalık limitini aşmış veya yıllık hastalık izni hakkınız kalmamıştır'
-                            ], 200);
-                        }
-                    }
+                            'message' => "Hastalık izni hakkınız kalmamıştır\n"."Kalan hakkınız : ".$remainingDays." gün, ".$remainingHours." saat,".$remainingMinutes." dakika"
+                        ],200);
                     break;
                 case 7:
                     if ($calculatePermit['UsedDay'] < 1) {
-                        $permitBeginTime = Carbon::createFromFormat("H:i", explode(" ", $request->startDate)[1]);
-                        $permitEndTime = Carbon::createFromFormat("H:i", explode(" ", $request->endDate)[1]);
                         if ($calculatePermit['OverHour'] > 2)
+                            return response([
+                                'status' => false,
+                                'message' => 'Günlük İş arama izni hakkınız 2 saat ile sınırlıdır.'
+                            ], 200);
+                        else if ($calculatePermit['OverHour'] == 2 && $calculatePermit['OverMinute'] > 0)
                             return response([
                                 'status' => false,
                                 'message' => 'Günlük İş arama izni hakkınız 2 saat ile sınırlıdır.'
@@ -254,45 +253,9 @@ class PermitController extends ApiController
                 ->where(['Active' => 1, 'EmployeeID' => $EmployeeID, 'kind' => 14])->where('id', "<>", $request->permitId)
                 ->whereYear("start_date", "=", $request->startDate)->first();
 
-            $leftOverHour = $employeeOvertimeRestTotalHour->total_minute > 60 ? ((int)$employeeOvertimeRestTotalHour->total_minute / 60) : 0;
-            $leftOverMinute = $employeeOvertimeRestTotalHour->total_minute % 60;
-
-            $totalMinute = ((int)$employeeOvertimeRestTotalHour->total_hour * 60) + (int)$employeeOvertimeRestTotalHour->total_minute;
-            $earnedDayCount = (int)(($totalMinute / 60) / 8); //Bir iş günü toplam 8 saattir.
-            $earnedHourCount = (int)($totalMinute / 60) > 8 ? (int)($totalMinute / 60) - 8 : (int)($totalMinute / 60);
-
-            $permitUsedHours = (int) ((int)($totalRestPermits->over_hour) > 8 ? (int)($totalRestPermits->over_hour) % 8 : (int)($totalRestPermits->over_hour) == 8 ? 0 : (int)($totalRestPermits->over_hour)
-                + ((int)$totalRestPermits->over_minute / 60));
-            $permitUsedDays = ((int)$totalRestPermits->total_day) + ((int)($totalRestPermits->over_hour / 8));
-            $permitUsedMinutes = $totalRestPermits->over_minute % 60;
-
-            $remainingRestPermitDay = $earnedDayCount - $permitUsedDays;
-            $remainingRestPermitHour = (int) (abs($earnedHourCount - $permitUsedHours) == 1 ? 0 : abs($earnedHourCount - $permitUsedHours))  ;
-            $remainingRestPermitMinute = abs($leftOverMinute - ($totalRestPermits->total_minute));
-
-            if ($earnedHourCount - $permitUsedHours < 0)
-            {
-                $remainingRestPermitDay--;
-                $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
-            }
-            else
-            {
-                $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
-            }
-
-            $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat, ' . ($remainingRestPermitMinute) . 'dakika';
-            /*if ($calculatePermit['OverHour'] > $earnedHourCount)
-                return response([
-                    'status' => false,
-                    'message' => 'Giriş yaptığınız tarih ve/veya süre miktarında dinlenme izni talep etme hakkınız bulunmamaktadır.'
-                ], 200);
-
-            else if ($calculatePermit['UsedDay'] > $earnedDayCount)
-                return response([
-                    'status' => false,
-                    'message' => 'Giriş yaptığınız tarih ve/veya süre miktarında dinlenme izni talep etme hakkınız bulunmamaktadır.'
-                ], 200);*/
-
+            $totalMinuteOfOvertimeRest = ($employeeOvertimeRestTotalHour->total_hour*60) + ($employeeOvertimeRestTotalHour->total_minute);
+            $totalMinuteOfRestPermit = ($totalRestPermits->total_day*8*60) + ($totalRestPermits->over_hour*60) + ($totalRestPermits->over_minute) ;
+            $requestedRestPermitMinute =  ($calculatePermit['UsedDay']*8*60) + ($calculatePermit['OverHour']*60) + ($calculatePermit['OverMinute']);
 
             if ($permitBeginDate->year !== $permitEndDate->year)
                 return response([
@@ -300,53 +263,24 @@ class PermitController extends ApiController
                     'message' => 'Dinlenme izni, farklı başlangıç yılı - farklı bitiş yılı şeklinde alınamaz.'
                 ], 200);
 
+            else if($totalMinuteOfRestPermit + $requestedRestPermitMinute > $totalMinuteOfOvertimeRest)
+            {
+                return response([
+                    'status' => false,
+                    'message' => "Dinlenme izni hakkınız kalmamıştır\nTalep Ettiğiniz İzin : " . $requestedPermit
+                ], 200);
+            }
+
 
             //Talep Edilen Gün ve kullanılan gün toplamı limiti geçiyor ise yani 14 günü geçiyor ise
-            else if ($calculatePermit['UsedDay'] + $permitUsedDays >= $permitRest->dayLimitPerYear) {
+            else if ($totalMinuteOfRestPermit + $requestedRestPermitMinute >= ($permitRest->dayLimitPerYear*8*60)) {
                 return response([
                     'status' => false,
                     'message' => "Dinlenme izni hakkınız kalmamıştır\nTalep Ettiğiniz İzin : " . $requestedPermit
                 ], 200);
 
             } //Talep edilen gün toplamı, kişinin hak ettiği izin günü sayısını geçiyor ise yani kişinin hak kazandığı dinlenme iznine göre yapılan hesap.
-            else if ($calculatePermit['UsedDay'] + $permitUsedDays > $earnedDayCount) {
-                return response([
-                    'status' => false,
-                    'message' => "Dinlenme izni hakkınız kalmamıştır\nTalep Ettiğiniz İzin : " . $requestedPermit
-                ], 200);
-            }
-            else if ($calculatePermit['UsedDay'] + $permitUsedDays == $earnedDayCount) {
 
-                if ($calculatePermit['OverHour'] + $permitUsedHours == $earnedHourCount) {
-
-                    if ($calculatePermit['OverMinute'] + ($permitUsedHours*60) + $permitUsedMinutes > ($earnedHourCount*60) + $leftOverMinute)
-                        return response([
-                            'status' => false,
-                            'message' => "Dinlenme izni hakkınız kalmamıştır\nTalep Ettiğiniz İzin : " . $requestedPermit
-                        ], 200);
-
-                }
-                elseif ($calculatePermit['OverHour'] + $permitUsedHours > $earnedHourCount) {
-
-                    return response([
-                        'status' => false,
-                        'message' => "Dinlenme izni hakkınız kalmamıştır\nTalep Ettiğiniz İzin : " . $requestedPermit
-                    ], 200);
-
-                }
-            } else {
-                $x = ($earnedDayCount * 8) + $earnedHourCount;
-                $y = ($permitUsedDays * 8) + $permitUsedHours;
-                $z = $x - $y;
-
-                //Talep edilen saat toplamı, kişinin hakettiği dinlenme saat iznini geçiyor ise
-                if ($calculatePermit['OverHour'] > $z) {
-                    return response([
-                        'status' => false,
-                        'message' => 'Yıllık dinlenme izni hakkınız kalmamıştır'
-                    ], 200);
-                }
-            }
 
 
         }

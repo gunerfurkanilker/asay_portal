@@ -27,7 +27,12 @@ class DrivingLicenseModel extends Model
         $drivingLicense->HasDrivingLicense      = $request->HasDrivingLicense;
         $drivingLicense->DrivingLicenseKind     = $request->DrivingLicenseKind;
         //$drivingLicense->DrivingLicenceClass    = $request->DrivingLicenceClass;
-        $drivingLicense->DrivingLicenseClasses  = implode(",",$request->DrivingLicenseClass);
+        $drivingLicense->DrivingLicenseClasses  = $request->DrivingLicenseClass ? implode(",",$request->DrivingLicenseClass) : null;
+        $drivingLicense->SRCClasses             = $request->SRCClasses ? implode(",",$request->SRCClasses) : null;
+        $drivingLicense->HasPsychotechnicDoc    = $request->HasPsychotechnicDoc ? 1 : 0;
+        $drivingLicense->PsychotechnicDate      = $request->PsychotechnicDate;
+        $drivingLicense->HasSRCDoc              = $request->HasSRCDoc ? 1 : 0;
+        $drivingLicense->SRCDate                = $request->SRCDate;
         $drivingLicense->BirthDate              = $request->BirthDate;
         $drivingLicense->BirthPlace             = $request->BirthPlace;
         $drivingLicense->StartDate              = $request->StartDate;

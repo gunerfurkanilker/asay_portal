@@ -39,7 +39,10 @@ class DrivingLicenseController
         {
             if (!is_null($drivingLicense->DrivingLicenseClasses))
                 $drivingLicense->DrivingLicenseClasses = array_map('intval', explode(",",$drivingLicense->DrivingLicenseClasses));
+            if (!is_null($drivingLicense->SRCClasses))
+                $drivingLicense->SRCClasses = array_map('strval', explode(",",$drivingLicense->SRCClasses));
         }
+
 
 
         return response([

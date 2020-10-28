@@ -44,6 +44,9 @@ class PositionController extends ApiController
 
     public function saveJobPosition(Request $request)
     {
+
+
+
         if (isset($request->PositionID) || $request->PositionID != null)
         {
             $positionOfEmployee = EmployeePositionModel::where(['Id' => $request->PositionID, 'EmployeeID' => $request->EmployeeID])->first();

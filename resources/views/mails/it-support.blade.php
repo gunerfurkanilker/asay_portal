@@ -1,4 +1,4 @@
-@extends('mails.layout')
+@extends('mails.layoutNotify')
 
 @section('content')
     <br><br>
@@ -12,7 +12,7 @@
                 {{ $employee->UsageName . ' ' . $employee->LastName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">E-Posta</td>
             <td colspan="2"  >
                 {{ $employee->JobEmail }}
@@ -24,7 +24,7 @@
                 {{ $employee->JobMobilePhone }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">Organizasyon</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Organization->name }}
@@ -36,7 +36,7 @@
                 {{ $employee->EmployeePosition->Department->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr >
             <td colspan="1">Unvan</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Title->Sym }}
@@ -48,7 +48,7 @@
                 {{ $employee->EmployeePosition->Title->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">Bölge</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Region->Name }}
@@ -60,7 +60,7 @@
                 {{ $employee->EmployeePosition->City->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr >
             <td colspan="1">Yöneticisi</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName }}
@@ -78,7 +78,7 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ 'TKT-IT-'.$itSupport->id }}
+                {{ 'TKT-IT-'.$itSupport->TicketTemplate . '' . $itSupport->TicketNo }}
             </td>
         </tr>
         <tr>

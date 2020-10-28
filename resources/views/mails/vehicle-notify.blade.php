@@ -1,18 +1,20 @@
-@extends('mails.layout)
+@extends('mails.layoutNotify')
 
 @section('content')
+    <p>Sayın Yetkili,</p>
+    <p>Aşağıda bilgileri yer alan çalışan tarafından araç bildirimi oluşturulmuştur.</p>
     <br><br>
     <table width="800">
-        <tr style="background-color: rgb(0,31,91);color:white" >
-            <th colspan="3" class="text-left">Talep Eden Bilgileri</th>
+        <tr style="background-color: rgb(0,31,91);color:white;" >
+            <th colspan="3" >Talep Eden Bilgileri</th>
         </tr>
-        <tr >
+        <tr>
             <td colspan="1">Adı Soyadı</td>
             <td colspan="2"  >
                 {{ $employee->UsageName . ' ' . $employee->LastName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">E-Posta</td>
             <td colspan="2"  >
                 {{ $employee->JobEmail }}
@@ -24,7 +26,13 @@
                 {{ $employee->JobMobilePhone }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
+            <td colspan="1">Şirket</td>
+            <td colspan="2"  >
+                {{ $employee->EmployeePosition->Company->Sym }}
+            </td>
+        </tr>
+        <tr>
             <td colspan="1">Organizasyon</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Organization->name }}
@@ -36,19 +44,13 @@
                 {{ $employee->EmployeePosition->Department->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
-            <td colspan="1">Unvan</td>
-            <td colspan="2"  >
-                {{ $employee->EmployeePosition->Title->Sym }}
-            </td>
-        </tr>
         <tr>
             <td colspan="1">Unvan</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Title->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">Bölge</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Region->Name }}
@@ -60,7 +62,7 @@
                 {{ $employee->EmployeePosition->City->Sym }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr>
             <td colspan="1">Yöneticisi</td>
             <td colspan="2"  >
                 {{ $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName }}
@@ -72,93 +74,95 @@
                 {{ $employee->EmployeePosition->UnitSupervisor->UsageName . ' ' . $employee->EmployeePosition->UnitSupervisor->LastName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white" >
+        <tr style="background-color: rgb(0,31,91);color:white;" >
             <th colspan="3" class="text-left">Araç Bildirimi</th>
         </tr>
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ 'Ticket No\'su' }}
+                {{ $ticket->TicketTemplate . $ticket->TicketNo }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Talep Tarih, Saat</td>
             <td colspan="2"  >
-                {{ 'Talep Tarih ve Saat' }}
+                {{ $ticket->created_at }}
             </td>
-        </tr>
+        </tr >
         <tr>
             <td colspan="1">Bildirim Türü</td>
             <td colspan="2"  >
-                {{ 'Bildirim Türü' }}
+                {{ $ticket->NotifyKind->Name }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Plaka</td>
             <td colspan="2"  >
-                {{ '35TT34' }}
+                {{ $ticket->CarPlate }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Araç Marka,Model</td>
             <td colspan="2"  >
-                {{ 'DACIA, DUSTER' }}
+                {{ 'DACIA, DUSTER (Araç Listesi İletildiğinde Eklenecektir)' }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Model Yılı</td>
             <td colspan="2"  >
-                {{ '2017' }}
+                {{ '2017 (Araç Listesi İletildiğinde Eklenecektir)'}}
             </td>
         </tr>
-        @if(true)
+        @if($ticket->TicketKind == 1 || $ticket->TicketKind == 3)
             <tr>
                 <td colspan="1">Güncel KM Bilgisi</td>
                 <td colspan="2"  >
-                    {{ '122512 KM' }}
+                    {{ $ticket->CarKM }}
                 </td>
             </tr>
             @endif
         <tr>
             <td colspan="1">Aracın Bulunduğu Bölge</td>
             <td colspan="2"  >
-                {{ 'Asya' }}
+                {{ $ticket->Region->Name }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Aracın Bulunduğu İl</td>
             <td colspan="2"  >
-                {!! 'İstanbul' !!}
+                {{ $ticket->City->Sym  }}
             </td>
         </tr>
-        @if(true)
+        @if($ticket->TicketKind == 1)
             <tr>
                 <td colspan="1">Arıza & Problem Türü</td>
                 <td colspan="2"  >
-                    {!! 'Araç Kamerası' !!}
+                    {{ $ticket->IssueKind->Name  }}
                 </td>
             </tr>
             @endif
-        @if(true)
+        @if(count($ticket->MissingCategories) > 0)
             <tr>
                 <td colspan="1">Eksik Kategorisi</td>
                 <td colspan="2"  >
-                    {!! 'Eksik Kategorisi' !!}
+                    @foreach($ticket->MissingCategories as $item)
+                        {{ \App\Model\CarMissingCategoriesModel::find($item)->Name . ', ' }}
+                        @endforeach
                 </td>
             </tr>
         @endif
         <tr>
             <td colspan="1">Konu</td>
             <td colspan="2"  >
-                {!! 'Kamera Siyah Ekran Sorunu' !!}
+                {{ $ticket->Subject }}
             </td>
         </tr>
         <tr>
             <td colspan="3">Açıklama</td>
         </tr>
         <tr>
-            <td colspan="3"  >
-                {!! 'Açıklama' !!}
+            <td colspan="3">
+                {!! $ticket->Description !!}
             </td>
         </tr>
     </table>

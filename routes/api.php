@@ -105,6 +105,7 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/Overtime/')->group(function () {
+            Route::get('getCarLocation','OvertimeController@getCarLocation')->name('overtime_getCarLocation');
             Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
             Route::get('Managers/all','OvertimeController@getManagersOvertimeRequests')->name('overtime_manager_all');
             Route::get('statuses','OvertimeController@getOvertimeStatuses')->name('overtime_statuses');
@@ -131,9 +132,12 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/itsupport/')->group(function () {
+            Route::get('employees','ItSupportController@getEmployeeList');
             Route::get('supportCategories','ItSupportController@supportCategories');
             Route::get('requestTypes','ItSupportController@requestTypes');
             Route::get('priority','ItSupportController@priority');
+            Route::get('ticketCode','ItSupportController@getTicketCode')->name('itsupport_getTicketCode');
+
             Route::post('supportSave','ItSupportController@supportSave');
         });
 
@@ -239,6 +243,10 @@ Route::namespace("Api")->group(function(){
             Route::post('cities/districts', "CityController@getDistrictsOfCity")->name("get_districts_of_city");
             Route::get('authorizations', "AuthorityController@loggedUserAuthorizations")->name("user_authorities");
             Route::post('objectFile/setObjectFile', "ObjectFileController@setObjectFile")->name("ObjectFileController_setObjectFile");
+
+            Route::get('notifications', "NotificationController@getNotifications")->name("get_notifications");
+            Route::post('notificationRead', "NotificationController@notificationRead")->name("read_notification");
+
         });
 
     });

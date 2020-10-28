@@ -24,25 +24,24 @@ class OvertimeController extends ApiController
     {
         $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
 
-        if ($status == null)
-        {
-            $overtimes = OvertimeModel::where([ 'Active' => 1,'AssignedID' => $request->Employee ])->get();
+        if ($status == null) {
+            $overtimes = OvertimeModel::where(['Active' => 1, 'AssignedID' => $request->Employee])->get();
 
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
                 'data' => $overtimes
-            ],200);
+            ], 200);
         }
 
 
-        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status,$request->Employee);
+        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status, $request->Employee);
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $overtimes
-        ],200);
+        ], 200);
 
     }
 
@@ -50,19 +49,18 @@ class OvertimeController extends ApiController
     {
         $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
 
-        if ($status == null)
-        {
-            $overtimes = OvertimeModel::where([ 'Active' => 1,'ManagerID' => $request->Employee ])->get();
+        if ($status == null) {
+            $overtimes = OvertimeModel::where(['Active' => 1, 'ManagerID' => $request->Employee])->get();
 
             return response([
                 'status' => true,
                 'message' => 'İşlem Başarılı',
                 'data' => $overtimes
-            ],200);
+            ], 200);
         }
 
 
-        $overtimes = OvertimeModel::getOvertimeByStatus($status,$request->Employee);
+        $overtimes = OvertimeModel::getOvertimeByStatus($status, $request->Employee);
 
         $userEmployees = EmployeePositionModel::where(['Active' => 2])->orWhere(['UnitSupervisorID' => $request->Employee, 'ManagerID' => $request->Employee])->get();
         $userEmployeesIDs = [];
@@ -77,7 +75,7 @@ class OvertimeController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $overtimes,
             'dataCounts' => $counts
-        ],200);
+        ], 200);
 
     }
 
@@ -89,7 +87,7 @@ class OvertimeController extends ApiController
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $employees
-        ],200);
+        ], 200);
     }
 
     public function getHREmployees(Request $request)
@@ -99,17 +97,18 @@ class OvertimeController extends ApiController
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $employees
-        ],200);
+        ], 200);
     }
 
-    public function getEmployeesManagers(Request $request){
-        $employee = EmployeeModel::find($request->Employee );
+    public function getEmployeesManagers(Request $request)
+    {
+        $employee = EmployeeModel::find($request->Employee);
         $managers = OvertimeModel::getEmployeesManagers($employee->Id);
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $managers
-        ],200);
+        ], 200);
     }
 
     public function overtimeKinds()
@@ -118,39 +117,68 @@ class OvertimeController extends ApiController
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => OvertimeKindModel::all()
-        ],200);
+        ], 200);
     }
 
     public function managersProjectList(Request $request)
     {
-        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee ])->get();
+        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee])->get();
         $managerProjectList = [];
 
-        foreach($managersProjects as $managersProject)
-        {
+        foreach ($managersProjects as $managersProject) {
             $temp = ProjectsModel::find($managersProject->project_id);
-            array_push($managerProjectList,$temp);
+            array_push($managerProjectList, $temp);
         }
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $managerProjectList
-        ],200);
+        ], 200);
     }
 
-    public function getOvertimeLimits(Request $request){
+    public function getOvertimeLimits(Request $request)
+    {
 
         $data = OvertimeModel::overtimeRemainingLimits($request);
 
         return response([
             'status' => true,
             'data' => $data
+        ], 200);
+
+    }
+
+    public function getCarLocation(Request $request)
+    {
+        $guzzleParams = [
+
+            'headers' => [
+                'Mobiliz-Token' => '9d2a16548c761255458ad0e82fe2b7d9283e6195a104fc314d1520c0c181d564',
+            ],
+            "query" =>
+                [
+                    "plate" => "34CZF877",
+                    "startTime" => date(DATE_ATOM,strtotime("2020-10-11 09:00:00")),
+                    "endTime" => date(DATE_ATOM,strtotime("2020-10-11 15:00:00"))
+                ]
+
+        ];
+
+        $client = new \GuzzleHttp\Client();
+        $res = $client->request("GET", 'https://ng.mobiliz.com.tr/su6/api/integrations/locations', $guzzleParams);
+        $responseBody = json_decode($res->getBody());
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $responseBody
         ],200);
 
     }
 
-    public function saveOvertimeRequest(Request $request){
+    public function saveOvertimeRequest(Request $request)
+    {
 
         /*
          * Request Tipleri
@@ -184,34 +212,34 @@ class OvertimeController extends ApiController
             return response([
                 'status' => false,
                 'message' => 'Başlangıç saati, bitiş saatinden büyük olamaz.'
-            ],200);
+            ], 200);
 
         if (isset($request->WorkBeginTime) && isset($request->WorkEndTime))
             if (strtotime($request->WorkBeginTime) > strtotime($request->WorkEndTime))
                 return response([
                     'status' => false,
                     'message' => 'İş Başlangıç saati, bitiş saatinden büyük olamaz.'
-                ],200);
+                ], 200);
 
 
-        $status = OvertimeModel::saveOvertimeByProcessType($request->processType,$request);
+        $status = OvertimeModel::saveOvertimeByProcessType($request->processType, $request);
 
         if ($status['status'])
             return response([
                 'status' => true,
                 'message' => $status['message'],
-            ],200);
+            ], 200);
 
         return response([
             'status' => false,
             'message' => $status['message'],
-        ],200);
-
+        ], 200);
 
 
     }
 
-    public function getRemainingOvertimeLimits(Request $request){
+    public function getRemainingOvertimeLimits(Request $request)
+    {
 
         $assignedId = $request->assignedId;
 
@@ -219,7 +247,7 @@ class OvertimeController extends ApiController
             return response([
                 'status' => false,
                 'message' => 'Atanan kişinin Idsi boş olamaz'
-            ],200);
+            ], 200);
 
         $data = OvertimeModel::getRemainingOvertimeLimits($request);
 

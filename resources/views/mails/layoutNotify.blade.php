@@ -1,17 +1,17 @@
 <html lang="en">
 <head>
-    <title>Fazla Mesai Mail</title>
+    <title>Araç Bildirim Mail</title>
     <style>
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
             padding: 5px;
-            text-align: center;
+            text-align: left;
 
         }
     </style>
 </head>
 <body>
-    @yield('content')
+@yield('content')
 </body>
 </html>

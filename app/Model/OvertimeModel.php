@@ -169,13 +169,13 @@ class OvertimeModel extends Model
         $beginTime2 = isset($request->WorkBeginTime) && !is_null($request->WorkBeginTime) ? Carbon::createFromFormat("H:i", $request->WorkBeginTime) : null;
         $endTime2 = isset($request->WorkEndTime) && !is_null($request->WorkEndTime) ? Carbon::createFromFormat("H:i", $request->WorkEndTime) : null;
 
-        if (!is_null($beginDate2))
+        /*if (!is_null($beginDate2))
         {
             $publicHolidayRecCount = PublicHolidayModel::whereDate('start_date',">=",$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day)
                 ->whereRaw('? < DATE(end_date)', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day])
                 ->count();
             if ($publicHolidayRecCount > 0)
-                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+                return ['status' => false, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
         }
         else
         {
@@ -183,8 +183,8 @@ class OvertimeModel extends Model
                 ->whereRaw('? < DATE(end_date)', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day])
                 ->count();
             if ($publicHolidayRecCount > 0)
-                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
-        }
+                return ['status' => false, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+        }*/
 
         $publicHolidays     = PublicHolidayModel::whereYear("start_date","=",$beginDate->year)->get();
         $publicHolidays2    = !is_null($beginDate2) ? PublicHolidayModel::whereYear("start_date","=",$beginDate2->year)->get() : [];
@@ -595,7 +595,7 @@ class OvertimeModel extends Model
 
         $assignedEmployee = $this->hasOne(EmployeeModel::class, "Id", "AssignedID");
         if ($assignedEmployee) {
-            return $assignedEmployee->where("Active", 1)->first();
+            return $assignedEmployee->selectRaw("UsageName,LastName")->where("Active", 1)->first();
         } else {
             return "";
         }
@@ -769,7 +769,7 @@ class OvertimeModel extends Model
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord];
             $mailTable = view('mails.overtime', $mailData);
 
-            Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma Onayınızı Bekliyor", $mailTable, "Fazla Çalışma Onayınızı Bekliyor");
+            Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma Onayınızı Bekliyor", $mailTable, "aSAY Group");
 
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -831,7 +831,7 @@ class OvertimeModel extends Model
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma için düzenleme talep edildi.", $mailTable
-            , "Fazla Çalışma İçin Düzenleme Talep Edildi");
+            , "aSAY Group");
 
 
         if ($overtimeRecord->save())
@@ -883,7 +883,7 @@ class OvertimeModel extends Model
             'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord];
         $mailTable = view('mails.overtime', $mailData);
 
-        Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma reddedildi", $mailTable, "Fazla Çalışma Reddedildi");
+        Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma reddedildi", $mailTable, "aSAY Group");
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
@@ -923,7 +923,7 @@ class OvertimeModel extends Model
             'usingCar' => $usingCar, 'overtime' => $overtimeRecord];
         $mailTable = view('mails.overtime', $mailData);
 
-        Asay::sendMail($mailToArray, "", "Fazla çalışma çalışan tarafından onaylandı.", $mailTable, "Fazla Çalışma Çalışan Tarafından Onaylandı");
+        Asay::sendMail($mailToArray, "", "Fazla çalışma çalışan tarafından onaylandı.", $mailTable, "aSAY Group");
 
 
         if ($overtimeRecord->save()) {
@@ -959,7 +959,7 @@ class OvertimeModel extends Model
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord];
         $mailTable = view('mails.overtime', $mailData);
-        Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışmanız yöneticiniz tarafından iptal edildi", $mailTable, "Fazla Çalışma İptal Edildi");
+        Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışmanız yöneticiniz tarafından iptal edildi", $mailTable, "aSAY Group");
 
 
         if ($overtimeRecord->save()) {
@@ -1027,9 +1027,9 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->File) {
             $returnVal = self::getFileOfOvertime($overtimeRequest);
-            Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma tamamlandı.", view("mails.overtime", $mailData), "Fazla Çalışma Tamamlandı", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+            Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma tamamlandı.", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
         } else
-            Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma tamamlandı.", view("mails.overtime", $mailData), "Fazla Çalışma Tamamlandı", "", "", "");
+            Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma tamamlandı.", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
 
 
         if ($result) {
@@ -1100,7 +1100,7 @@ class OvertimeModel extends Model
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma İçin Düzenleme Talep Edildi", $mailTable
-            , "Fazla Çalışma İçin Düzenleme Talep Edildi");
+            , "aSAY Group");
 
 
         if ($overtimeRecord->save())
@@ -1127,7 +1127,7 @@ class OvertimeModel extends Model
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true];
             $mailTable = view('mails.overtime', $mailData);
 
-            Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma yöneticiniz tarafından onaylandı.", $mailTable, "Fazla Çalışma Onaylandı");
+            Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma yöneticiniz tarafından onaylandı.", $mailTable, "aSAY Group");
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
 
@@ -1142,9 +1142,9 @@ class OvertimeModel extends Model
 
             if ($overtimeRecord->File) {
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma İçin Onayınız Bekleniyor", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
             } else
-                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma İçin Onayınız Bekleniyor", "", "", "");
+                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
 
             $overtimeRecord->ManagerID = $hrEmployee->Id;
             $overtimeRecord->StatusID = 8;
@@ -1160,16 +1160,16 @@ class OvertimeModel extends Model
             //Yöneticiye mail
             if ($overtimeRecord->File) {
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma İçin Onay Bekleniyor", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
             } else
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma İçin Onay Bekleniyor", "", "", "");
+                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
 
             //Çalışana Mail
             if ($overtimeRecord->File) {
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma Onaylandı", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
             } else
-                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "Fazla Çalışma Tamamlandı", "", "", "");
+                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
 
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı birim sorumlusu tarafından onaylandı.', '', '', '', '', '');
@@ -1260,7 +1260,7 @@ class OvertimeModel extends Model
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma için İnsan Kaynakları birimi tarafından düzenleme talep edildi.", $mailTable
-            , "Fazla Çalışma İçin Düzenleme Talep Edildi");
+            , "aSAY Group");
 
 
         if ($overtimeRecord->save())
@@ -1318,9 +1318,9 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->File) {
             $returnVal = self::getFileOfOvertime($overtimeRequest);
-            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "Fazla Çalışma Onaylandı", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
         } else
-            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "Fazla Çalışma Onaylandı", "", "", "");
+            Asay::sendMail($userAccountOfEmployee->JobEmail, "", "Fazla çalışmanız, insan kaynakları birimi tarafından onaylandı", $mailTable, "aSAY Group", "", "", "");
 
 
         if ($overtimeRecord->save()) {
@@ -1429,7 +1429,7 @@ class OvertimeModel extends Model
 
         $createdFrom = $this->hasOne(EmployeeModel::class, "Id", "CreatedBy");
         if ($createdFrom) {
-            return $createdFrom->where("Active", 1)->first();
+            return $createdFrom->selectRaw("UsageName,LastName")->where("Active", 1)->first();
         } else {
             return "";
         }
@@ -1441,7 +1441,7 @@ class OvertimeModel extends Model
 
         $approveWho = $this->hasOne(EmployeeModel::class, "Id", "ManagerID");
         if ($approveWho) {
-            return $approveWho->where("Active", 1)->first();
+            return $approveWho->selectRaw("UsageName,LastName")->where("Active", 1)->first();
         } else {
             return "";
         }

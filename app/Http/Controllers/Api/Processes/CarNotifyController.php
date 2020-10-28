@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\CarDefectModel;
+use App\Model\CarMissingCategoriesModel;
 use App\Model\CarModel;
 use App\Model\CarNotifyIssueKindModel;
 use App\Model\CarNotifyKindModel;
@@ -24,10 +25,7 @@ class CarNotifyController extends ApiController
     public function saveCarNotify(Request $request){
 
 
-        return response([
-            'status' => false,
-            'message' => $request->MissingCategories
-        ],200);
+
         $result = CarNotifyModel::saveCarNotify($request);
 
         return response([
@@ -120,7 +118,7 @@ class CarNotifyController extends ApiController
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => CarDefectModel::where(['Active' => 1])->get()
+            'data' => CarMissingCategoriesModel::where(['Active' => 1])->get()
         ],200);
     }
 
@@ -131,7 +129,7 @@ class CarNotifyController extends ApiController
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => "TKT-ARC-".($maxCode + 1)
+            'data' => $maxCode ? "TKT-ARC-".($maxCode + 1) : "TKT-ARC-10000"
         ],200);
 
     }
