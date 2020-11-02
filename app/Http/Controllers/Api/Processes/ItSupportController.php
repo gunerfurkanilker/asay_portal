@@ -87,7 +87,7 @@ class ItSupportController extends ApiController
                 "status" => false,
                 "message" => $validator->messages()], 200);
         }
-        if($request->supportId!=="null"){
+        if($request->supportId!==null){
             $itSupport  = ITSupportModel::find($request->supportId);
         }
         else{
@@ -109,7 +109,7 @@ class ItSupportController extends ApiController
             $itSupport->FileUrl = "";
             $itSupport->FileName = "";
             $itSupport->Mime = "";
-            if($request->File!=="null"){
+            if($request->File!==null){
                 $fileQ   = DiskFileModel::where(["module_id"=>"disk","id"=> (int) $itSupport->File]);
 
                 $file = $fileQ->first();
