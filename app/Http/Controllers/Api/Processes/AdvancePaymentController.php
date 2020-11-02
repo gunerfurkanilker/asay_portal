@@ -516,13 +516,13 @@ class AdvancePaymentController extends ApiController
             ], 200);
         }
 
-        $bankCode = ProcessesSettingsModel::where(["object_type"=>2,"Property"=>$companyCode,"PropertyCode"=>"BankCode"])->first()->PropertyValue;
+        //$bankCode = ProcessesSettingsModel::where(["object_type"=>2,"Property"=>$companyCode,"PropertyCode"=>"BankCode"])->first()->PropertyValue;
 
         $tarih = date("Y-m-d");
         $AvansOdeme = new \stdClass();
         $AvansOdeme->Tarih      = new Carbon($tarih);
         $AvansOdeme->CariKod    = $PersonelCariKodu;
-        $AvansOdeme->BankaKodu  = $bankCode;
+        //$AvansOdeme->BankaKodu  = $bankCode;
         $AvansOdeme->Aciklama   = $advancePayment->Description;
         $AvansOdeme->Tutar      = $advancePayment->Amount;
 

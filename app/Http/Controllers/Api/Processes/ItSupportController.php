@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
 use App\Library\Asay;
-use App\Model\CarNotifyModel;
 use App\Model\DiskFileModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
@@ -13,6 +12,7 @@ use App\Model\PriorityModel;
 use App\Model\ITSupportCategoryModel;
 use App\Model\ITSupportModel;
 use App\Model\ITSupportRequestTypeModel;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -87,6 +87,18 @@ class ItSupportController extends ApiController
 
     public function supportSave(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'RequestType'   => 'required',
+            'Priority'      => 'required',
+            'Category'      => 'required',
+            'Subject'       => 'required',
+            'Content'       => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response([
+                "status" => false,
+                "message" => $validator->messages()], 200);
+        }
         if($request->supportId!=="null"){
             $itSupport  = ITSupportModel::find($request->supportId);
         }
