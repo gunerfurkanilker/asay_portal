@@ -21,7 +21,9 @@ use App\Model\ExpenseModel;
 use App\Model\AsayProjeModel;
 use App\Model\ExpenseTypesModel;
 use App\Model\LogsModel;
+use App\Model\NotificationsModel;
 use App\Model\ObjectFileModel;
+use App\Model\ProcessesSettingsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\TaxOfficesModel;
@@ -226,10 +228,10 @@ class ExpenseController extends ApiController
         $AsayExpense->description = $post["description"];
         $AsayExpense->EmployeeID = $request->Employee;
         if ($post["type"] == "kaydet") {
-
             $AsayExpense->status = 0;
         } else if ($post["type"] == "onay") {
             ExpenseModel::sendMailToManager($request);
+            NotificationsModel::saveNotification($AsayExpense->EmployeeManager->Id,1,$AsayExpense->id,$AsayExpense->name,"Harcama talebi için onayınız bekleniyor","expense/edit/".$AsayExpense->id);
             $AsayExpense->status = 1;
         }
 
@@ -397,7 +399,7 @@ class ExpenseController extends ApiController
 
         } else if ($asayExpense->status == 3 || $asayExpense->status == 4) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
-            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID" => $EmployeeID, "group_id" => 12, 'active' => 1])->count();
+            $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID" => $EmployeeID, 'active' => 1])->whereIn("group_id",[11,12])->count();
             if ($userGroupCount > 0)
                 $status = true;
         }
@@ -1038,7 +1040,6 @@ class ExpenseController extends ApiController
             ], 200);
         }
         $expense = ExpenseModel::find($expenseId);
-        $status = self::expenseAuthority($expense, $request->Employee);
         $loggedUserEmployee = EmployeeModel::find($request->Employee);
         $status = self::expenseAuthority($expense, $request->Employee);
         if ($status == false) {
@@ -1064,12 +1065,30 @@ class ExpenseController extends ApiController
         if ($column == "manager_status") {
             $expenseResult = $expenseQ->update(["status" => 2]);
             ExpenseModel::sendMailToProjectManager($request);
+            NotificationsModel::saveNotification($expense->Category->manager_id !== null ? $expense->Category->manager_id : $expense->Project->manager_id,1,$expense->id,$expense->name,"Harcama için onayınız bekleniyor","expense/edit/".$expense->id);
+            NotificationsModel::saveNotification($expense->EmployeeID,1,$expense->id,$expense->name,"Harcama talebiniz, yöneticiniz tarafından onaylandı","expense/edit/".$expense->id);
             LogsModel::setLog($loggedUserEmployee->Id, $expenseId, 1, 4, '', '', $expense->name . ' başlıklı harcama ' . $loggedUserEmployee->UsageName . '' . $loggedUserEmployee->LastName . ' tarafından onaylandı.', '', '', '', '', '');
         }
 
         if ($column == "pm_status") {
             $expenseResult = $expenseQ->update(["status" => 3]);
             ExpenseModel::sendMailToAccounters($request);
+            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $expense->EmployeeID])->first();
+            $accounterPositions = EmployeePositionModel::where(['Active' => 2,'RegionID' => $employeePosition->RegionID])->get();
+            $accounters = [];
+            foreach ($accounterPositions as $accounterPosition)
+            {
+                $hasGroup = EmployeeHasGroupModel::where(["EmployeeID" => $accounterPosition->EmployeeID, 'active' => 1])->whereIn("group_id",[11,12])->count();
+                if ($hasGroup > 0)
+                {
+                    array_push($accounters,$accounterPosition->EmployeeID);
+                }
+            }
+
+            foreach ($accounters as $accounter)
+            {
+                NotificationsModel::saveNotification($accounter,1,$expense->id,$expense->name,"Harcama talebi için onayınız bekleniyor","expense/edit/".$expense->id);
+            }
             LogsModel::setLog($loggedUserEmployee->Id, $expenseId, 1, 5, '', '', $expense->name . ' başlıklı harcama ' . $loggedUserEmployee->UsageName . '' . $loggedUserEmployee->LastName . ' tarafından onaylandı.', '', '', '', '', '');
         }
 
@@ -1346,6 +1365,7 @@ class ExpenseController extends ApiController
             ExpenseModel::where(["id" => $expenseId])->update(["status" => 4]);
             $userEmployee = EmployeeModel::find($request->Employee);
             LogsModel::setLog($request->Employee, $expenseId, 1, 7, '', '', $expense->name . ' başlıklı harcama ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' tarafından NETSIS\'e aktarıldı.', '', '', '', '', '');
+            NotificationsModel::saveNotification($expense->EmployeeID,1,$expense->id,$expense->name,"Harcama talebiniz, muhasebe birimi tarafından onaylandı","expense/edit/".$expense->id);
             return response([
                 'status' => true,
                 'data' => "Masraf Belgeleri Netsise Aktarıldı"

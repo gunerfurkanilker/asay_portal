@@ -20,6 +20,17 @@ use DateTime;
 class OvertimeController extends ApiController
 {
 
+    public function getOvertimeById(Request $request)
+    {
+        $overtime = OvertimeModel::where(['id' => $request->OvertimeID,'Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'messsage' => 'İşlem Başarılı',
+            'data' => $overtime
+        ],200);
+    }
+
     public function getEmployeesOvertimeRequests(Request $request)
     {
         $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
@@ -36,11 +47,21 @@ class OvertimeController extends ApiController
 
 
         $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status, $request->Employee);
+        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1,'AssignedID' => $request->Employee])->groupBy("StatusID")->get();
+
+        $amount = [];
+
+        foreach ($counts as $count)
+        {
+            $amount['Status_'.$count->statusVal] = $count->count;
+        }
+
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $overtimes
+            'data' => $overtimes,
+            'amounts' => $amount
         ], 200);
 
     }

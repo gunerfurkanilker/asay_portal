@@ -19,18 +19,6 @@ use Illuminate\Support\Facades\Storage;
 class ItSupportController extends ApiController
 {
 
-    public function getTicketCode(Request $request)
-    {
-        $maxCode = ITSupportModel::max("TicketNo");
-
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $maxCode ? "TKT-IT-".($maxCode + 1) : "TKT-IT-10000"
-        ],200);
-
-    }
-
     public function getEmployeeList(Request $request)
     {
         $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
@@ -104,15 +92,6 @@ class ItSupportController extends ApiController
         $itSupport->Content             = $request->Content;
         $itSupport->CreatedDate         = date("Y-m-d H:i:s");
         $itSupport->File                = $request->File;
-
-        $ticketNo = explode("-",$request->TicketNo)[2];
-        $ticketNoExists = ITSupportModel::where(['TicketNo' => $ticketNo ])->first();
-        if ($ticketNoExists)
-        {
-            $request->TicketNo = "TKT-ARC-". ITSupportModel::ticketNoExistsCheck(explode("-",$request->TicketNo)[2]);
-        }
-
-        $itSupport->TicketNo            = explode("-",$request->TicketNo)[2];
 
         if($itSupport->save()){
             $itSupport->FileUrl = "";

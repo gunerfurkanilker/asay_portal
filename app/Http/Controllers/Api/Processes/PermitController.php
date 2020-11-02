@@ -87,29 +87,14 @@ class PermitController extends ApiController
         $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => $request->Employee, 'kind' => 14])
             ->whereYear("start_date", "=", date('Y'))->first();
 
-        $leftOverHour = $employeeOvertimeRestTotalHour->total_minute > 60 ? ((int)$employeeOvertimeRestTotalHour->total_minute / 60) : 0;
-        $leftOverMinute = $employeeOvertimeRestTotalHour->total_minute % 60;
+        $employeeOvertimeRestTotalMinute = ($employeeOvertimeRestTotalHour->total_hour * 60) + $employeeOvertimeRestTotalHour->total_minute;
+        $totalRestPermitsMinute = ($totalRestPermits->total_day*8*60) + ($totalRestPermits->over_hour*60) + $totalRestPermits->total_minute;
 
-        $totalMinute = ((int)$employeeOvertimeRestTotalHour->total_hour * 60) + (int)$employeeOvertimeRestTotalHour->total_minute;
-        $earnedDayCount = (int)(($totalMinute / 60) / 8); //Bir iş günü toplam 8 saattir.
-        $earnedHourCount = (int)($totalMinute / 60) > 8 ? (int)($totalMinute / 60) - 8 : (int)($totalMinute / 60);
+        $remainingRestPermitTotalMinute = $employeeOvertimeRestTotalMinute - $totalRestPermitsMinute;
 
-        $permitUsedHours = (int)($totalRestPermits->over_hour) > 8 ? (int)($totalRestPermits->over_hour) % 8 : (int)($totalRestPermits->over_hour) == 8 ? 0 : (int)($totalRestPermits->over_hour)
-            + ((int)$totalRestPermits->over_minute / 60);
-        $permitUsedDays = ((int)$totalRestPermits->total_day) + ((int)($totalRestPermits->over_hour / 8));
-        $permitUsedMinutes = (int) $totalRestPermits->total_minute % 60;
-
-        $remainingRestPermitDay = $earnedDayCount - $permitUsedDays;
-        if ($earnedHourCount - $permitUsedHours < 0)
-        {
-            $remainingRestPermitDay--;
-            $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
-        }
-        else
-        {
-            $remainingRestPermitHour = 8 - abs($earnedHourCount - $permitUsedHours);
-        }
-        $remainingRestPermitMinute = abs($leftOverMinute - ($totalRestPermits->total_minute));
+        $remainingRestPermitDay = (int) (((int) $remainingRestPermitTotalMinute / 60) / 8);
+        $remainingRestPermitMinute = $remainingRestPermitTotalMinute % 60;
+        $remainingRestPermitHour = (int) (((int) $remainingRestPermitTotalMinute / 60) % 8);
 
 
         $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat, ' . ($remainingRestPermitMinute) . 'dakika';

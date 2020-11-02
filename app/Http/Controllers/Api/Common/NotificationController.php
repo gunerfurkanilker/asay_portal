@@ -11,10 +11,6 @@ use Illuminate\Http\Request;
 class NotificationController extends  ApiController
 {
 
-    public function getAmountOfNotifications(){
-
-    }
-
     public function notificationRead(Request $request){
 
         $notification = NotificationsModel::find($request->NotificationID);
@@ -33,34 +29,59 @@ class NotificationController extends  ApiController
     public function getNotifications(Request $request)
     {
 
-        $notificationsQ = NotificationsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee]);
-
-        $notifications['TotalCount'] = $notificationsQ->count();
-
-        $notifications['Expense'] = $notificationsQ->where(['ObjectType' => 1])->get();
-        $notifications['ExpenseCount'] = $notificationsQ->where(['ObjectType' => 1])->count();
-
-        $notifications['AdvancePayment'] = $notificationsQ->where(['ObjectType' => 2])->get();
-        $notifications['AdvancePaymentCount'] = $notificationsQ->where(['ObjectType' => 2])->count();
-
-        $notifications['Permit'] = $notificationsQ->where(['ObjectType' => 3])->get();
-        $notifications['PermitCount'] = $notificationsQ->where(['ObjectType' => 3])->count();
-
-        $notifications['Overtime'] = $notificationsQ->where(['ObjectType' => 4])->get();
-        $notifications['OvertimeCount'] = $notificationsQ->where(['ObjectType' => 4])->count();
-
-        $notifications['ITSupport'] = $notificationsQ->where(['ObjectType' => 11])->get();
-        $notifications['ITSupportCount'] = $notificationsQ->where(['ObjectType' => 11])->count();
-
-        $notifications['CarNotify'] = $notificationsQ->where(['ObjectType' => 12])->get();
-        $notifications['CarNotifyCount'] = $notificationsQ->where(['ObjectType' => 12])->count();
-
+        $notifications = NotificationsModel::where(['Active' => 1,'ObjectType' => $request->ObjectType,'EmployeeID' => $request->Employee])->orderBy("created_at","desc")->get();
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $notifications
         ],200);
+
+
+
+    }
+
+    public function getNotificationsCount(Request $request)
+    {
+
+        $notificationsCountOfProcesses = NotificationsModel::selectRaw("ObjectType,count(id) as amount")->where(['Active' => 1, 'EmployeeID' => $request->Employee,'Seen' => 0])->groupBy("ObjectType")->get();
+        $notificationsTotalCount = NotificationsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee,'Seen' => 0])->count();
+        $notificationsTotalCountOfProcesses = NotificationsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee,'Seen' => 0])->whereIn("ObjectType",[1,2,3,4,11,12])->count();
+
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $notificationsCountOfProcesses,
+            'totalCount' => $notificationsTotalCount,
+            'countOfProcess' => $notificationsTotalCountOfProcesses
+        ],200);
+
+    }
+
+    public function deleteNotification(Request $request)
+    {
+
+        $notification = NotificationsModel::find($request->NotificationID);
+
+        $notification->Active = 0;
+
+        if($notification->save())
+        {
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı'
+            ],200);
+        }
+        else
+        {
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız'
+            ],200);
+        }
+
+
 
     }
 

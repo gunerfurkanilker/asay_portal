@@ -21,16 +21,6 @@ class ITSupportModel extends Model
         "SubCategoryContentName"
     ];
 
-    public static function ticketNoExistsCheck($ticketNo){
-
-        while(ITSupportModel::max("TicketNo") >= $ticketNo)
-        {
-            ++$ticketNo;
-        }
-
-        return $ticketNo;
-    }
-
     public function getRequestTypeNameAttribute()
     {
         return $this->hasMany(ITSupportRequestTypeModel::class,"id","RequestType")->first()->Name;

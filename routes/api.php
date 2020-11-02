@@ -105,6 +105,7 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/Overtime/')->group(function () {
+            Route::get('getOvertimeById','OvertimeController@getOvertimeById')->name('overtime_getById');
             Route::get('getCarLocation','OvertimeController@getCarLocation')->name('overtime_getCarLocation');
             Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
             Route::get('Managers/all','OvertimeController@getManagersOvertimeRequests')->name('overtime_manager_all');
@@ -245,7 +246,9 @@ Route::namespace("Api")->group(function(){
             Route::post('objectFile/setObjectFile', "ObjectFileController@setObjectFile")->name("ObjectFileController_setObjectFile");
 
             Route::get('notifications', "NotificationController@getNotifications")->name("get_notifications");
+            Route::get('notificationsCount', "NotificationController@getNotificationsCount")->name("get_notifications_count");
             Route::post('notificationRead', "NotificationController@notificationRead")->name("read_notification");
+            Route::delete('notificationDelete', "NotificationController@deleteNotification")->name("delete_notification");
 
         });
 

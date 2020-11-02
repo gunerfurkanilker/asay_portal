@@ -652,6 +652,7 @@ class OvertimeModel extends Model
                     if ($limitCheck['status'] == false)
                         return $limitCheck;
                 }
+
                 return self::sendOvertimeRequestToEmployee($request);
             case 2:
                 $overtimeRecord = OvertimeModel::find($request->OvertimeId);
@@ -770,7 +771,7 @@ class OvertimeModel extends Model
             $mailTable = view('mails.overtime', $mailData);
 
             Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma Onayınızı Bekliyor", $mailTable, "aSAY Group");
-
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
