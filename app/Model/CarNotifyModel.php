@@ -67,7 +67,7 @@ class CarNotifyModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("POST", 'http://portal.asay.com.tr/api/disk/addFile', $guzzleParams);
+            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
 
@@ -146,7 +146,7 @@ class CarNotifyModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("GET", 'http://portal.asay.com.tr/api/disk/getFile', $guzzleParams);
+            $res = $client->request("GET", 'http://'.\request()->getHttpHost().'/api/disk/getFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
             if ($responseBody->status == true) {

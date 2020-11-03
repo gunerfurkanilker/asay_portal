@@ -65,7 +65,7 @@ class AuthController extends Controller
             $userdata = [
                 'EmployeeID' => $employee->Id,
                 'email' => $employee->JobEmail,
-                'photo' => "http://portal.asay.com.tr/".$employee->Photo,
+                'photo' => "http://".\request()->getHttpHost()."/".$employee->Photo,
                 'full_name' => $employee->UsageName." ".$employee->LastName,
                 //'manager' => explode(",",explode("CN=",$user->user_property->manager)[1])[0],
                 'active' => $employee->Active,
