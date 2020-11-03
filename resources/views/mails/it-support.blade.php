@@ -78,7 +78,7 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ 'TKT-IT-'.$itSupport->TicketTemplate . '' . $itSupport->TicketNo }}
+                {{ 'TKT-IT-'.$itSupport->id}}
             </td>
         </tr>
         <tr>
