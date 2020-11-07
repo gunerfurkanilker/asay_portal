@@ -121,7 +121,7 @@ class ItSupportController extends ApiController
             $employee = EmployeeModel::find($request->RequestedFrom);
 
             $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee"=>$employee]);
-            Asay::sendMail("ilker.guner@asay.com.tr","","It Support",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
+            Asay::sendMail("ilker.guner@asay.com.tr",$employee->JobEmail,"It Support",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
 
             return response([
                 "status"    => true,

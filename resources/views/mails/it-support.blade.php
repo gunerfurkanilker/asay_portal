@@ -1,7 +1,8 @@
 @extends('mails.layoutNotify')
 
 @section('content')
-    <br><br>
+    <p>Sayın Yetkili,</p>
+    <p>Aşağıda bilgileri yer alan çalışan tarafından it destek kaydı oluşturulmuştur.</p>
     <table width="800">
         <tr style="background-color: rgb(0,31,91);color:white" >
             <th colspan="3" class="text-left">Talep Eden Bilgileri</th>

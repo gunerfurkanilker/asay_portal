@@ -80,7 +80,7 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ $ticket->TicketTemplate . $ticket->TicketNo }}
+                {{ $ticket->id }}
             </td>
         </tr>
         <tr>

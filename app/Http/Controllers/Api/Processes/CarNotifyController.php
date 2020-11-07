@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
-use App\Model\CarDefectModel;
 use App\Model\CarMissingCategoriesModel;
 use App\Model\CarModel;
 use App\Model\CarNotifyIssueKindModel;

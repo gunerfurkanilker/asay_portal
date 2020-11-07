@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\LogsModel;
+use App\Model\NotificationsModel;
 use App\Model\OvertimeRestModel;
 use App\Model\PermitKindModel;
 use App\Model\PermitLeftOverHoursModel;
@@ -407,12 +408,23 @@ class PermitController extends ApiController
 
         if ($permit->status == 1) {
             $permit->manager_status = $confirm;
+            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, yöneticiniz tarafından onaylandı","my-permits/".$permit->id);
+            $employee = EmployeeModel::find($permit->EmployeeID);
+            $hrPersonnels = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'ObjectType' => 3, 'PropertyCode' => 'HRManager'])->get();
+            foreach ($hrPersonnels as $hrPersonnel)
+                NotificationsModel::saveNotification($hrPersonnel->PropertyValue,3,$permit->id,$permit->PermitKind->Name,"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
             if ($confirm == 2) {
+                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, yöneticiniz tarafından reddedildi","my-permits/".$permit->id);
                 $permit->hr_status = 2;
                 $permit->ps_status = 2;
             }
         } else if ($permit->status == 2) {
             $permit->hr_status = $confirm;
+            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, insan kaynakları birimi tarafından onaylandı, evrak onayı beklenmektedir","my-permits/".$permit->id);
+            $employee = EmployeeModel::find($permit->EmployeeID);
+            $personnelSpecialists = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'ObjectType' => 3, 'PropertyCode' => 'PersonnelSpecialist'])->get();
+            foreach ($personnelSpecialists as $personnelSpecialist)
+                NotificationsModel::saveNotification($personnelSpecialist->PropertyValue,3,$permit->id,$permit->PermitKind->Name,"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
             if ($confirm == 2) {
                 $permit->ps_status = 2;
             } else {
@@ -420,7 +432,11 @@ class PermitController extends ApiController
             }
 
         } else if ($permit->status == 3)
+        {
+            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebinizin evrakları onaylandı","my-permits/".$permit->id);
             $permit->ps_status = $confirm;
+        }
+
         $permit->status = $permit->status + 1;
         $permitResult = $permit->save();
         if ($permitResult) {

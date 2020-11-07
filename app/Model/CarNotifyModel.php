@@ -23,16 +23,8 @@ class CarNotifyModel extends Model
             $carNotify = CarNotifyModel::find($request->CarNotifyID);
         else
             $carNotify = new CarNotifyModel();
-        $ticketNo = explode("-",$request->TicketNo)[2];
-        $ticketNoExists = CarNotifyModel::where([ 'Active' => 1,'TicketNo' => $ticketNo ])->first();
-        if ($ticketNoExists)
-        {
-            $request->TicketNo = "TKT-ARC-". self::ticketNoExistsCheck(explode("-",$request->TicketNo)[2]);
-        }
 
         $carNotify->RequestedFrom = $request->RequestedFrom;
-        $carNotify->TicketTemplate = "TKT-ARC-";
-        $carNotify->TicketNo = explode("-",$request->TicketNo)[2];//Sondaki numarayı alıyoruz sadece
         $carNotify->TicketKind = $request->TicketKind;
         $carNotify->CarPlate = $request->CarPlate;
         $carNotify->CarRegion = $request->CarRegion;
@@ -52,7 +44,7 @@ class CarNotifyModel extends Model
                     [
                         'name' => 'file',
                         'contents' => $file,
-                        'filename' => 'CarNotifyDoc_' . $carNotify->id . '.' . $request->File->getClientOriginalExtension()
+                        'filename' => 'Arac_Bildirim_Dosya_Eki_' . $carNotify->id . '.' . $request->File->getClientOriginalExtension()
                     ],
                     [
                         'name' => 'moduleId',
@@ -77,11 +69,6 @@ class CarNotifyModel extends Model
             }
 
         }
-
-
-
-
-
 
 
         if ($result)
@@ -120,9 +107,9 @@ class CarNotifyModel extends Model
 
 
             if ($file)
-                Asay::sendMail("ilker.guner@asay.com.tr", "", "Araç Bildirim", $mailTable, $employee->UsageName . ' ' . $employee->LastName,$file->FilePath, $file->FileName, $file->MimeType);
+                Asay::sendMail("ilker.guner@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group",$file->FilePath, $file->FileName, $file->MimeType);
             else
-                Asay::sendMail("ilker.guner@asay.com.tr", "", "Araç Bildirim", $mailTable, $employee->UsageName . ' ' . $employee->LastName);
+                Asay::sendMail("ilker.guner@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group");
 
             return ['status' => true,'message' => 'İşlem Başarılı'];
         }

@@ -22,13 +22,13 @@ class OvertimeController extends ApiController
 
     public function getOvertimeById(Request $request)
     {
-        $overtime = OvertimeModel::where(['id' => $request->OvertimeID,'Active' => 1])->get();
+        $overtime = OvertimeModel::where(['id' => $request->OvertimeID, 'Active' => 1])->get();
 
         return response([
             'status' => true,
             'messsage' => 'İşlem Başarılı',
             'data' => $overtime
-        ],200);
+        ], 200);
     }
 
     public function getEmployeesOvertimeRequests(Request $request)
@@ -47,13 +47,12 @@ class OvertimeController extends ApiController
 
 
         $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status, $request->Employee);
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1,'AssignedID' => $request->Employee])->groupBy("StatusID")->get();
+        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1, 'AssignedID' => $request->Employee])->groupBy("StatusID")->get();
 
         $amount = [];
 
-        foreach ($counts as $count)
-        {
-            $amount['Status_'.$count->statusVal] = $count->count;
+        foreach ($counts as $count) {
+            $amount['Status_' . $count->statusVal] = $count->count;
         }
 
 
@@ -89,13 +88,24 @@ class OvertimeController extends ApiController
             array_push($userEmployeesIDs, $userEmployee->EmployeeID);
         }
 
+        $employee = $request->Employee;
 
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->groupBy("StatusID")->get();
+        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->where(function ($query) use ($employee) {
+            $query->orWhere(['CreatedBy' => $employee]);
+            $query->orWhere(['ManagerID' => $employee]);
+        })->groupBy("StatusID")->get();
+
+        $amount = [];
+
+        foreach ($counts as $count) {
+            $amount['Status_' . $count->statusVal] = $count->count;
+        }
+
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $overtimes,
-            'dataCounts' => $counts
+            'dataCounts' => $amount
         ], 200);
 
     }
@@ -180,8 +190,8 @@ class OvertimeController extends ApiController
             "query" =>
                 [
                     "plate" => "34CZF877",
-                    "startTime" => date(DATE_ATOM,strtotime("2020-10-11 09:00:00")),
-                    "endTime" => date(DATE_ATOM,strtotime("2020-10-11 15:00:00"))
+                    "startTime" => date(DATE_ATOM, strtotime("2020-10-11 09:00:00")),
+                    "endTime" => date(DATE_ATOM, strtotime("2020-10-11 15:00:00"))
                 ]
 
         ];
@@ -194,7 +204,7 @@ class OvertimeController extends ApiController
             'status' => true,
             'message' => 'İşlem Başarılı',
             'data' => $responseBody
-        ],200);
+        ], 200);
 
     }
 

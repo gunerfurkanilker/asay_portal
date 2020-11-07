@@ -4,7 +4,7 @@
 @section("content")
     <br><br>
     <table width="800">
-        <tr style="background-color: rgb(0,31,91);color:white" >
+        <tr style="background-color: rgb(0,32,92);color:white" >
             <th colspan="2"  >İşlem Yapan Son Kullanıcı</th>
         </tr>
         <tr >
@@ -12,7 +12,7 @@
                 {{ $employee->UsageName . ' ' . $employee->LastName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>İş Emri No</b>
             </td>
@@ -28,7 +28,7 @@
                 {{ $assignedEmployee->UsageName . ' ' . $assignedEmployee->LastName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>Statü</b>
             </td>
@@ -44,7 +44,7 @@
                 {{ $assignedEmployeesManager->UsageName . ' ' . $assignedEmployeesManager->LastName  }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>Proje</b>
             </td>
@@ -60,7 +60,7 @@
                 {{ date("d.m.Y", strtotime($overtime->BeginDate)) }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>Tahmini Başlangıç Saati</b>
             </td>
@@ -76,7 +76,7 @@
                 {{ $overtime->EndTime }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>Çalışma Yapılacak Saha ID</b>
             </td>
@@ -92,7 +92,7 @@
                 {{ $overtime->FieldName }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  >
                 <b>Araç Kullanacak Mı</b>
             </td>
@@ -108,7 +108,7 @@
                 {{ $overtime->PlateNumber  }}
             </td>
         </tr>
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td  colspan="2">
                 <b>Açıklama</b>
             </td>
@@ -119,7 +119,7 @@
             </td>
         </tr>
         @if(isset($extraFields))
-            <tr style="background-color: rgb(0,31,91);color:white">
+            <tr style="background-color: rgb(0,32,92);color:white">
                 <td>
                     <b>Gerçekleşen Fazla Çalışma Tarihi</b>
                 </td>
@@ -135,7 +135,7 @@
                     {{ $overtime->WorkNo }}
                 </td>
             </tr>
-            <tr style="background-color: rgb(0,31,91);color:white">
+            <tr style="background-color: rgb(0,32,92);color:white">
                 <td>
                     <b>Çalışma Başlangıç Saati</b>
                 </td>
@@ -153,7 +153,7 @@
             </tr>
         @endif
         @if(isset($reason))
-        <tr style="background-color: rgb(0,31,91);color:white">
+        <tr style="background-color: rgb(0,32,92);color:white">
             <td colspan="2" >
                 <b>İşlem Açıklaması</b>
             </td>
@@ -165,7 +165,7 @@
         </tr>
             @endif
         @if(isset($dirtyFields))
-            <tr style="background-color: rgb(0,31,91);color:white">
+            <tr style="background-color: rgb(0,32,92);color:white">
                 <td  colspan="2"  >
                     <b>Düzenleme Yapılan Alanlar</b>
                 </td>
