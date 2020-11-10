@@ -95,20 +95,28 @@ class PermitSenNetsis extends Command
                 $data = $soap->PersonelIzinGirisi($izin);
                 $permit->netsis = 1;
                 $permit->save();
-                //TODO: log yazılacak
-                /*return response([
-                    'status' => true,
-                    'message' => "Kayıt Başarılı",
-                    'resultMessage' => $data->PersonelIzinGirisiResult->Sonuc."-".$data->PersonelIzinGirisiResult->Aciklama
-                ], 200);*/
+                //TODO: netsis izin kaydı başarılı log yazılacak
+                try
+                {
+                    $puantaj["_Isyeri"] = "YASAYVAD"; // İş Yeri ne olacak ?
+                    $puantaj["_SicilNo"] = "10802";
+                    $puantaj["Yil"] = "2020";
+                    $puantaj["Ay"] = "11";
+                    $puantaj["GunSayisi"] = "1";
+                    $puantaj["PuantajTuru"] = "IZIN";
+                    $dataPuantaj = $soap->PersonelPuantajKayit($puantaj);
+                    $permit->puantaj = 1;
+                    $permit->save();
+                    //TODO: netsis puantaj kaydı başarılı log yazılacak
+                }
+                catch(Exception $e2)
+                {
+                    //TODO: netsis puantaj kaydı başarısız log yazılacak
+                }
             }
             catch(Exception $e)
             {
-                //TODO: log yazılacak
-                /*return response([
-                    'status' => false,
-                    'message' => $e->getMessage(),
-                ], 200);*/
+                //TODO: netsis izin kaydı başarısız log yazılacak
             }
         }
     }
