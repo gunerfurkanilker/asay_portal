@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
-use App\Model\CarHasProject;
 use App\Model\CarModel;
-use App\Model\EmployeeModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserProjectsModel;
@@ -100,15 +98,7 @@ class ProjectController extends ApiController
                 'message' => 'Proje Id boş olamaz'
             ],200);
 
-        $carHasProject = CarHasProject::where(['Active' => 1, 'ProjectId' => $request->projectId])->get();
-
-        $carList = [];
-
-        foreach ($carHasProject as $item)
-        {
-            $car = CarModel::find($item->id);
-            array_push($carList,$car);
-        }
+        $carList = CarModel::where(['Active' => 1, 'ProjectID' => $request->projectId])->get();
 
         return response([
             'status' => true,

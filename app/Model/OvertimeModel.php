@@ -592,7 +592,7 @@ class OvertimeModel extends Model
 
         $assignedEmployee = $this->hasOne(EmployeeModel::class, "Id", "AssignedID");
         if ($assignedEmployee) {
-            return $assignedEmployee->selectRaw("UsageName,LastName")->where("Active", 1)->first();
+            return $assignedEmployee->where("Active", 1)->first();
         } else {
             return "";
         }
@@ -762,13 +762,13 @@ class OvertimeModel extends Model
         $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
         if ($overtimeRecord->save()) {
-
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord];
+                'usingCar' => $usingCar, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
 
             Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma Onayınızı Bekliyor", $mailTable, "aSAY Group");
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:M:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
@@ -824,8 +824,9 @@ class OvertimeModel extends Model
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
 
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord];
+            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma için düzenleme talep edildi.", $mailTable
@@ -834,7 +835,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save())
         {
-            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için çalışan tarafından düzenleme talep edildi","overtime-manager/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için çalışan tarafından düzenleme talep edildi","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         }
 
@@ -879,10 +880,12 @@ class OvertimeModel extends Model
         $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "";
-        $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
+        $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
 
+
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord];
+            'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma reddedildi", $mailTable, "aSAY Group");
@@ -890,7 +893,7 @@ class OvertimeModel extends Model
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 26, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından reddedildi.', '', '', '', '', '');
-            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından reddedildi","overtime-manager/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından reddedildi","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
@@ -913,26 +916,28 @@ class OvertimeModel extends Model
         $isgGroupIDs = [];
 
         foreach ($isgPositions as $isgPosition) {
-            $userIsg = EmployeeModel::where(['Id' => $isgPosition->EmployeeID])->first();
-            $hasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $isgPosition->Id, 'group_id' => 24, 'active' => 1])->first();
+            $userIsg = EmployeeModel::where(['Id' => $isgPosition->EmployeeID,'Active' => 1])->first();
+            $hasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $isgPosition->EmployeeID, 'group_id' => 16, 'active' => 1])->first();
             if ($hasGroup) {
-                array_push($mailToArray, $isgPosition->JobEmail);
+                array_push($mailToArray, $userIsg->JobEmail);
             }
 
         }
         $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
+
+        $overtimeLink = '';
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'overtime' => $overtimeRecord];
+            'usingCar' => $usingCar, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
-        Asay::sendMail($mailToArray, "", "Fazla çalışma çalışan tarafından onaylandı.", $mailTable, "aSAY Group");
+        Asay::sendMail($mailToArray, "", "Yapılması planlanan fazla çalışma", $mailTable, "aSAY Group");
 
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 24, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından onaylandı.', '', '', '', '', '');
-            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından onaylandı","overtime-manager/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından onaylandı","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
@@ -960,8 +965,9 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord];
+            'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
         Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışmanız yöneticiniz tarafından iptal edildi", $mailTable, "aSAY Group");
 
@@ -969,7 +975,7 @@ class OvertimeModel extends Model
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 25, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından iptal edildi.', '', '', '', '', '');
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma yöneticiniz tarafından iptal edildi","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma yöneticiniz tarafından iptal edildi","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
@@ -994,9 +1000,10 @@ class OvertimeModel extends Model
         $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee,
             'assignedEmployeesManager' => $assignedEmployeesManager, 'overtime' => $overtimeRecord,
-            'usingCar' => $usingCar, 'extraFields' => true];
+            'usingCar' => $usingCar, 'extraFields' => true,'overtimeLink' => $overtimeLink];
 
         if ($result && $overtimeRequest->hasFile('WorkingReport')) {
             $file = file_get_contents($overtimeRequest->WorkingReport->path());
@@ -1039,8 +1046,9 @@ class OvertimeModel extends Model
 
         if ($result) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
+
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 27, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından tamamlandı.', '', '', '', '', '');
-            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından tamamlandı","overtime-manager/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından tamamlandı","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
             return ['status' => false, 'message' => 'Kayıt Sırasında Bir Hata Oluştu'];
@@ -1100,10 +1108,11 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->ManagerID);
-
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true];
+            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
+
 
         Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla Çalışma İçin Düzenleme Talep Edildi", $mailTable
             , "aSAY Group");
@@ -1111,7 +1120,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save())
         {
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için yöneticiniz tarafından düzenleme talep edildi","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için yöneticiniz tarafından düzenleme talep edildi","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         }
 
@@ -1133,8 +1142,9 @@ class OvertimeModel extends Model
         if ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true];
+                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
 
             Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma yöneticiniz tarafından onaylandı.", $mailTable, "aSAY Group");
@@ -1145,9 +1155,9 @@ class OvertimeModel extends Model
             $hrSpecialist = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->first();
             $hrEmployee = EmployeeModel::find($hrSpecialist->PropertyValue);
 
-
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-hr/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true];
+                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
 
             if ($overtimeRecord->File) {
@@ -1160,35 +1170,41 @@ class OvertimeModel extends Model
             $overtimeRecord->StatusID = 8;
             $overtimeRecord->save();
 
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, yöneticiniz tarafından onaylandı","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, yöneticiniz tarafından onaylandı","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($hrEmployee->Id,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime-hr/".$overtimeRecord->id);
 
         } else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
-
-            $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, ''];
-            $mailTable = view('mails.overtime', $mailData);
+            $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
+            $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+            $mailData1 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink1];
+            $mailData2 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink2];
+            $mailTable1 = view('mails.overtime', $mailData1);
+            $mailTable2 = view('mails.overtime', $mailData2);
 
             //Yöneticiye mail
             if ($overtimeRecord->File) {
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
             } else
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
+                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", "", "", "");
 
             //Çalışana Mail
             if ($overtimeRecord->File) {
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable2, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
             } else
-                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
+                Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable2, "aSAY Group", "", "", "");
 
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı birim sorumlusu tarafından onaylandı.', '', '', '', '', '');
 
             $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, birim sorumlusu tarafından onaylandı","overtime/".$overtimeRecord->id);
             $overtimeRecord->save();
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, birim sorumlusu tarafından onaylandı","overtime/".$overtimeRecord->id);
+
 
         }
 
@@ -1270,8 +1286,9 @@ class OvertimeModel extends Model
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->ManagerID);
 
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-hr/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true];
+            'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
         Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma için İnsan Kaynakları birimi tarafından düzenleme talep edildi.", $mailTable
@@ -1280,7 +1297,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save())
         {
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için insan kaynakları birimi tarafından düzenleme talep edildi","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için insan kaynakları birimi tarafından düzenleme talep edildi","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         }
 
@@ -1331,8 +1348,9 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
         $userAccountOfEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-            'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true];
+            'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
         if ($overtimeRecord->File) {
@@ -1345,7 +1363,7 @@ class OvertimeModel extends Model
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 29, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
-            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:m:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, insan kaynakları birimi tarafından onaylandı","overtime/".$overtimeRecord->id);
+            NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, insan kaynakları birimi tarafından onaylandı","overtime/".$overtimeRecord->id);
             //Fazla Çalışma tüm onay süreçlerinden geçerse kişi her saat başına yarım saat dinlenme izni kullanmak için hak kazanır. Bu izin YILDA 105 SAAT olarak sınırlandırılmıştır.
 
             $resp = self::addRestPermitToEmployee($overtimeRequest);

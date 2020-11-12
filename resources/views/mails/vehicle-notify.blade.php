@@ -80,13 +80,13 @@
         <tr>
             <td colspan="1">Ticket No</td>
             <td colspan="2"  >
-                {{ $ticket->id }}
+                {{ "TKT-ARC-".$ticket->id }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Talep Tarih, Saat</td>
             <td colspan="2"  >
-                {{ $ticket->created_at }}
+                {{ date("d.m.Y H:i:s",strtotime($ticket->created_at)) }}
             </td>
         </tr >
         <tr>
@@ -104,13 +104,13 @@
         <tr>
             <td colspan="1">Araç Marka,Model</td>
             <td colspan="2"  >
-                {{ 'DACIA, DUSTER (Araç Listesi İletildiğinde Eklenecektir)' }}
+                {{ $ticket->Car ? strtoupper($ticket->Car->CarBrand->Name) . ', ' . strtoupper($ticket->Car->CarBrandModel->Name) : $ticket->CarPlate . ' plakalı araç sistemde kayıtlı değil' }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Model Yılı</td>
             <td colspan="2"  >
-                {{ '2017 (Araç Listesi İletildiğinde Eklenecektir)'}}
+                {{ $ticket->Car ? $ticket->Car->CarYear : $ticket->Car->CarYear . ' plakalı araç sistemde kayıtlı değil' }}
             </td>
         </tr>
         @if($ticket->TicketKind == 1 || $ticket->TicketKind == 3)
@@ -158,7 +158,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="3">Açıklama</td>
+            <td colspan="3" style="background-color: rgb(0,31,91);color:white;">Açıklama</td>
         </tr>
         <tr>
             <td colspan="3">

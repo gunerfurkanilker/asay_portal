@@ -13,12 +13,13 @@ class CarNotifyModel extends Model
         'NotifyKind',
         'Region',
         'City',
-        'IssueKind'
+        'IssueKind',
+        'Car'
     ];
 
     public static function saveCarNotify($request)
     {
-        $request->TicketNo = "TKT-ARC-10000";
+
         if (isset($request->CarNotifyID))
             $carNotify = CarNotifyModel::find($request->CarNotifyID);
         else
@@ -56,6 +57,7 @@ class CarNotifyModel extends Model
                     ]
 
                 ],
+
             ];
 
             $client = new \GuzzleHttp\Client();
@@ -65,7 +67,7 @@ class CarNotifyModel extends Model
 
             if ($responseBody->status == true) {
                 $carNotify->File = $responseBody->data;
-                $carNotify->save();
+                $result = $carNotify->save();
             }
 
         }
@@ -74,6 +76,7 @@ class CarNotifyModel extends Model
         if ($result)
         {
             $carNotify->fresh();
+            NotificationsModel::saveNotification($carNotify->RequestedFrom,12,$carNotify->id,"Araç Bildirim",$request->CarPlate." plakalı araç için oluşturmuş olduğunuz destek kaydı sistemimize kaydedilmiştir","");
             $file = null;
             if ($request->hasFile('File'))
             {
@@ -95,7 +98,7 @@ class CarNotifyModel extends Model
                             $mailTo = "aracbildirim.kocaeli@ms.asay.com.tr";
                         else
                             $mailTo = "aracbildirim.bursa@ms.asay.com.tr";
-                    if ($employee->EmployeePosition->RegionID == 2) // Asya ise
+                    else if ($employee->EmployeePosition->RegionID == 2) // Asya ise
                         $mailTo = "aracbildirim.asya@ms.asay.com.tr";
                     else
                         $mailTo = "aracbildirim.avrupa@ms.asay.com.tr";
@@ -208,6 +211,18 @@ class CarNotifyModel extends Model
         $issueKind = $this->hasOne(CarNotifyIssueKindModel::class, "id", "CarIssueKind");
         if ($issueKind) {
             return $issueKind->where("Active", 1)->first();
+        } else {
+            return "";
+        }
+
+    }
+
+    public function getCarAttribute()
+    {
+
+        $car = $this->hasOne(CarModel::class, "Plate", "CarPlate");
+        if ($car) {
+            return $car->where("Active", 1)->first();
         } else {
             return "";
         }

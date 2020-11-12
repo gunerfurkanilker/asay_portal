@@ -8,6 +8,7 @@ use App\Library\Asay;
 use App\Model\DiskFileModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\NotificationsModel;
 use App\Model\PriorityModel;
 use App\Model\ITSupportCategoryModel;
 use App\Model\ITSupportModel;
@@ -121,6 +122,7 @@ class ItSupportController extends ApiController
             $employee = EmployeeModel::find($request->RequestedFrom);
 
             $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee"=>$employee]);
+            NotificationsModel::saveNotification($itSupport->RequestedFrom,11,$itSupport->id,"IT Destek",$itSupport->Subject." için oluşturmuş olduğunuz IT destek kaydı sistemimize kaydedilmiştir","");
             Asay::sendMail("ilker.guner@asay.com.tr",$employee->JobEmail,"It Support",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
 
             return response([

@@ -17,28 +17,11 @@ class EmployeeModel extends Model
     const UPDATED_AT = 'LastUpdateDate';
     protected $appends = [
         "ContractType",
-        "WorkingSchedule",
-        "Company",
-        "City",
-        "District",
-        "Department",
-        "Education",
-        "Location",
-        "Title",
-        "Manager",
-        "WorkingType",
-        "Payment",
-        "DrivingLicense",
-        "AGI",
-        "EmergencyField",
-        "BodyMeasurements",
         'IDCard',
-        'SocialSecurityInformation',
         'Domain',
         'EmployeePosition',
         'AccessTypes',
-        'EmployeeGroup',
-        'BankAccount'
+        'EmployeeGroup'
     ];
 
     public static function addEmployee($request)
@@ -346,201 +329,11 @@ class EmployeeModel extends Model
         }
     }
 
-    public function getWorkingScheduleAttribute()
-    {
 
-        $workingSchedule = $this->hasOne(WorkingScheduleModel::class,"Id","WorkingScheduleID");
-        if ($workingSchedule)
-        {
-            return $workingSchedule->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
 
-    public function getCompanyAttribute()
-    {
 
-        $company = $this->hasOne(CompanyModel::class,"Id","CompanyID");
-        if ($company)
-        {
-            return $company->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
 
-    public function getCityAttribute()
-    {
 
-        $city = $this->hasOne(CityModel::class,"Id","CityID");
-        if ($city)
-        {
-            return $city->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getDistrictAttribute()
-    {
-
-        $district = $this->hasOne(DistrictModel::class,"Id","DistrictID");
-        if ($district)
-        {
-            return $district->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getDepartmentAttribute()
-    {
-
-        $department = $this->hasOne(DepartmentModel::class,"Id","DepartmentID");
-        if ($department)
-        {
-            return $department->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getTitleAttribute()
-    {
-
-        $title = $this->hasOne(TitleModel::class,"Id","TitleID");
-        if ($title)
-        {
-            return $title->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getManagerAttribute()
-    {
-
-        $manager = $this->hasOne(EmployeeModel::class,"Id","ManagerID");
-        if ($manager)
-        {
-            return $manager->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getWorkingTypeAttribute()
-    {
-
-        $workingType = $this->hasOne(WorkingTypeModel::class,"Id","WorkingTypeID");
-        if ($workingType)
-        {
-            return $workingType->where("Active",1)->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getPaymentAttribute()
-    {
-
-        $payment = $this->hasOne(PaymentModel::class,"Id","PaymentID");
-        if ($payment->select('*')->first() != null)
-        {
-            return PaymentModel::find($payment->select('*')->first()->Id);
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getEducationAttribute()
-    {
-
-        $education = $this->hasOne(EducationModel::class,"Id","EducationID");
-        if ($education)
-        {
-            return $education->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getDrivingLicenseAttribute()
-    {
-
-        $drivingLicense = $this->hasOne(DrivingLicenseModel::class,"Id","DrivingLicenceID");
-        if ($drivingLicense)
-        {
-            return $drivingLicense->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getAGIAttribute()
-    {
-
-        $agi = $this->hasOne(AgiModel::class,"Id","AGIID");
-        if ($agi)
-        {
-            return $agi->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getEmergencyFieldAttribute()
-    {
-
-        $emergencyField = $this->hasMany(EmergencyFieldModel::class,"EmployeeID","Id");
-        if ($emergencyField)
-        {
-            return $emergencyField->get();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getBodyMeasurementsAttribute()
-    {
-
-        $bodyMeasurements = $this->hasOne(BodyMeasurementModel::class,"EmployeeID","Id");
-        if ($bodyMeasurements)
-        {
-            return $bodyMeasurements->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
 
     public function getIDCardAttribute()
     {
@@ -556,31 +349,8 @@ class EmployeeModel extends Model
         }
     }
 
-    public function getSocialSecurityInformationAttribute()
-    {
-        $socialSecurityInformation = $this->hasOne(SocialSecurityInformationModel::class,"Id","IDCardID");
-        if ($socialSecurityInformation)
-        {
-            return $socialSecurityInformation->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
 
-    public function getLocationAttribute()
-    {
-        $location = $this->hasOne(LocationModel::class,"EmployeeID","Id");
-        if ($location)
-        {
-            return $location->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
+
 
     public function getDomainAttribute()
     {
@@ -601,19 +371,6 @@ class EmployeeModel extends Model
         if ($position)
         {
             return $position->where(['Active' => 2])->first();
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    public function getBankAccountAttribute()
-    {
-        $bankAccount = $this->hasOne(BankAccountTypeModel::class,"Id","AccountType");
-        if ($bankAccount)
-        {
-            return $bankAccount->where(['Active' => 1])->first();
         }
         else
         {

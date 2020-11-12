@@ -22,12 +22,53 @@ class OvertimeController extends ApiController
 
     public function getOvertimeById(Request $request)
     {
-        $overtime = OvertimeModel::where(['id' => $request->OvertimeID, 'Active' => 1])->get();
+        $overtime = OvertimeModel::where(['id' => $request->OvertimeID, 'Active' => 1])->first();
 
+        if (!$overtime)
+            return response([
+                'status' => false,
+                'message' => 'Kayıt Bulunamadı',
+            ],200);
+
+        if($request->Page === "overtime")
+        {
+            if ($request->Employee !== $overtime->AssignedID)
+                return response([
+                    'status' => false,
+                    'message' => 'Yetkisiz İşlem'
+                ],200);
+        }
+
+        elseif ($request->Page === "overtime-manager")
+        {
+            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
+            if ($employeePosition->UnitSupervisorID !== $request->Employee || $employeePosition->ManagerID !== $request->Employee)
+                return response([
+                    'status' => false,
+                    'message' => 'Yetkisiz İşlem'
+                ],200);
+        }
+
+        elseif ($request->Page === "overtime-hr")
+        {
+            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
+            $hrPersonnels = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->whereNotIn("EmployeeID",[$request->Employee])->get();
+            $idArray = [];
+            foreach ($hrPersonnels as $hrPersonnel)
+                array_push($idArray,$hrPersonnel->EmployeeID);
+            if(!in_array($request->Employee,$idArray))
+                return response([
+                    'status' => false,
+                    'message' => 'Yetkisiz İşlem'
+                ],200);
+        }
+
+        $data = [];
+        array_push($data,$overtime);
         return response([
             'status' => true,
             'messsage' => 'İşlem Başarılı',
-            'data' => $overtime
+            'data' => $data
         ], 200);
     }
 

@@ -14,6 +14,7 @@ use App\Model\CityModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\RegionModel;
+use App\Model\UserProjectsModel;
 use Illuminate\Http\Request;
 
 
@@ -67,12 +68,26 @@ class CarNotifyController extends ApiController
         ],200);
     }
 
-    public function getCarPlates()
+    public function getCarPlates(Request $request)
     {
+
+        $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
+        $projectId = 0;
+
+        switch ($employeePosition->Organization->id)
+        {
+            case 4:
+                $projectId = 1;
+                break;
+            case 6:
+                $projectId = 2;
+                break;
+        }
+
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => CarModel::where(['Active' => 1])->get()
+            'data' => CarModel::where(['Active' => 1,'ProjectID' => $projectId])->get()
         ],200);
     }
 

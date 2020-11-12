@@ -178,6 +178,17 @@
                 @endforeach
 
             @endif
+        <tr style="background-color: rgb(0,32,92);color:white">
+            <td  colspan="2"  >
+                <b>Bağlantı Linki</b>
+            </td>
+        </tr>
+        <tr >
+
+            <td  colspan="2" >
+                <a href="{{ $overtimeLink.$overtime->id }}">Fazla Çalışma Link</a>
+            </td>
+        </tr>
     </table>
 @endsection
 

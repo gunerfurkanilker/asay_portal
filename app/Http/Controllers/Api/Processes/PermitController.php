@@ -25,6 +25,78 @@ use Whoops\Util\TemplateHelper;
 
 class PermitController extends ApiController
 {
+
+    public function getPermitById(Request $request)
+    {
+        $permit = PermitModel::where(['id' => $request->PermitID, 'Active' => 1])->first();
+
+        if (!$permit)
+            return response([
+                'status' => false,
+                'message' => 'Kayıt Bulunamadı',
+            ],200);
+
+        if($request->Page === "my-permits")
+        {
+            if ($request->Employee !== $permit->EmployeeID)
+                return response([
+                    'status' => false,
+                    'message' => 'Yetkisiz İşlem'
+                ],200);
+        }
+
+        elseif ($request->Page === "permits")
+        {
+
+            if ($permit->status == 1)
+            {
+                $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $permit->EmployeeID])->first();
+                if ($employeePosition->ManagerID !== $request->Employee)
+                    return response([
+                        'status' => false,
+                        'message' => 'Yetkisiz İşlem'
+                    ],200);
+            }
+            elseif ($permit->status == 2)
+            {
+                $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $permit->EmployeeID])->first();
+                $hrPersonnels = ProcessesSettingsModel::where(['RegionID' => $employeePosition->RegionID,'object_type' => 3, 'PropertyCode' => 'HRManager'])->get();
+                $idArray = [];
+                foreach ($hrPersonnels as $hrPersonnel)
+                    array_push($idArray,(int)$hrPersonnel->PropertyValue);
+                if(!in_array($request->Employee,$idArray))
+                    return response([
+                        'status' => false,
+                        'message' => 'Yetkisiz İşlem'
+                    ],200);
+
+            }
+            elseif ($permit->status == 3)
+            {
+                $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $permit->EmployeeID])->first();
+                $personnelSpecialists = ProcessesSettingsModel::where(['RegionID' => $employeePosition->RegionID,'object_type' => 3, 'PropertyCode' => 'PersonnelSpecialist'])->get();
+                $idArray = [];
+                foreach ($personnelSpecialists as $personnelSpecialist)
+                    array_push($idArray,(int)$personnelSpecialist->PropertyValue);
+                if(!in_array($request->Employee,$idArray))
+                    return response([
+                        'status' => false,
+                        'message' => 'Yetkisiz İşlem'
+                    ],200);
+            }
+
+
+        }
+
+        $data = [];
+        array_push($data,$permit);
+        return response([
+            'status' => true,
+            'messsage' => 'İşlem Başarılı',
+            'data' => $data
+        ], 200);
+    }
+
     public function permitList(Request $request)
     {
         $employee = EmployeeModel::find($request->Employee);
@@ -51,7 +123,8 @@ class PermitController extends ApiController
         $employee = EmployeeModel::find($request->Employee);
         $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $employee->Id])->first();
 
-        $transferEmployeesPositions = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->get();
+        $transferEmployeesPositions = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])
+            ->whereNotIn('EmployeeID',[$request->Employee])->get();
 
         $transferEmployees = [];
 
@@ -83,9 +156,9 @@ class PermitController extends ApiController
     {
         $permitKinds = PermitKindModel::where(["active" => 1])->get();
 
-        $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => $request->Employee, 'Active' => 1])
+        $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'Active' => 1])
             ->whereYear("Date", "=", date('Y'))->first();
-        $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => $request->Employee, 'kind' => 14])
+        $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'kind' => 14])
             ->whereYear("start_date", "=", date('Y'))->first();
 
         $employeeOvertimeRestTotalMinute = ($employeeOvertimeRestTotalHour->total_hour * 60) + $employeeOvertimeRestTotalHour->total_minute;
@@ -408,34 +481,46 @@ class PermitController extends ApiController
 
         if ($permit->status == 1) {
             $permit->manager_status = $confirm;
-            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, yöneticiniz tarafından onaylandı","my-permits/".$permit->id);
+
+            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebiniz, yöneticiniz tarafından onaylandı","my-permits/".$permit->id);
             $employee = EmployeeModel::find($permit->EmployeeID);
-            $hrPersonnels = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'ObjectType' => 3, 'PropertyCode' => 'HRManager'])->get();
+            $hrPersonnels = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'object_type' => 3, 'PropertyCode' => 'HRManager'])->get();
             foreach ($hrPersonnels as $hrPersonnel)
-                NotificationsModel::saveNotification($hrPersonnel->PropertyValue,3,$permit->id,$permit->PermitKind->Name,"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
+                NotificationsModel::saveNotification($hrPersonnel->PropertyValue,3,$permit->id,$permit->PermitKind['name'],"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
             if ($confirm == 2) {
-                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, yöneticiniz tarafından reddedildi","my-permits/".$permit->id);
+                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebiniz, yöneticiniz tarafından reddedildi","my-permits/".$permit->id);
                 $permit->hr_status = 2;
                 $permit->ps_status = 2;
             }
         } else if ($permit->status == 2) {
             $permit->hr_status = $confirm;
-            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebiniz, insan kaynakları birimi tarafından onaylandı, evrak onayı beklenmektedir","my-permits/".$permit->id);
+            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebiniz, insan kaynakları birimi tarafından onaylandı, evrak onayı beklenmektedir","my-permits/".$permit->id);
             $employee = EmployeeModel::find($permit->EmployeeID);
-            $personnelSpecialists = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'ObjectType' => 3, 'PropertyCode' => 'PersonnelSpecialist'])->get();
+            $personnelSpecialists = ProcessesSettingsModel::where(['RegionID' => $employee->EmployeePosition->RegionID,'object_type' => 3, 'PropertyCode' => 'PersonnelSpecialist'])->get();
             foreach ($personnelSpecialists as $personnelSpecialist)
-                NotificationsModel::saveNotification($personnelSpecialist->PropertyValue,3,$permit->id,$permit->PermitKind->Name,"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
+                NotificationsModel::saveNotification($personnelSpecialist->PropertyValue,3,$permit->id,$permit->PermitKind['name'],"İzin talebi için onayınız bekleniyor","permits/".$permit->id);
             if ($confirm == 2) {
                 $permit->ps_status = 2;
+                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebiniz, insan kaynakları birimi tarafından reddedildi","my-permits/".$permit->id);
             } else {
                 PermitModel::createPermitDocumentAndSendMailToEmployee($request);
             }
 
         } else if ($permit->status == 3)
         {
-            NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind->Name,$permit->PermitKind->Name." talebinizin evrakları onaylandı","my-permits/".$permit->id);
+            if ($confirm == 2)
+                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebinizin evrak onayı reddedildi","my-permits/".$permit->id);
+            else
+                NotificationsModel::saveNotification($permit->EmployeeID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebinizin evrakları onaylandı","my-permits/".$permit->id);
+
             $permit->ps_status = $confirm;
         }
+        else if ($permit->status == 0)
+        {
+            $employee = EmployeeModel::find($permit->EmployeeID);
+            NotificationsModel::saveNotification($employee->EmployeePosition->ManagerID,3,$permit->id,$permit->PermitKind['name'],$permit->PermitKind['name']." talebi için onayınız bekleniyor","permits/".$permit->id);
+        }
+
 
         $permit->status = $permit->status + 1;
         $permitResult = $permit->save();

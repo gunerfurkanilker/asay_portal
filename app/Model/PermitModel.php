@@ -22,7 +22,8 @@ class PermitModel extends Model
 
     protected $appends = [
         'PermitKind',
-        'TransferEmployee'
+        'TransferEmployee',
+        'Employee'
     ];
 
     public static function createPermit($req)
@@ -37,9 +38,12 @@ class PermitModel extends Model
             $newPermit = new PermitModel();
         }
 
+        $permit = $req->RequestFromHR ? PermitModel::where($req->EmployeeID)  : null;
+        $employe = !is_null($req->EmployeeID) ? EmployeeModel::find($req->EmployeeID) : null;
 
+        $newPermit->EmployeeID      = $req->RequestFromHR ? $req->EmployeeID : $EmployeeID;
+        $req->RequestFromHR ? $newPermit->status = 1 : '';
 
-        $newPermit->EmployeeID      = $EmployeeID;
         $newPermit->kind            = $req->kind;
         $newPermit->description     = $req->description;
         $newPermit->start_date      = $req->startDate;
@@ -51,7 +55,14 @@ class PermitModel extends Model
         $newPermit->over_minute     = $totalPermitDayHour['OverMinute'];
         $newPermit->holiday         = $totalPermitDayHour['Holidays'];
         $newPermit->weekend         = $totalPermitDayHour['Weekend'];
-        return $newPermit->save() ? $newPermit->fresh() : false;
+        $result = $newPermit->save();
+        $freshPermit = $newPermit->fresh();
+        if($result)
+        {
+            $req->RequestFromHR ? $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $req->EmployeeID])->first() : $employeePosition = null;
+            $req->RequestFromHR ? NotificationsModel::saveNotification($employeePosition->ManagerID,3,$freshPermit->id,$freshPermit->PermitKind->Name,$freshPermit->PermitKind->Name." talebi, onayınızı bekliyor","permits/".$freshPermit->id) : '';
+        }
+        return $result ? $newPermit->fresh() : false;
     }
 
     /*public static function getRemainingDaysYearlyPermit($req)
@@ -456,23 +467,22 @@ class PermitModel extends Model
             else if($permit->kind == 14)
             {
 
-                $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => $permit->EmployeeID, 'Active' => 1])
-                    ->whereYear("Date", "=", $permit->start_date)->first();
-                $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour")->where(['Active' => 1, 'EmployeeID' => $permit->EmployeeID, 'kind' => 14])
-                    ->whereYear("start_date", "=", $permit->start_date)->first();
+                $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'Active' => 1])
+                    ->whereYear("Date", "=", date('Y'))->first();
+                $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'kind' => 14])
+                    ->whereYear("start_date", "=", date('Y'))->first();
+
+                $employeeOvertimeRestTotalMinute = ($employeeOvertimeRestTotalHour->total_hour * 60) + $employeeOvertimeRestTotalHour->total_minute;
+                $totalRestPermitsMinute = ($totalRestPermits->total_day*8*60) + ($totalRestPermits->over_hour*60) + $totalRestPermits->total_minute;
+
+                $remainingRestPermitTotalMinute = $employeeOvertimeRestTotalMinute - $totalRestPermitsMinute;
+
+                $remainingRestPermitDay = (int) (((int) $remainingRestPermitTotalMinute / 60) / 8);
+                $remainingRestPermitMinute = $remainingRestPermitTotalMinute % 60;
+                $remainingRestPermitHour = (int) (((int) $remainingRestPermitTotalMinute / 60) % 8);
 
 
-                $totalMinute = ((int)$employeeOvertimeRestTotalHour->total_hour * 60) + (int)$employeeOvertimeRestTotalHour->total_minute;
-                $earnedDayCount = (int)(($totalMinute / 60) / 8); //Bir iş günü toplam 8 saattir.
-                $earnedHourCount = (int)($totalMinute / 60) > 8 ? (int)($totalMinute / 60) - 8 : (int)($totalMinute / 60);
-
-                $permitUsedHours = (int)($totalRestPermits->over_hour) > 8 ? (int)($totalRestPermits->over_hour) % 8 : (int)($totalRestPermits->over_hour) == 8 ? 0 : (int)($totalRestPermits->over_hour);
-                $permitUsedDays = ((int)$totalRestPermits->total_day) + ((int)($totalRestPermits->over_hour / 8));
-
-                $remainingRestPermitDay = $earnedDayCount - $permitUsedDays;
-                $remainingRestPermitHour = abs($earnedHourCount - $permitUsedHours);
-
-                $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat';
+                $restPermitRemainingYear = $remainingRestPermitDay . ' gün, ' . $remainingRestPermitHour . ' saat, ' . ($remainingRestPermitMinute) . 'dakika';
 
                 $lastEarnedPermit = OvertimeRestModel::where(['EmployeeID' => $permit->EmployeeID, 'Active' => 1])->orderBy('Date', 'desc')->first();
                 $restPermitEarnDate = date('d.m.Y',strtotime($lastEarnedPermit->Date));
@@ -527,6 +537,15 @@ class PermitModel extends Model
         $transferEmployee = $this->hasOne(EmployeeModel::class, "Id", "transfer_id");
         if($transferEmployee)
             return $transferEmployee->where("Active", 1)->first();
+        else
+            return null;
+    }
+
+    public function getEmployeeAttribute()
+    {
+        $employee = $this->hasOne(EmployeeModel::class, "Id", "EmployeeID");
+        if($employee)
+            return $employee->where("Active", 1)->first();
         else
             return null;
     }

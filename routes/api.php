@@ -74,6 +74,7 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/permit/')->group(function () {
+            Route::get('getPermitById','PermitController@getPermitById')->name('permit_getById');
             Route::post('savePermit', 'PermitController@savePermit')->name('permit_savePermit');
             Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_getPermitTypes');
             Route::get('permitList', 'PermitController@permitList')->name('permit_permitList');
@@ -250,6 +251,7 @@ Route::namespace("Api")->group(function(){
             Route::post('notificationRead', "NotificationController@notificationRead")->name("read_notification");
             Route::delete('notificationDelete', "NotificationController@deleteNotification")->name("delete_notification");
 
+            Route::get('cars', "CarController@getCars")->name("get_cars");
         });
 
     });
