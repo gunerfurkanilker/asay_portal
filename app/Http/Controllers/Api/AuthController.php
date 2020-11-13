@@ -23,7 +23,8 @@ class AuthController extends Controller
                 'message' => "Kullanıcı adı ve şifre Hatası"
             ], 200);
         }
-        $ldap = LdapModel::where(["name"=>$data["domain"]]);
+        $ldap = LdapModel::where(["name"=>$data["domain"]])->first();
+
         if(filter_var( $data["username"], FILTER_VALIDATE_EMAIL))
             $email = $data["username"];
         else
@@ -50,7 +51,7 @@ class AuthController extends Controller
         $ad = new \Adldap\Adldap($connections);
 
         try {
-            $provider = $ad->connect("ldap", $ldap->domain."\\".$data["username"], $data["password"]);
+            $provider = $ad->connect("ldap", $ldap->prefix."\\".$data["username"], $data["password"]);
             $search = $provider->search();
             //$user = UserModel::LdapUserCreate($search,$data["username"]);
             $userLogin = EmployeeModel::LdapUserLogin($search,$data["username"],$ldap);
