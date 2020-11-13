@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Model\DomainModel;
 use App\Model\EmployeeModel;
+use App\Model\LdapModel;
 use App\Model\UserMenuModel;
 use Illuminate\Http\Request;
 
@@ -12,8 +13,9 @@ class AuthController extends Controller
 {
     public function loginPost(Request $request)
     {
-        $data["username"] = $request->input("username");
-        $data["password"] = $request->input("password");
+        $data["username"]   = $request->username;
+        $data["password"]   = $request->password;
+        $data["domain"]     = $request->domain!==null ? $request->domain : "asay.com.tr";
         if($data["username"]=="" || $data["password"]=="")
         {
             return response([
@@ -21,11 +23,11 @@ class AuthController extends Controller
                 'message' => "Kullanıcı adı ve şifre Hatası"
             ], 200);
         }
-        $domain = DomainModel::find(1);
+        $ldap = LdapModel::where(["name"=>$data["domain"]]);
         if(filter_var( $data["username"], FILTER_VALIDATE_EMAIL))
             $email = $data["username"];
         else
-            $email = $data["username"]."@".$domain->domain;
+            $email = $data["username"]."@".$ldap->name;
 
         $employeeQ = EmployeeModel::where(["JobEmail"=>$email,"Active"=>1]);
         if($employeeQ->count()==0)
@@ -40,18 +42,18 @@ class AuthController extends Controller
 
         $error = false;
         $connections = [
-            'asay.corp' => [
-                'hosts' => ["asay.corp"],
+            'ldap' => [
+                'hosts' => [$ldap->domain],
             ],
         ];
 
         $ad = new \Adldap\Adldap($connections);
 
         try {
-            $provider = $ad->connect("asay.corp", "ASAY\\".$data["username"], $data["password"]);
+            $provider = $ad->connect("ldap", $ldap->domain."\\".$data["username"], $data["password"]);
             $search = $provider->search();
             //$user = UserModel::LdapUserCreate($search,$data["username"]);
-            $userLogin = EmployeeModel::LdapUserLogin($search,$data["username"]);
+            $userLogin = EmployeeModel::LdapUserLogin($search,$data["username"],$ldap);
             if(!$userLogin)
             {
                 return response([

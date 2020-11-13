@@ -9,5 +9,6 @@ class DomainModel extends Model
     protected $table = "Domains";
     protected $primaryKey = "id";
     public $timestamps = false;
+    protected $appends = [];
 
 }
