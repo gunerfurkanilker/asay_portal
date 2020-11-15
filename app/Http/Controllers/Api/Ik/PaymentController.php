@@ -81,6 +81,24 @@ class PaymentController extends ApiController
 
     public function savePayment(Request $request){
 
+        $currentPayment = PaymentModel::where(["EndDate" => null, 'EmployeeID' => $request->EmployeeID])->first();
+
+        if ($currentPayment)
+        {
+
+            $currentPaymentStartDate = new \DateTime($currentPayment->StartDate);
+            $requestStartDate = new \DateTime($request->StartDate); //from database
+
+
+
+            if($requestStartDate->format("Y-m-d") < $currentPaymentStartDate->format("Y-m-d")) {
+                return response([
+                    'status' => false,
+                    'message' => 'Maaş başlangıç tarihi, bir önceki maaş başlangıç tarihinden eski bir tarihte girilemez',
+                ],200);
+            }
+        }
+
         $salary = PaymentModel::savePayment($request->all());
 
         return response([

@@ -31,40 +31,10 @@ class IdCardModel extends Model
         if ($IDCard == null)
             $IDCard = new IdCardModel();
 
-        if ($request->hasFile('IDCardPhoto')) {
-            $file = file_get_contents($request->IDCardPhoto->path());
-            $guzzleParams = [
-                'multipart' => [
-                    [
-                        'name' => 'file',
-                        'contents' => $file,
-                        'filename' => 'IDCardPhoto_' . $employee->Id . '.' . $request->IDCardPhoto->getClientOriginalExtension()
-                    ],
-                    [
-                        'name' => 'moduleId',
-                        'contents' => 'id_card'
-                    ],
-                    [
-                        'name' => 'token',
-                        'contents' => $request->token
-                    ]
-                ]
-            ];
-
-            $client = new \GuzzleHttp\Client();
-            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
-            $responseBody = json_decode($res->getBody());
-
-            if ($responseBody->status == true) {
-                $employee->Photo = $responseBody->data;
-                $employee->save();
-            }
-        }
-
 
 
             $IDCard->ValidDate = $request->ValidDate != null ? $request->ValidDate : null;
-        $IDCard->NewIDCard = $request->NewIDCard ? 1 : 0;
+        $IDCard->NewIDCard = $request->NewIDCard === 'true' ? 1 : 0;
         $IDCard->NationalityID = $request->NationalityID;
         $IDCard->TCNo = $request->TCNo;
         $IDCard->FirstName = $request->FirstName;
@@ -75,7 +45,7 @@ class IdCardModel extends Model
         $IDCard->DateOfIssue = $request->DateOfIssue != null ? $request->DateOfIssue : null;
         $IDCard->MotherName = $request->MotherName;
         $IDCard->FatherName = $request->FatherName;
-        $IDCard->BirthPlace = $request->BirthPlace;
+        $IDCard->BirthPlace = $request->BirthPlace ? $request->BirthPlace : null;
         $IDCard->CityID = $request->CityID != null ? $request->CityID : null;
         $IDCard->DistrictID = $request->DistrictID != null ? $request->DistrictID : null;
         $IDCard->Neighborhood = $request->Neighborhood != null ? $request->Neighborhood : '';

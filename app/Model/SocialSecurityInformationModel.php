@@ -24,16 +24,16 @@ class SocialSecurityInformationModel extends Model
         if ($socialSecurityInformation == null)
             $socialSecurityInformation = new SocialSecurityInformationModel();
 
-            $socialSecurityInformation->SSICreateDate       = $request->SSICreateDate;
+            $socialSecurityInformation->SSICreateDate       = $request->SSICreateDate ? $request->SSICreateDate : null ;
             $socialSecurityInformation->SSINo               = $request->SSINo;
             $socialSecurityInformation->SSIRecord           = $request->SSIRecord;
             $socialSecurityInformation->FirstLastName       = $request->FirstLastName ? $request->FirstLastName : '';
             $socialSecurityInformation->DisabledDegreeID    = $request->DisabledDegreeID;
             $socialSecurityInformation->JobCodeID           = $request->JobCodeID;
             $socialSecurityInformation->JobDescription      = $request->JobDescription ? $request->JobDescription :'';
-            $socialSecurityInformation->CriminalRecord      = $request->CriminalRecord;
-            $socialSecurityInformation->ConvictRecord       = $request->ConvictRecord;
-            $socialSecurityInformation->TerrorismComp       = $request->TerrorismComp;
+            $socialSecurityInformation->CriminalRecord      = $request->CriminalRecord ? 1:0;
+            $socialSecurityInformation->ConvictRecord       = $request->ConvictRecord ? 1:0;
+            $socialSecurityInformation->TerrorismComp       = $request->TerrorismComp ? 1:0;
             $socialSecurityInformation->EmployeeID          = $request->EmployeeID;
             $result = $socialSecurityInformation->save();
 
@@ -203,7 +203,7 @@ class SocialSecurityInformationModel extends Model
         $data = [];
         $data['DisabledDegrees'] = DisabledDegreeModel::all();
         $data['Jobs'] = JobModel::all();
-
+        $data['SGKRegistryNumbers'] = SGKRegistryNumbersModel::all();
         return $data;
     }
 

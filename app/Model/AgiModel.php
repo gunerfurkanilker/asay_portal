@@ -21,7 +21,7 @@ class AgiModel extends Model
         $agiID = self::find($agiID);
 
         if ($agiID != null) {
-
+            $agiID->EmployeeID = $request['employeeid'];
             $agiID->MaritalStatusID = $request['maritalstatus'];
             $agiID->SpouseWorkingStatusID = isset($request['spouseworkingstatus'])  ?  $request['spouseworkingstatus']:null ;
             $agiID->TotalChildren = $request['totalchildren'];
@@ -39,9 +39,10 @@ class AgiModel extends Model
             return false;
     }
 
-    public static function addAgi($request,$employee)
+    public static function addAgi($request)
     {
         $agiID = self::create([
+            'EmployeeID' => $request['employeeid'],
             'MaritalStatusID' => $request['maritalstatus'],
             'SpouseWorkingStatusID' => $request['spouseworkingstatus'],
             'TotalChildren' => $request['totalchildren'],
@@ -54,8 +55,6 @@ class AgiModel extends Model
 
         if ($agiID != null)
         {
-            $employee->AGIID = $agiID->Id;
-            $employee->save();
             return $agiID;
         }
 

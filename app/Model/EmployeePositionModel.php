@@ -68,6 +68,7 @@ class EmployeePositionModel extends Model
                 'WorkingTypeID'         => $request->WorkingTypeID,
                 'StartDate'             => $request->StartDate,
                 'EndDate'               => isset($request->EndDate) ? $request->EndDate : null,
+                'Share'                 => $request->Share ? 1:0,
                 'Active'                => $request->ActivePosition ? 1 : 0
             ]);
 
@@ -115,6 +116,7 @@ class EmployeePositionModel extends Model
         $position->StartDate            = $request->StartDate;
         $position->EndDate              = $request->EndDate;
         $position->Active               = $request->ActivePosition ? 1:0;
+        $position->Share                = $request->Share ? 1:0;
 
         if ($request->ActualPosition)
         {

@@ -51,6 +51,7 @@ class PaymentModel extends Model
             $currentPayment = self::checkCurrentPayment($request['EmployeeID']);
 
 
+
             $salary = self::create([
 
                 'EmployeeID' => $request['EmployeeID'],
@@ -116,7 +117,6 @@ class PaymentModel extends Model
                 array_push($currentAdditionalPaymentIDs, $additionalPayment['AdditionalPaymentTypeID']);
 
                 $tempPayment->save();
-
             }
 
             $diffs = array_diff($allAdditionalPaymentTypeIDs, $currentAdditionalPaymentIDs);

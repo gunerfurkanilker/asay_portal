@@ -24,11 +24,25 @@ class EmployeeModel extends Model
         'EmployeeGroup'
     ];
 
+    public static function getLastStaffID(){
+        $ID_NO = 8011925;
+        while(true)
+        {
+            $count = EmployeeModel::where(['StaffID' => $ID_NO])->count();
+            if ($count > 0)
+                $ID_NO++;
+            else
+                break;
+        }
+
+        return $ID_NO;
+    }
+
     public static function addEmployee($request)
     {
         $employee = new EmployeeModel();
-
-        $employee->StaffID              = isset($request->staffId) ? $request->staffId : null ;
+        $request->JobEmail = preg_replace("/\s+/", "", $request->JobEmail);
+        $employee->StaffID              = $request->staffId ? $request->staffId : self::getLastStaffID() ;
         $employee->FirstName            = $request->FirstName;
         $employee->UsageName            = $request->UsageName;
         $employee->LastName             = $request->LastName;
@@ -38,21 +52,10 @@ class EmployeeModel extends Model
         $employee->InterPhone           = isset($request->InterPhone)  ? $request->InterPhone : null;
 
 
-
-
-
         try
         {
             $employee->save();
             $employee = $employee->fresh();
-
-            $position = new EmployeePositionModel();
-
-            $position->EmployeeID       = $employee->Id;
-            $position->Active           = 2;
-            $position->CompanyID        = $request->CompanyID;
-            $position->OrganizationID   = $request->OrganizationID;
-            $position->save();
 
         }catch (QueryException $queryException)
         {
@@ -107,11 +110,7 @@ class EmployeeModel extends Model
     public static function getGeneralInformationsFields($employeeId)
     {
         $data = [];
-        $data['Companies']              = CompanyModel::where(['Active' => 1])->get();
-        $data['Organizations']          = OrganizationModel::where(['Active' => 1])->get();
         $data['accesstypefield']        = UserGroupModel::all();
-        $data['contractypefield']       = ContractTypeModel::where('Active',1)->get();
-        $data['workingschedulefield']   = WorkingScheduleModel::all();
         $data['domainfield']            = DomainModel::where('active', 1)->get();
 
         return $data;
@@ -120,19 +119,86 @@ class EmployeeModel extends Model
 
 
 
-    public static function saveGeneralInformations($employee,$requestData)
+    public static function saveGeneralInformations($employee,$request)
     {
 
-        $employee->StaffID              = $requestData['staffId'];
-        $employee->FirstName            = $requestData['firstname'];
-        $employee->UsageName            = $requestData['usagename'];
-        $employee->LastName             = $requestData['lastname'];
-        $employee->DomainID             = $requestData['domain'];
-        $employee->JobEmail             = $requestData['jobemail'];
-        $employee->JobMobilePhone       = $requestData['jobphone'];
-        $employee->InterPhone           = $requestData['internalphone'];
 
-        self::saveEmployeeAccessType($requestData['accesstypes'],$employee->Id);
+        $employee->StaffID              = $request->staffId;
+        $employee->FirstName            = $request->firstname;
+        $employee->UsageName            = $request->usagename;
+        $employee->LastName             = $request->lastname;
+        $employee->DomainID             = $request->domain;
+        $employee->JobEmail             = $request->jobemail;
+        $employee->JobMobilePhone       = $request->jobphone;
+        $employee->InterPhone           = $request->internalphone;
+
+
+        try
+        {
+            $employee->save();
+            $employee = $employee->fresh();
+
+        }catch (QueryException $queryException)
+        {
+            $errorCode = $queryException->errorInfo[1];
+            if ($errorCode == 1062)// Duplicate Entry Code JobEmail İçin
+            {
+                $i=1;
+                while (true)
+                {
+                    try
+                    {
+                        $mailPreSection = explode("@",$request->jobemail)[0];
+                        $mailPostSection = explode("@",$request->jobemail)[1];
+
+                        $mailPreSection = $mailPreSection . $i;
+                        $mailFull = $mailPreSection .'@'. $mailPostSection;
+                        $employee->JobEmail = $mailFull;
+                        $employee->save();
+                        break;
+
+                    }catch (QueryException $queryException1)
+                    {
+                        $i++;
+                    }
+                }
+
+            }
+
+        }
+
+
+        self::saveEmployeeAccessType((array)$request->accesstypes,$employee->Id);
+
+        if ($request->hasFile('ProfilePicture')) {
+            $file = file_get_contents($request->ProfilePicture->path());
+            $guzzleParams = [
+                'multipart' => [
+                    [
+                        'name' => 'file',
+                        'contents' => $file,
+                        'filename' => 'IDCardPhoto_' . $employee->Id . '.' . $request->ProfilePicture->getClientOriginalExtension()
+                    ],
+                    [
+                        'name' => 'moduleId',
+                        'contents' => 'id_card'
+                    ],
+                    [
+                        'name' => 'token',
+                        'contents' => $request->token
+                    ]
+                ]
+            ];
+
+            $client = new \GuzzleHttp\Client();
+            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
+            $responseBody = json_decode($res->getBody());
+
+            if ($responseBody->status == true) {
+                $employee->Photo = $responseBody->data;
+                $employee->save();
+            }
+        }
 
 
         if ($employee->save())

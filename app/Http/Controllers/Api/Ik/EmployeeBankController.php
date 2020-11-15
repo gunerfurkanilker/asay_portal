@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Ik;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\BankModel;
 use App\Model\EmployeeBankModel;
 use App\Model\EmployeeModel;
 use Illuminate\Http\Request;
@@ -25,6 +26,14 @@ class EmployeeBankController extends ApiController
                 'status' => false,
                 'message' => "İşlem Başarısız."
             ], 200);
+    }
+
+    public function getBanks(){
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => BankModel::all()
+        ],200);
     }
 
     public function getEmployeeBankInformations(Request $request){

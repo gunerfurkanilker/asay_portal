@@ -153,6 +153,7 @@ Route::namespace("Api")->group(function(){
         Route::prefix('ik')->group(function () {
 
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
+            Route::get('employee/employeeFullRecorded', "EmployeeController@employeeFullRecorded")->name("is_employee_full_recorded");
             Route::get('employee/{id}', "EmployeeController@getEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_byid");
             Route::get('employee/getEmployee', "EmployeeController@getEmployeeById2")->name("get_employee_byid2");
             Route::get('employee/general-informations/{id}', "EmployeeController@getGeneralInformationsOfEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_general_informations");
@@ -183,6 +184,7 @@ Route::namespace("Api")->group(function(){
             Route::get('employee/ssi/{id}', "SocialSecurityInformationController@getSSInformations")->where(['id' => '[0-9]+'])->name("get_employee_ssi");
             //Route::get('employee/bank/fields', "EmployeeBankController@getSSInformationFields")->name("get_ssi_fields");
             Route::get('employee/bank', "EmployeeBankController@getEmployeeBankInformations")->name("get_employee_bank");
+            Route::get('employee/banks', "EmployeeBankController@getBanks")->name("get_banks");
             Route::get('employee/children', "EmployeeController@getEmployeesChildren")->where(['id' => '[0-9]+'])->name("get_employees_children");
             Route::get('employee/activeDirectoryAccount', "EmployeeController@getEmployeesActiveDirectoryAccount")->name("get_employees_activeDirectoryAccount");
 
@@ -193,6 +195,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/add', "EmployeeController@addEmployee")->name("add_employee");
 
             Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("delete_employee");
+            Route::delete('employee/destroy', "EmployeeController@destroyEmployee")->name("destroy_employee");
 
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/general-informations/other/save/{id}', "EmployeeController@saveOtherGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_other_general_informations");

@@ -8,6 +8,7 @@ use App\Model\ActivityStreamModel;
 use App\Model\ActivityStreamRightModel;
 use App\Model\BlogCategoryRightModel;
 use App\Model\BlogModel;
+use App\Model\DepartmentModel;
 use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class StreamController extends ApiController
         $blog->category_id = $category;
         $blog->title        =  substr(strip_tags($request->message),0,255);
         $blog->detail_text  = $request->message;
-        $blog->EmployeeID   = $request->Employee;
+        $blog->From         = $request->From ? 'D_'.$request->From : 'E_'.$request->Employee;
         $blog->is_active    = 1;
         if(!$blog->save()){
             return response([
@@ -43,7 +44,7 @@ class StreamController extends ApiController
         $stream->module_id = "blog";
         $stream->title        = $blog->title;
         $stream->message      = $blog->detail_text;
-        $stream->EmployeeID   = $request->Employee;
+        $stream->From         = $request->From ? 'D_'.$request->From : 'E_'.$request->Employee;
         $stream->source_id    = $blog->id;
         $stream->is_active    = 1;
         if(!$stream->save()){
@@ -76,7 +77,6 @@ class StreamController extends ApiController
 
         $rights = self::rights($request);
         $rights[] = "AU";
-
         $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
             ->where(["activity_stream.is_active"=>1])->orderBy("created_at","desc")->get();
         if($request->categoryId!==null){
@@ -85,11 +85,19 @@ class StreamController extends ApiController
                 if($stream->module_id=="blog"){
                     $categoryCount = BlogModel::where(["id"=>$stream->source_id,"category_id"=>$request->categoryId])->count();
                     if($categoryCount>0)
-                       $stremk[] = $stream;
+                    {
+
+                        $stremk[] = $stream;
+                    }
                 }
+
             }
             $streams = $stremk;
             //$streams = array_values($streams);
+        }
+
+        foreach ($streams as $key=>$stream) {
+            $stream->setAttribute("SharedFrom",substr($stream->From,0,1) === 'E' ? EmployeeModel::find(substr($stream->From,2)) : DepartmentModel::find(substr($stream->From,2)));
         }
 
         return response([
