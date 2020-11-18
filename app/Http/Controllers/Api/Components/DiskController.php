@@ -54,8 +54,8 @@ class DiskController extends ApiController
         foreach ($objects as $key=>$object) {
             if($object->type==3){
                 //http://portal.asay.com.tr/disk/company/3?token=d268659be29bdb958c2105dd7f80e846&filename=ssss.pdf
-                $object->viewFile       = "http://".parse_url(request()->root())['host']."/file/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
-                $object->downloadFile   = "http://".parse_url(request()->root())['host']."/file/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->viewFile       = "http://".parse_url(request()->root())['host']."/rest/file/disk/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
+                $object->downloadFile   = "http://".parse_url(request()->root())['host']."/rest/file/disk/downloadFile/".$rootObject->EmployeeID."/".$object->id."/?token=".$request->token."&filename=".$object->name;
                 $object->extension      = $extension = pathinfo($object->name, PATHINFO_EXTENSION);
             }
             else{
@@ -293,8 +293,8 @@ class DiskController extends ApiController
         }
 
         $file = DiskFileModel::find($request->fileId);
-        $fileObject["viewFile"]       = "http://".parse_url(request()->root())['host']."/file/".$file->module_id."/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
-        $fileObject["downloadFile"]   = "http://".parse_url(request()->root())['host']."/file/".$file->module_id."/downloadFile/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
+        $fileObject["viewFile"]       = "http://".parse_url(request()->root())['host']."/rest/file/".$file->module_id."/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
+        $fileObject["downloadFile"]   = "http://".parse_url(request()->root())['host']."/rest/file/".$file->module_id."/downloadFile/".$file->id."/?token=".$request->token."&filename=".$file->original_name;
         return response([
             'status'    => true,
             'data'      => $fileObject,

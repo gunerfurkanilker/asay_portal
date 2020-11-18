@@ -11,9 +11,9 @@ use Illuminate\Http\Request;
 class CityController extends ApiController
 {
 
-    public function getCities(){
+    public function getCities(Request $request){
 
-        $citiesOfTurkey = CityModel::all();
+        $citiesOfTurkey = CityModel::where(['Active']);
 
         return response([
             'status' => true,

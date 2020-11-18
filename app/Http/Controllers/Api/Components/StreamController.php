@@ -43,6 +43,9 @@ class StreamController extends ApiController
         $stream = new ActivityStreamModel();
         $stream->module_id = "blog";
         $stream->title        = $blog->title;
+        $stream->EmployeeID   = $request->Employee;
+        $stream->topic        = $request->topic;
+        $stream->summary      = $request->summary;
         $stream->message      = $blog->detail_text;
         $stream->From         = $request->From ? 'D_'.$request->From : 'E_'.$request->Employee;
         $stream->source_id    = $blog->id;
@@ -77,8 +80,13 @@ class StreamController extends ApiController
 
         $rights = self::rights($request);
         $rights[] = "AU";
-        $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
-            ->where(["activity_stream.is_active"=>1])->orderBy("created_at","desc")->get();
+        if (isset($request->limit) || $request->limit != null)
+            $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
+                ->where(["activity_stream.is_active"=>1])->orderBy("created_at","desc")->offset(0)->take($request->limit)->get();
+        else
+            $streams = $streamsQ->whereIn("activity_stream_right.access_code",$rights)
+                ->where(["activity_stream.is_active"=>1])->orderBy("created_at","desc")->get();
+
         if($request->categoryId!==null){
             $stremk = [];
             foreach ($streams as $key=>$stream) {
@@ -86,7 +94,6 @@ class StreamController extends ApiController
                     $categoryCount = BlogModel::where(["id"=>$stream->source_id,"category_id"=>$request->categoryId])->count();
                     if($categoryCount>0)
                     {
-
                         $stremk[] = $stream;
                     }
                 }
@@ -144,4 +151,34 @@ class StreamController extends ApiController
 
         return $rights;
     }
+
+    public function deleteStream(Request $request)
+    {
+        $stream = ActivityStreamModel::find($request->ActivityStreamID);
+
+        if ($stream)
+        {
+            $stream->is_active = 0;
+            $result = $stream->save();
+            if ($result)
+                return response([
+                    'status' => true,
+                    'message' => 'İşlem Başarılı'
+                ],200);
+            else
+                return response([
+                    'status' => false,
+                    'message' => 'İşlem Başarısız'
+                ],200);
+        }
+        else{
+            return response([
+                'status' => false,
+                'message' => 'Kayıt Bulunamadı'
+            ],200);
+        }
+
+
+    }
+
 }

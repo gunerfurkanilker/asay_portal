@@ -276,6 +276,7 @@ Route::namespace("Api")->group(function(){
             Route::post('SaveStream', "StreamController@SaveStream")->name("stream_SaveStream");
             Route::get('toList', "StreamController@toList")->name("stream_toList");
             Route::get('categoryList', "StreamController@categoryList")->name("stream_categoryList");
+            Route::delete('deleteStream', "StreamController@deleteStream")->name("stream_deleteStream");
         });
     });
 
