@@ -76,13 +76,21 @@ class ItSupportController extends ApiController
 
     public function supportSave(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'RequestType'   => 'required',
             'Priority'      => 'required',
             'Category'      => 'required',
             'Subject'       => 'required',
             'Content'       => 'required',
-        ]);
+        ];
+        $messages = [
+            'RequestType.required' => 'İstek Türü alanını doldurmak zorunludur',
+            'Priority.required'    => 'Öncelik alanını doldurmak zorunludur',
+            'Category.required'    => 'Kategori alanını doldurmak zorunludur',
+            'Subject.required'     => 'Konu alanını doldurmak zorunludur',
+            'Content.required'     => 'Açıklama alanını doldurmak zorunludur'
+        ];
+        $validator = Validator::make($request->all(), $rules, $messages);
         if ($validator->fails()) {
             return response([
                 "status" => false,
@@ -119,11 +127,13 @@ class ItSupportController extends ApiController
                 $itSupport->Mime    = Storage::disk("connect")->mimeType($file->subdir."/".$file->filename);
             }
 
+
             $employee = EmployeeModel::find($request->RequestedFrom);
 
-            $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee"=>$employee]);
-            NotificationsModel::saveNotification($itSupport->RequestedFrom,11,$itSupport->id,"IT Destek",$itSupport->Subject." için oluşturmuş olduğunuz IT destek kaydı sistemimize kaydedilmiştir","");
-            Asay::sendMail("ilker.guner@asay.com.tr",$employee->JobEmail,"It Support",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
+
+            $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee" => $employee]);
+            NotificationsModel::saveNotification($request->RequestedFrom,11,$itSupport->id,"IT Destek",$itSupport->Subject." için oluşturmuş olduğunuz IT destek kaydı sistemimize kaydedilmiştir","");
+            Asay::sendMail("ilker.guner@asay.com.tr",$employee->JobEmail,"IT Destek",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
 
             return response([
                 "status"    => true,

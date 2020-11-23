@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 Route::namespace("Api")->group(function(){
 
     Route::post('auth/login', "AuthController@loginPost")->name("apiloginPost");
+    Route::post('auth/logout', "AuthController@logout")->name("apilogout");
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
     Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
 
@@ -143,6 +144,11 @@ Route::namespace("Api")->group(function(){
             Route::post('supportSave','ItSupportController@supportSave');
         });
 
+        Route::prefix('processes/contactUs/')->group(function () {
+            Route::post('saveContactUs','ContactUsController@saveContactUs');
+            Route::get('contactUsTypes','ContactUsController@getContactUsTypes');
+        });
+
     });
 
 
@@ -255,6 +261,9 @@ Route::namespace("Api")->group(function(){
             Route::delete('notificationDelete', "NotificationController@deleteNotification")->name("delete_notification");
 
             Route::get('cars', "CarController@getCars")->name("get_cars");
+
+            Route::get('departmentsContactUs', "DepartmentController@getDepartmentsContactUs")->name("departments_contact_us");
+
         });
 
     });
@@ -266,6 +275,7 @@ Route::namespace("Api")->group(function(){
             Route::post('viewFile', "DiskController@viewFile")->name("disk_viewFile");
             Route::post('addObjectFile', "DiskController@addObjectFile")->name("disk_addObjectFile");
             Route::post('addObjectFolder', "DiskController@addObjectFolder")->name("disk_addObjectFolder");
+            Route::delete('deleteFile', "DiskController@deleteFile")->name("disk_deleteFile");
 
             Route::post('addFile', "DiskController@addFile")->name("disk_addFile");
             Route::get('getFile', "DiskController@getFile")->name("disk_getFile");

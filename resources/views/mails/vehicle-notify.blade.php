@@ -65,13 +65,13 @@
         <tr>
             <td colspan="1">Yöneticisi</td>
             <td colspan="2"  >
-                {{ $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName }}
+                {{ $employee->EmployeePosition->Manager ? $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName : '' }}
             </td>
         </tr>
         <tr>
             <td colspan="1">Birim Sorumlusu</td>
             <td colspan="2"  >
-                {{ $employee->EmployeePosition->UnitSupervisor->UsageName . ' ' . $employee->EmployeePosition->UnitSupervisor->LastName }}
+                {{ $employee->EmployeePosition->UnitSupervisor ? $employee->EmployeePosition->UnitSupervisor->UsageName . ' ' . $employee->EmployeePosition->UnitSupervisor->LastName ? '' }}
             </td>
         </tr>
         <tr style="background-color: rgb(0,31,91);color:white;" >

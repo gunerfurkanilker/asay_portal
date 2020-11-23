@@ -3,7 +3,9 @@
 namespace App\Model;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class IdCardModel extends Model
 {
@@ -16,7 +18,8 @@ class IdCardModel extends Model
         'City',
         'District',
         'Nationality',
-        'ObjectFile'
+        'ObjectFile',
+        'TCNo'
     ];
 
     public static function saveIDCard($request)
@@ -34,7 +37,7 @@ class IdCardModel extends Model
 
 
             $IDCard->ValidDate = $request->ValidDate != null ? $request->ValidDate : null;
-        $IDCard->NewIDCard = $request->NewIDCard === 'true' ? 1 : 0;
+        $IDCard->NewIDCard = $request->NewIDCard === 'true'  || $request->NewIDCard == 1  ? 1 : 0;
         $IDCard->NationalityID = $request->NationalityID;
         $IDCard->TCNo = $request->TCNo;
         $IDCard->FirstName = $request->FirstName;
@@ -87,7 +90,7 @@ class IdCardModel extends Model
         ];
 
         $client = new \GuzzleHttp\Client();
-        $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
+        $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/rest/api/disk/addFile', $guzzleParams);
         $responseBody = json_decode($res->getBody());
 
         if ($responseBody->status == true) {
@@ -135,6 +138,19 @@ class IdCardModel extends Model
     {
         $objectFile = $this->hasOne(ObjectFileModel::class, 'ObjectId', 'Id');
         return $objectFile->where(['Active' => 1, 'ObjectType' => 7])->first();//Kimlik Fotoğrafı
+    }
+
+    public function settcnoAttribute($value)
+    {
+        $this->attributes['TCNo'] = Crypt::encryptString($value);
+    }
+    public function getTCNoAttribute($value)
+    {
+        try {
+            return Crypt::decryptString($this->attributes['TCNo']);
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
     }
 
 }

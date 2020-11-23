@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Model\DomainModel;
 use App\Model\EmployeeModel;
 use App\Model\LdapModel;
+use App\Model\LogsModel;
 use App\Model\UserMenuModel;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ class AuthController extends Controller
     {
         $data["username"]   = $request->username;
         $data["password"]   = $request->password;
-        $data["domain"]     = $request->domain!==null ? $request->domain : "asay.com.tr";
+        $data["domain"]     = $request->domain!==null ? $request->domain : "ms.asay.com.tr";
         if($data["username"]=="" || $data["password"]=="")
         {
             return response([
@@ -85,6 +86,7 @@ class AuthController extends Controller
                 'message' => $error
             ], 200);
         } else {
+            LogsModel::setLog($employee->Id,$employee->Id,13,32,"","",$employee->UsageName.' ' .$employee->LastName." adlı kullanıcı sisteme giriş yaptı","","","","","");
             return response([
                 'status' => true,
                 'data' => [
@@ -92,6 +94,17 @@ class AuthController extends Controller
                 ]
             ], 200);
         }
+    }
+
+    public function logout(Request $request)
+    {
+        $employee = EmployeeModel::find($request->EmployeeID);
+        $res = LogsModel::setLog($employee->Id,$employee->Id,14,33,"","",$employee->UsageName.' ' .$employee->LastName." adlı kullanıcı sistemden çıkış yaptı","","","","","");
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $res
+        ],200);
     }
 
     public function loginCheck(Request $request)

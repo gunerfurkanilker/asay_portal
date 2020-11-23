@@ -158,6 +158,36 @@ class OvertimeModel extends Model
 
     }
 
+    public static function overtimeAtHoliday($request){
+
+        $beginDate = Carbon::createFromFormat("Y-m-d", $request->BeginDate);
+        //$beginTime = Carbon::createFromFormat("H:i", $request->BeginTime);
+        //$endTime = Carbon::createFromFormat("H:i", $request->EndTime);
+
+        $beginDate2 = isset($request->WorkBeginDate) && !is_null($request->BeginDate) ? Carbon::createFromFormat("Y-m-d", $request->WorkBeginDate) : null;
+        //$beginTime2 = isset($request->WorkBeginTime) && !is_null($request->WorkBeginTime) ? Carbon::createFromFormat("H:i", $request->WorkBeginTime) : null;
+        //$endTime2 = isset($request->WorkEndTime) && !is_null($request->WorkEndTime) ? Carbon::createFromFormat("H:i", $request->WorkEndTime) : null;
+
+        if (!is_null($beginDate2))
+        {
+            $publicHolidayRecCount = PublicHolidayModel::whereDate('end_date',">",$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day)
+                ->whereRaw('? >= DATE(start_date)', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day])
+                ->count();
+            if ($publicHolidayRecCount > 0)
+                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+        }
+        else
+        {
+            $publicHolidayRecCount = PublicHolidayModel::whereDate('end_date',">",$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day)
+                ->whereRaw('? >= DATE(start_date)', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day])
+                ->count();
+            if ($publicHolidayRecCount > 0)
+                return ['status' => true, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+        }
+
+        return ['status' => false, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
+    }
+
     public static function overtimeLimitCheck($request, $neglectRecord = null)
     {
 
@@ -168,23 +198,6 @@ class OvertimeModel extends Model
         $beginDate2 = isset($request->WorkBeginDate) && !is_null($request->BeginDate) ? Carbon::createFromFormat("Y-m-d", $request->WorkBeginDate) : null;
         $beginTime2 = isset($request->WorkBeginTime) && !is_null($request->WorkBeginTime) ? Carbon::createFromFormat("H:i", $request->WorkBeginTime) : null;
         $endTime2 = isset($request->WorkEndTime) && !is_null($request->WorkEndTime) ? Carbon::createFromFormat("H:i", $request->WorkEndTime) : null;
-
-        /*if (!is_null($beginDate2))
-        {
-            $publicHolidayRecCount = PublicHolidayModel::whereDate('start_date',">=",$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day)
-                ->whereRaw('? < DATE(end_date)', [$beginDate2->year . '-' . $beginDate2->month . '-' . $beginDate2->day])
-                ->count();
-            if ($publicHolidayRecCount > 0)
-                return ['status' => false, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
-        }
-        else
-        {
-            $publicHolidayRecCount = PublicHolidayModel::whereDate('start_date',">=",$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day)
-                ->whereRaw('? < DATE(end_date)', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day])
-                ->count();
-            if ($publicHolidayRecCount > 0)
-                return ['status' => false, 'message' => 'Resmi tatillerde limit kontrolü yapmıyoruz'];
-        }*/
 
         $publicHolidays     = PublicHolidayModel::whereYear("start_date","=",$beginDate->year)->get();
         $publicHolidays2    = !is_null($beginDate2) ? PublicHolidayModel::whereYear("start_date","=",$beginDate2->year)->get() : [];
@@ -625,37 +638,50 @@ class OvertimeModel extends Model
             case 0:
                 //Limit Kontrol
                 if ($request->OvertimeId == null) {
-                    $limitCheck = self::overtimeLimitCheck($request);
-                    //$existsCheck = self::checkOvertimeExists($request);
-                    if ($limitCheck['status'] == false )
-                        return $limitCheck;
-                    //if ($existsCheck['status'] == false)
-                      //  return $existsCheck;
+                    $atHoliday = self::overtimeAtHoliday($request);
+                    if ($atHoliday['status'] == false) {
+                        $limitCheck = self::overtimeLimitCheck($request);
+                        if ($limitCheck['status'] == false)
+                            return $limitCheck;
+                    }
                 } else {
-                    $overtimeRecord = OvertimeModel::find($request->OvertimeId);
-                    $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
-                    if ($limitCheck['status'] == false)
-                        return $limitCheck;
+                    $atHoliday = self::overtimeAtHoliday($request);
+                    if ($atHoliday['status'] == false)
+                    {
+                        $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+                        $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                        if ($limitCheck['status'] == false)
+                            return $limitCheck;
+                    }
                 }
                 return self::saveOvertimeRequest($request);
             case 1:
                 if ($request->OvertimeId == null) {
-                    $limitCheck = self::overtimeLimitCheck($request);
-                    if ($limitCheck['status'] == false)
-                        return $limitCheck;
+                    $atHoliday = self::overtimeAtHoliday($request);
+                    if ($atHoliday['status'] == false) {
+                        $limitCheck = self::overtimeLimitCheck($request);
+                        if ($limitCheck['status'] == false)
+                            return $limitCheck;
+                    }
                 } else {
+                    $atHoliday = self::overtimeAtHoliday($request);
+                    if ($atHoliday['status'] == false) {
+                        $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+                        $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                        if ($limitCheck['status'] == false)
+                            return $limitCheck;
+                    }
+                }
+
+                return self::sendOvertimeRequestToEmployee($request);
+            case 2:
+                $atHoliday = self::overtimeAtHoliday($request);
+                if ($atHoliday['status'] == false) {
                     $overtimeRecord = OvertimeModel::find($request->OvertimeId);
                     $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
                     if ($limitCheck['status'] == false)
                         return $limitCheck;
                 }
-
-                return self::sendOvertimeRequestToEmployee($request);
-            case 2:
-                $overtimeRecord = OvertimeModel::find($request->OvertimeId);
-                $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
-                if ($limitCheck['status'] == false)
-                    return $limitCheck;
                 return self::overtimeCorrectionRequestFromEmployee($request);
             case 3:
                 return self::overtimeRejectRequestFromEmployee($request);
@@ -664,24 +690,33 @@ class OvertimeModel extends Model
             case 5:
                 return self::overtimeCancelRequestFromManager($request);
             case 6:
-                $overtimeRecord = OvertimeModel::find((int)$request->OvertimeId);
-                $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
-                if ($limitCheck['status'] == false)
-                    return $limitCheck;
+                $atHoliday = self::overtimeAtHoliday($request);
+                if ($atHoliday['status'] == false) {
+                    $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+                    $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                    if ($limitCheck['status'] == false)
+                        return $limitCheck;
+                }
                 return self::overtimeCompleteRequestFromEmployee($request);
             case 7:
-                $overtimeRecord = OvertimeModel::find($request->OvertimeId);
-                $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
-                if ($limitCheck['status'] == false)
-                    return $limitCheck;
+                $atHoliday = self::overtimeAtHoliday($request);
+                if ($atHoliday['status'] == false) {
+                    $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+                    $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                    if ($limitCheck['status'] == false)
+                        return $limitCheck;
+                }
                 return self::overtimeCorrectionRequestFromManager($request);
             case 8:
                 return self::overtimeApproveRequestFromManager($request);
             case 9:
-                $overtimeRecord = OvertimeModel::find($request->OvertimeId);
-                $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
-                if ($limitCheck['status'] == false)
-                    return $limitCheck;
+                $atHoliday = self::overtimeAtHoliday($request);
+                if ($atHoliday['status'] == false) {
+                    $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+                    $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                    if ($limitCheck['status'] == false)
+                        return $limitCheck;
+                }
                 return self::overtimeCorrectionRequestFromHR($request);
             case 10:
                 return self::overtimeApproveRequestFromHR($request);
@@ -1028,7 +1063,7 @@ class OvertimeModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
+            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/rest/api/disk/addFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
             if ($responseBody->status == true) {

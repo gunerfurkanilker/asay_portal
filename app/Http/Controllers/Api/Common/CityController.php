@@ -13,7 +13,8 @@ class CityController extends ApiController
 
     public function getCities(Request $request){
 
-        $citiesOfTurkey = CityModel::where(['Active']);
+
+        $citiesOfTurkey = $request->RegionID ? CityModel::where(['Active' => 1, 'RegionID' => $request->RegionID])->get() : CityModel::where(['Active' => 1])->get();
 
         return response([
             'status' => true,
@@ -30,7 +31,7 @@ class CityController extends ApiController
         {
             return response([
                 'status' => true,
-                'message' => 'İşlenm Başarılı',
+                'message' => 'İşlem Başarılı',
                 'data' => $cities
             ],200);
         }

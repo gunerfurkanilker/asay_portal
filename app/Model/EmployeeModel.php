@@ -110,6 +110,8 @@ class EmployeeModel extends Model
     public static function getGeneralInformationsFields($employeeId)
     {
         $data = [];
+        $data['workingschedulefield']   = WorkingScheduleModel::all();
+        $data['contractypefield']       = ContractTypeModel::all();
         $data['accesstypefield']        = UserGroupModel::all();
         $data['domainfield']            = DomainModel::where('active', 1)->get();
 
@@ -168,7 +170,7 @@ class EmployeeModel extends Model
         }
 
 
-        self::saveEmployeeAccessType((array)$request->accesstypes,$employee->Id);
+        self::saveEmployeeAccessType($request->accesstypes,$employee->Id);
 
         if ($request->hasFile('ProfilePicture')) {
             $file = file_get_contents($request->ProfilePicture->path());
@@ -191,7 +193,7 @@ class EmployeeModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/api/disk/addFile', $guzzleParams);
+            $res = $client->request("POST", 'http://'.\request()->getHttpHost().'/rest/api/disk/addFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
             if ($responseBody->status == true) {
@@ -210,7 +212,7 @@ class EmployeeModel extends Model
 
     public static function saveEmployeeAccessType($accessTypeIDs,$employeeID)
     {
-
+        $accessTypeIDs = !is_array($accessTypeIDs) ? explode(",","".$accessTypeIDs) : $accessTypeIDs;
         $currentAccessTypes = EmployeeHasGroupModel::where('EmployeeID',$employeeID)->where('active',1)->get();
 
         $currentAccessTypeIDs  = [];
