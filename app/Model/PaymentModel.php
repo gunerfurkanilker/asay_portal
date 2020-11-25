@@ -178,7 +178,7 @@ class PaymentModel extends Model
     {
         $salariesOfEmployee = PaymentModel::where(['EmployeeID' => $employeeId ,'Active' => 1])->get();
 
-        if ($salariesOfEmployee != null)
+        if ($salariesOfEmployee->count()>0)
             return $salariesOfEmployee;
         else
             return false;
@@ -188,7 +188,7 @@ class PaymentModel extends Model
     {
         $additionalPaymentsOfPayment = AdditionalPaymentModel::where('PaymentID', $paymentID)->get();
 
-        if ($additionalPaymentsOfPayment != null)
+        if ($additionalPaymentsOfPayment->count()>0)
             return $additionalPaymentsOfPayment;
         else
             return false;
@@ -209,13 +209,21 @@ class PaymentModel extends Model
     public function getPayPeriodAttribute()
     {
         $payPeriod = $this->hasOne(PayPeriodModel::class, "Id", "PayPeriodID");
-        return $payPeriod->where("Active", 1)->first()->toArray();
+        $data = $payPeriod->where("Active", 1)->first();
+        if($data)
+            return $data->toArray();
+        else
+            return null;
     }
 
     public function getPayMethodAttribute()
     {
         $payMethod = $this->hasOne(PayMethodModel::class, "Id", "PayMethodID");
-        return $payMethod->where("Active", 1)->first()->toArray();
+        $data = $payMethod->where("Active", 1)->first();
+        if($data)
+            return $data->toArray();
+        else
+            return null;
     }
 
 }
