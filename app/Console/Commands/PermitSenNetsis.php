@@ -44,6 +44,40 @@ class PermitSenNetsis extends Command
         //job olarak çalışacak
         $permits = PermitModel::where(["netsis"=>0,"active"=>1,"ps_status"=>1])->whereDate('start_date', '<=', date("Y-m-d H:i:s"))->get();
 
+        $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
+
+        ini_set('soap.wsdl_cache_enabled', 0);
+        ini_set('soap.wsdl_cache_ttl', 900);
+        ini_set('default_socket_timeout', 15);
+
+        $options = array(
+            'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
+            'style'             =>SOAP_RPC,
+            'use'               =>SOAP_ENCODED,
+            'soap_version'      =>SOAP_1_1,
+            'cache_wsdl'        =>WSDL_CACHE_NONE,
+            'connection_timeout'=>15,
+            'trace'             =>true,
+            'encoding'          =>'UTF-8',
+            'exceptions'        =>true,
+            "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
+        );
+
+        $puantaj["_Isyeri"] = "YASAYVAD"; // İş Yeri ne olacak ?
+        $puantaj["_SicilNo"] = "10802";
+        $puantaj["Yil"] = "2020";
+        $puantaj["Ay"] = "11";
+        $puantaj["GunSayisi"] = "1";
+        $puantaj["PuantajTuru"] = "IZIN";
+        $soap = new \SoapClient($wsdl, $options);
+        $dataPuantaj = $soap->PersonelPuantajKayit($puantaj);
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $dataPuantaj
+        ],200);
+        exit;
+
         foreach ($permits as $permit) {
             $employee = EmployeeModel::where(["Id"=>$permit->EmployeeID,"Active"=>1])->first();
             $company = CompanyModel::find($employee->EmployeePosition->CompanyID);
@@ -61,7 +95,6 @@ class PermitSenNetsis extends Command
                 $companyCode = "YASAYVAD";
             }
 
-
             $izin["_Isyeri"]                = $companyCode; // İş Yeri ne olacak ?
             $izin["_SicilNo"]               = EmployeeModel::where('Id',$permit->EmployeeID)->first()->StaffID;
             $izin["_BasTarih"]              = new Carbon($permit->start_date);
@@ -71,24 +104,6 @@ class PermitSenNetsis extends Command
             $izin["_IzinTuru"]              = "I";
             $izin["_NedenKodu"]             = "";
 
-            $wsdl    = 'http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?wsdl';
-
-            ini_set('soap.wsdl_cache_enabled', 0);
-            ini_set('soap.wsdl_cache_ttl', 900);
-            ini_set('default_socket_timeout', 15);
-
-            $options = array(
-                'uri'               =>'http://schemas.xmlsoap.org/wsdl/soap/',
-                'style'             =>SOAP_RPC,
-                'use'               =>SOAP_ENCODED,
-                'soap_version'      =>SOAP_1_1,
-                'cache_wsdl'        =>WSDL_CACHE_NONE,
-                'connection_timeout'=>15,
-                'trace'             =>true,
-                'encoding'          =>'UTF-8',
-                'exceptions'        =>true,
-                "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
-            );
             try
             {
                 $soap = new \SoapClient($wsdl, $options);
