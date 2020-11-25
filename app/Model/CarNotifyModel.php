@@ -136,7 +136,7 @@ class CarNotifyModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("GET", 'http://'.\request()->getHttpHost().'/api/disk/getFile', $guzzleParams);
+            $res = $client->request("GET", 'http://'.\request()->getHttpHost().'/rest/api/disk/getFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
             if ($responseBody->status == true) {

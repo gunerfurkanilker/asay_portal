@@ -18,15 +18,51 @@ use App\Model\PaymentModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\RelationshipDegreeModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 
 class EmployeeController extends ApiController
 {
 
+    public function searchEmployees(Request $request)
+    {
+
+        $page = ($request->Page - 1) * $request->RecordPerPage;
+        $recordPerPage = $request->RecordPerPage;
+        $searchText = $request->SearchText;
+
+        $employeesQ = EmployeeModel::where(['Active' => 1]);
+        $employeesQ = $employeesQ->where(function ($query) use ($searchText,$page,$recordPerPage) {
+            $query->orWhere("LastName", 'like', '%'.$searchText.'%');
+            $query->orWhere("UsageName", 'like', '%'.$searchText.'%');
+            $query->offset($page)->take($recordPerPage)->orderBy("UsageName","asc");
+        });
+        $dataCount = $employeesQ->count();
+        $employees = $employeesQ->get();
+
+
+        if (count($employees) > 0)
+        {
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+                'data' => $employees,
+                'dataCount' => $dataCount
+            ],200);
+        }
+        else
+            return response([
+                'status' => true,
+                'message' => 'Sonuç Bulunamadı',
+                'dataCount' => $dataCount
+            ],200);
+
+    }
+
     public function allEmployees(Request $request)
     {
 
-        $page = ($request->Page - 1) * 10;
+        $page = ($request->Page - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
 
         $loggedUserHasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $request->Employee, 'active' => 1])->whereIn('group_id',[17,18])->count();
@@ -36,19 +72,22 @@ class EmployeeController extends ApiController
         if ($loggedUserHasGroup < 1)
         {
 
-            $employeesQ2 = EmployeeModel::where('Active', 1);
+            $employeesQ2 = DB::table("Employee")->where('Active', 1);
             $employees = $employeesQ2->get();
 
             foreach ($employees as $employee) {
-                $countsOfPositions = EmployeePositionModel::where("EmployeeID", $employee->Id)->whereIn("Active", [1, 2])->count();
+                $countsOfPositions = DB::table("EmployeePosition")->where("EmployeeID", $employee->Id)->whereIn("Active", [1, 2])->count();
                 $countsOfPayments = PaymentModel::where(["EmployeeID" => $employee->Id, "Active" => 1])->count();
                 $countsOfContractType = EmployeeModel::where(['Id' => $employee->Id])->whereNotNull("ContractTypeID")->count();
+
                 if ($countsOfPositions > 0 && $countsOfPayments > 0 && $countsOfContractType > 0)
                     array_push($employeesRegularIDList,$employee->Id);
             }
 
-            $employees = EmployeeModel::whereIn('Id',$employeesRegularIDList)->offset($page)->take($recordPerPage)->orderBy("UsageName","asc")->get();
-            $dataCount = count($employees);
+            $employeesQ3 = EmployeeModel::whereIn('Id',$employeesRegularIDList);
+            $employeesCount = $employeesQ3->count();
+            $employees = $employeesQ3->offset($page)->take($recordPerPage)->orderBy("UsageName","asc")->get();
+            $dataCount = $employeesCount;
 
             return response([
                 'status' => true,
@@ -60,10 +99,10 @@ class EmployeeController extends ApiController
 
         $employeesQ = EmployeeModel::offset($page)->take($recordPerPage)->orderBy("UsageName","asc");
         $employees = $employeesQ->get();
-        $dataCount = EmployeeModel::all()->count();
+        $dataCount = DB::table("Employee")->count();
 
         foreach ($employees as $employee) {
-            $countsOfPositions = EmployeePositionModel::where("EmployeeID", $employee->Id)->whereIn("Active", [1, 2])->count();
+            $countsOfPositions = DB::table("EmployeePosition")->where("EmployeeID", $employee->Id)->whereIn("Active", [1, 2])->count();
             $countsOfPayments = PaymentModel::where(["EmployeeID" => $employee->Id, "Active" => 1])->count();
             $countsOfContractType = EmployeeModel::where(['Id' => $employee->Id])->whereNotNull("ContractTypeID")->count();
 
@@ -74,7 +113,8 @@ class EmployeeController extends ApiController
             else
                 $statusVal = "Aktif Çalışan";
 
-            $employee->setAttribute("StatusVal", $statusVal);
+            $employee->StatusVal = $statusVal;
+
             if ($countsOfPositions > 0 && $countsOfPayments > 0 && $countsOfContractType > 0)
                 array_push($employeesRegularIDList,$employee->Id);
         }

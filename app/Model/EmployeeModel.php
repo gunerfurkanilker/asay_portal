@@ -435,7 +435,7 @@ class EmployeeModel extends Model
 
     public function getEmployeePositionAttribute()
     {
-        $position = $this->hasMany(EmployeePositionModel::class,"EmployeeID","Id");
+        $position = $this->hasOne(EmployeePositionModel::class,"EmployeeID","Id");
         if ($position)
         {
             return $position->where(['Active' => 2])->first();

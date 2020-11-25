@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Library\Asay;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EmployeePositionModel extends Model
 {
@@ -39,7 +40,7 @@ class EmployeePositionModel extends Model
         $data['Districts']          = DistrictModel::where('CityId',35)->get();
         $data['Departments']        = DepartmentModel::all();
         $data['Titles']             = TitleModel::all();
-        $data['Managers']           = EmployeeModel::where(['Active' => 1])->get();
+        $data['Managers']           = DB::table("Employee")->where(['Active' => 1])->get();
         $data['WorkingTypes']       = WorkingTypeModel::where('Active',1)->get();
 
         return $data;
@@ -194,8 +195,13 @@ class EmployeePositionModel extends Model
     }
 
     public function getManagerAttribute(){
-        $manager = $this->hasOne(EmployeeModel::class,'Id','ManagerID');
-        return $manager->first();
+        if ($this->attributes['ManagerID'])
+        {
+            $manager = DB::table("Employee")->where(['Id' => $this->attributes['ManagerID']])->first();
+            return $manager;
+        }
+        else
+            return null;
     }
 
     public function getOrganizationAttribute(){
@@ -230,10 +236,10 @@ class EmployeePositionModel extends Model
             return null;
     }
     public function getUnitSupervisorAttribute(){
-        $unitSupervisor = $this->hasOne(EmployeeModel::class,'Id','UnitSupervisorID');
-        if ($unitSupervisor)
+        if ($this->attributes['UnitSupervisorID'])
         {
-            return $unitSupervisor->where("Active",1)->first();
+            $unitSupervisor = DB::table("Employee")->where(['Id' => $this->attributes['UnitSupervisorID']])->first();
+            return $unitSupervisor;
         }
         else
             return null;

@@ -71,7 +71,7 @@
         <tr>
             <td colspan="1">Birim Sorumlusu</td>
             <td colspan="2"  >
-                {{ $employee->EmployeePosition->UnitSupervisor ? $employee->EmployeePosition->UnitSupervisor->UsageName . ' ' . $employee->EmployeePosition->UnitSupervisor->LastName ? '' }}
+                {{ $employee->EmployeePosition->UnitSupervisor ? $employee->EmployeePosition->UnitSupervisor->UsageName . ' ' . $employee->EmployeePosition->UnitSupervisor->LastName : '' }}
             </td>
         </tr>
         <tr style="background-color: rgb(0,31,91);color:white;" >

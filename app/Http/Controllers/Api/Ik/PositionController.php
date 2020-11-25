@@ -21,7 +21,6 @@ class PositionController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı.',
                 'data' => $positions,
-                'positionFields' => EmployeePositionModel::getPositionFields()
             ],200);
         else
             return response([

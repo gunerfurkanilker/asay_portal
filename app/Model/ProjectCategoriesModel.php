@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ProjectCategoriesModel extends Model
 {
@@ -20,18 +21,14 @@ class ProjectCategoriesModel extends Model
 
     public function getManagerAttribute()
     {
-
-        $manager = $this->hasOne(EmployeeModel::class,"Id","manager_id");
-
-        if ($manager)
+        if ($this->attributes['manager_id'])
         {
-            return $manager->first();
+            return DB::table("Employee")->where(['Id' => $this->attributes['manager_id']])->first();
         }
         else
         {
             return null;
         }
-
     }
 
 

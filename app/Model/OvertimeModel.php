@@ -6,6 +6,7 @@ use App\Library\Asay;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use DateTime;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Process;
 
@@ -602,10 +603,8 @@ class OvertimeModel extends Model
 
     public function getAssignedEmployeeAttribute()
     {
-
-        $assignedEmployee = $this->hasOne(EmployeeModel::class, "Id", "AssignedID");
-        if ($assignedEmployee) {
-            return $assignedEmployee->where("Active", 1)->first();
+        if ($this->attributes['AssignedID']) {
+            return DB::table("Employee")->where(['Id' => $this->attributes['AssignedID']])->first();
         } else {
             return "";
         }
@@ -1498,10 +1497,8 @@ class OvertimeModel extends Model
 
     public function getCreatedFromAttribute()
     {
-
-        $createdFrom = $this->hasOne(EmployeeModel::class, "Id", "CreatedBy");
-        if ($createdFrom) {
-            return $createdFrom->selectRaw("UsageName,LastName")->where("Active", 1)->first();
+        if ($this->attributes['CreatedBy']) {
+            return DB::table("Employee")->where(['Id' => $this->attributes['CreatedBy']])->first();
         } else {
             return "";
         }
@@ -1510,10 +1507,8 @@ class OvertimeModel extends Model
 
     public function getApproveWhoAttribute()
     {
-
-        $approveWho = $this->hasOne(EmployeeModel::class, "Id", "ManagerID");
-        if ($approveWho) {
-            return $approveWho->selectRaw("UsageName,LastName")->where("Active", 1)->first();
+        if ($this->attributes['ManagerID']) {
+            return DB::table("Employee")->where(['Id' => $this->attributes['ManagerID']])->first();
         } else {
             return "";
         }

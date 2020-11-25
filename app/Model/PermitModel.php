@@ -534,18 +534,16 @@ class PermitModel extends Model
 
     public function getTransferEmployeeAttribute()
     {
-        $transferEmployee = $this->hasOne(EmployeeModel::class, "Id", "transfer_id");
-        if($transferEmployee)
-            return $transferEmployee->where("Active", 1)->first();
+        if($this->attributes['transfer_id'])
+            return DB::table("Employee")->where(['Id' => $this->attributes['transfer_id']])->first();
         else
             return null;
     }
 
     public function getEmployeeAttribute()
     {
-        $employee = $this->hasOne(EmployeeModel::class, "Id", "EmployeeID");
-        if($employee)
-            return $employee->where("Active", 1)->first();
+        if($this->attributes['EmployeeID'])
+            return DB::table("Employee")->where(['Id' => $this->attributes['EmployeeID']])->first();
         else
             return null;
     }

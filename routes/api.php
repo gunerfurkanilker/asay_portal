@@ -158,6 +158,7 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
+            Route::get('employee/searchEmployee', "EmployeeController@searchEmployees")->name("search_employees");
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::get('employee/employeeFullRecorded', "EmployeeController@employeeFullRecorded")->name("is_employee_full_recorded");
             Route::get('employee/{id}', "EmployeeController@getEmployeeById")->where(['id' => '[0-9]+'])->name("get_employee_byid");

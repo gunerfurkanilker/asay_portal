@@ -4,6 +4,7 @@ namespace App\Model;
 
 use App\Library\Asay;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseModel extends Model
 {
@@ -535,17 +536,14 @@ table, th, td {
 
     public function getEmployeeAttribute()
     {
-
-        $employee = $this->hasOne(EmployeeModel::class,"Id","EmployeeID");
-        if ($employee)
+        if ($this->attributes['EmployeeID'])
         {
-            return $employee->first();
+            return DB::table("Employee")->where(['Id' => $this->attributes['EmployeeID']])->first();
         }
         else
         {
             return null;
         }
-
     }
 
 }
