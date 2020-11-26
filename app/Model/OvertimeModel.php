@@ -539,14 +539,14 @@ class OvertimeModel extends Model
         foreach ($employeePositions as $employeePosition) {
             $tempPositions = EmployeePositionModel::where('Active', 2)->where('ManagerID', $employeePosition->EmployeeID)->get();
             foreach ($tempPositions as $tempPosition) {
-                $tempEmployee = EmployeeModel::select('Id', 'UsageName', 'LastName')->where('Id', $tempPosition->EmployeeID)->where('Active', 1)->first();
+                $tempEmployee = DB::table("Employee")->where('Id', $tempPosition->EmployeeID)->where('Active', 1)->first();
                 $tempEmployee ? array_push($employeeList, $tempEmployee) : '';
             }
         }
 
 
         foreach ($employeePositions as $employeePosition) {
-            $tempEmployee = EmployeeModel::select('Id', 'UsageName', 'LastName')->where('Id', $employeePosition->EmployeeID)->where('Active', 1)->first();
+            $tempEmployee = DB::table("Employee")->where('Id', $employeePosition->EmployeeID)->where('Active', 1)->first();
             $tempEmployee ? array_push($employeeList, $tempEmployee) : '';
         }
         return $employeeList;
@@ -593,7 +593,7 @@ class OvertimeModel extends Model
 
         $managerList = [];
         foreach ($managerIDList as $managerID) {
-            $temp = EmployeeModel::select('Id', 'UsageName', 'LastName')->where('Id', $managerID)->where('Active', 1)->first();
+            $temp = DB::table("Employee")->where('Id', $managerID)->where('Active', 1)->first();
             $temp ? array_push($managerList, $temp) : '';
         }
 
@@ -604,7 +604,7 @@ class OvertimeModel extends Model
     public function getAssignedEmployeeAttribute()
     {
         if ($this->attributes['AssignedID']) {
-            return DB::table("Employee")->where(['Id' => $this->attributes['AssignedID']])->first();
+            return EmployeeModel::where(['Id' => $this->attributes['AssignedID']])->first();
         } else {
             return "";
         }
@@ -1421,7 +1421,7 @@ class OvertimeModel extends Model
             ];
 
             $client = new \GuzzleHttp\Client();
-            $res = $client->request("GET", 'http://'.\request()->getHttpHost().'/api/disk/getFile', $guzzleParams);
+            $res = $client->request("GET", 'http://'.\request()->getHttpHost().'/rest/api/disk/getFile', $guzzleParams);
             $responseBody = json_decode($res->getBody());
 
             if ($responseBody->status == true) {

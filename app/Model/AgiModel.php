@@ -3,7 +3,9 @@
 namespace App\Model;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class AgiModel extends Model
 {
@@ -13,7 +15,10 @@ class AgiModel extends Model
     public $timestamps = false;
     protected $appends = [
         'MaritalStatus',
-        'SpouseWorkingStatus'
+        'SpouseWorkingStatus',
+        'MaritalStatusID',
+        'SpouseWorkingStatusID'
+
     ];
 
     public static function saveAgi($request, $agiID)
@@ -83,5 +88,32 @@ class AgiModel extends Model
         $spouseWorkingStatus = $this->hasOne(WorkingStatusModel::class,"Id","SpouseWorkingStatusID");
         return $spouseWorkingStatus->where("Active",1)->first();
     }
+
+    public function setMaritalStatusIDAttribute($value)
+    {
+        $this->attributes['MaritalStatusID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getMaritalStatusIDAttribute($value)
+    {
+        try {
+            return $this->attributes['MaritalStatusID'] !== null || $this->attributes['MaritalStatusID'] != '' ? (int) Crypt::decryptString($this->attributes['MaritalStatusID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setSpouseWorkingStatusIDAttribute($value)
+    {
+        $this->attributes['SpouseWorkingStatusID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getSpouseWorkingStatusIDAttribute($value)
+    {
+        try {
+            return $this->attributes['SpouseWorkingStatusID'] !== null || $this->attributes['SpouseWorkingStatusID'] != '' ? (int) Crypt::decryptString($this->attributes['SpouseWorkingStatusID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
 
 }

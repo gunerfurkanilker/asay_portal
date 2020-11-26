@@ -3,7 +3,9 @@
 namespace App\Model;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class PaymentModel extends Model
 {
@@ -15,7 +17,11 @@ class PaymentModel extends Model
         "AdditionalPayments",
         "Currency",
         "PayPeriod",
-        "PayMethod"
+        "PayMethod",
+        "Pay",
+        "StartDate",
+        "EndDate",
+        "Description",
     ];
 
     public static function checkCurrentPayment($employeeID)
@@ -225,5 +231,59 @@ class PaymentModel extends Model
         else
             return null;
     }
+
+    public function setPayAttribute($value)
+    {
+        $this->attributes['Pay'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getPayAttribute($value)
+    {
+        try {
+            return $this->attributes['Pay'] !== null || $this->attributes['Pay'] != '' ? Crypt::decryptString($this->attributes['Pay']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setStartDateAttribute($value)
+    {
+        $this->attributes['StartDate'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getStartDateAttribute($value)
+    {
+        try {
+            return $this->attributes['StartDate'] !== null || $this->attributes['StartDate'] != '' ? Crypt::decryptString($this->attributes['StartDate']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setEndDateAttribute($value)
+    {
+        $this->attributes['EndDate'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getEndDateAttribute($value)
+    {
+        try {
+            return $this->attributes['EndDate'] !== null || $this->attributes['EndDate'] != '' ? Crypt::decryptString($this->attributes['EndDate']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDescriptionAttribute($value)
+    {
+        $this->attributes['Description'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDescriptionAttribute($value)
+    {
+        try {
+            return $this->attributes['Description'] !== null || $this->attributes['Description'] != '' ? Crypt::decryptString($this->attributes['Description']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    
 
 }

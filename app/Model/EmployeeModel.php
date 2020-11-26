@@ -5,8 +5,10 @@ namespace App\Model;
 
 use App\Library\Asay;
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Crypt;
 
 class EmployeeModel extends Model
 {
@@ -15,13 +17,19 @@ class EmployeeModel extends Model
     protected $guarded = [];
     const CREATED_AT = 'CreateDate';
     const UPDATED_AT = 'LastUpdateDate';
+
     protected $appends = [
         "ContractType",
         'IDCard',
         'Domain',
         'EmployeePosition',
         'AccessTypes',
-        'EmployeeGroup'
+        'EmployeeGroup',
+        'MobilePhone',
+        'HomePhone',
+        'REMMail',
+        'Email',
+        'BloodTypeID'
     ];
 
     public static function getLastStaffID(){
@@ -461,6 +469,71 @@ class EmployeeModel extends Model
         else
         {
             return "";
+        }
+    }
+
+    public function setMobilePhoneAttribute($value)
+    {
+        $this->attributes['MobilePhone'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getMobilePhoneAttribute($value)
+    {
+        try {
+            return $this->attributes['MobilePhone'] !== null || $this->attributes['MobilePhone'] != '' ? Crypt::decryptString($this->attributes['MobilePhone']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setHomePhoneAttribute($value)
+    {
+        $this->attributes['HomePhone'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getHomePhoneAttribute($value)
+    {
+        try {
+            return $this->attributes['HomePhone'] !== null || $this->attributes['HomePhone'] != '' ? Crypt::decryptString($this->attributes['HomePhone']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setREMMailAttribute($value)
+    {
+        $this->attributes['REMMail'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getREMMailAttribute($value)
+    {
+        try {
+            return $this->attributes['REMMail'] !== null || $this->attributes['REMMail'] != '' ? Crypt::decryptString($this->attributes['REMMail']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['Email'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getEmailAttribute($value)
+    {
+        try {
+            return $this->attributes['Email'] !== null || $this->attributes['Email'] != '' ? Crypt::decryptString($this->attributes['Email']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setBloodTypeIDAttribute($value)
+    {
+        $this->attributes['BloodTypeID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getBloodTypeIDAttribute($value)
+    {
+        try {
+            return $this->attributes['BloodTypeID'] !== null || $this->attributes['BloodTypeID'] != '' ? (int) Crypt::decryptString($this->attributes['BloodTypeID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
         }
     }
 

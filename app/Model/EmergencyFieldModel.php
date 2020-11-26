@@ -2,7 +2,9 @@
 
 namespace App\Model;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class EmergencyFieldModel extends Model
 {
@@ -11,7 +13,9 @@ class EmergencyFieldModel extends Model
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = [
-        'BloodType'
+        'EmergencyPerson',
+        'EPDegree',
+        'EPGsm'
     ];
 
     public static function saveEmergencyField($request)
@@ -75,10 +79,43 @@ class EmergencyFieldModel extends Model
         return $data;
     }
 
-    public function getBloodTypeAttribute()
+    public function setEmergencyPersonAttribute($value)
     {
-        $bloodType = $this->hasOne(BloodTypeModel::class,"Id","BloodTypeID");
-
-        return $bloodType->where("Active",1)->first();
+        $this->attributes['EmergencyPerson'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
     }
+    public function getEmergencyPersonAttribute($value)
+    {
+        try {
+            return $this->attributes['EmergencyPerson'] !== null || $this->attributes['EmergencyPerson'] != '' ? Crypt::decryptString($this->attributes['EmergencyPerson']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setEPDegreeAttribute($value)
+    {
+        $this->attributes['EPDegree'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getEPDegreeAttribute($value)
+    {
+        try {
+            return $this->attributes['EPDegree'] !== null || $this->attributes['EPDegree'] != '' ? Crypt::decryptString($this->attributes['EPDegree']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setEPGsmAttribute($value)
+    {
+        $this->attributes['EPGsm'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getEPGsmAttribute($value)
+    {
+        try {
+            return $this->attributes['EPGsm'] !== null || $this->attributes['EPGsm'] != '' ? Crypt::decryptString($this->attributes['EPGsm']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
 }

@@ -2,7 +2,9 @@
 
 namespace App\Model;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class LocationModel extends Model
 {
@@ -13,7 +15,13 @@ class LocationModel extends Model
     protected $appends = [
         'City',
         'District',
-        'Country'
+        'Country',
+        'Address',
+        'ZIPCode',
+        'CityID',
+        'DistrictID',
+        'CountryID',
+
     ];
 
     public static function saveLocation($request)
@@ -82,6 +90,71 @@ class LocationModel extends Model
         $country = $this->hasOne(CountryModel::class, "Id", "CountryID");
 
         return $country->where("Active", "1")->first();
+    }
+
+    public function setAddressAttribute($value)
+    {
+        $this->attributes['Address'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getAddressAttribute($value)
+    {
+        try {
+            return $this->attributes['Address'] !== null || $this->attributes['Address'] != '' ? Crypt::decryptString($this->attributes['Address']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setZIPCodeAttribute($value)
+    {
+        $this->attributes['ZIPCode'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getZIPCodeAttribute($value)
+    {
+        try {
+            return $this->attributes['ZIPCode'] !== null || $this->attributes['ZIPCode'] != '' ? Crypt::decryptString($this->attributes['ZIPCode']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setCityIDAttribute($value)
+    {
+        $this->attributes['CityID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getCityIDAttribute($value)
+    {
+        try {
+            return $this->attributes['CityID'] !== null || $this->attributes['CityID'] != '' ? (int) Crypt::decryptString($this->attributes['CityID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setCountryIDAttribute($value)
+    {
+        $this->attributes['CountryID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getCountryIDAttribute($value)
+    {
+        try {
+            return $this->attributes['CountryID'] !== null || $this->attributes['CountryID'] != '' ? (int) Crypt::decryptString($this->attributes['CountryID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDistrictIDAttribute($value)
+    {
+        $this->attributes['DistrictID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDistrictIDAttribute($value)
+    {
+        try {
+            return $this->attributes['DistrictID'] !== null || $this->attributes['DistrictID'] != '' ? (int) Crypt::decryptString($this->attributes['DistrictID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
     }
 
 }

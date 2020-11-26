@@ -14,12 +14,27 @@ class IdCardModel extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = [
+
         'Gender',
-        'City',
         'District',
         'Nationality',
         'ObjectFile',
+        'BirthDate',
+        'ValidDate',
+        'DateOfIssue',
+        'SerialNumber',
+        'FatherName',
+        'MotherName',
+        'BirthPlace',
+        'CityID',
+        'DistrictID',
+        'Neighborhood',
+        'Village',
+        'CoverNo',
+        'PageNo',
+        'RegisterNo',
         'TCNo'
+
     ];
 
     public static function saveIDCard($request)
@@ -116,12 +131,6 @@ class IdCardModel extends Model
         return $gender->where("Active", 1)->first();
     }
 
-    public function getCityAttribute()
-    {
-        $city = $this->hasOne(CityModel::class, "Id", "GenderID");
-        return $city->where("Active", 1)->first();
-    }
-
     public function getDistrictAttribute()
     {
         $district = $this->hasOne(DistrictModel::class, "Id", "GenderID");
@@ -140,14 +149,196 @@ class IdCardModel extends Model
         return $objectFile->where(['Active' => 1, 'ObjectType' => 7])->first();//Kimlik Fotoğrafı
     }
 
-    public function settcnoAttribute($value)
+    public function setTCNoAttribute($value)
     {
-        $this->attributes['TCNo'] = Crypt::encryptString($value);
+        $this->attributes['TCNo'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
     }
     public function getTCNoAttribute($value)
     {
         try {
-            return Crypt::decryptString($this->attributes['TCNo']);
+            return $this->attributes['TCNo'] !== null || $this->attributes['TCNo'] != '' ? Crypt::decryptString($this->attributes['TCNo']) : null;;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setBirthDateAttribute($value)
+    {
+        $this->attributes['BirthDate'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getBirthDateAttribute($value)
+    {
+        try {
+            return $this->attributes['BirthDate'] !== null || $this->attributes['BirthDate'] != '' ? Crypt::decryptString($this->attributes['BirthDate']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setValidDateAttribute($value)
+    {
+        $this->attributes['ValidDate'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getValidDateAttribute($value)
+    {
+        try {
+            return $this->attributes['ValidDate'] !== null || $this->attributes['ValidDate'] != '' ? Crypt::decryptString($this->attributes['ValidDate']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setSerialNumberAttribute($value)
+    {
+        $this->attributes['SerialNumber'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getSerialNumberAttribute($value)
+    {
+        try {
+            return $this->attributes['SerialNumber'] !== null || $this->attributes['SerialNumber'] != '' ? Crypt::decryptString($this->attributes['SerialNumber']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setMotherNameAttribute($value)
+    {
+        $this->attributes['MotherName'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getMotherNameAttribute($value)
+    {
+        try {
+            return $this->attributes['MotherName'] !== null || $this->attributes['MotherName'] != '' ? Crypt::decryptString($this->attributes['MotherName']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setFatherNameAttribute($value)
+    {
+        $this->attributes['FatherName'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getFatherNameAttribute($value)
+    {
+        try {
+            return $this->attributes['FatherName'] !== null || $this->attributes['FatherName'] != '' ? Crypt::decryptString($this->attributes['FatherName']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setBirthPlaceAttribute($value)
+    {
+        $this->attributes['BirthPlace'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getBirthPlaceAttribute($value)
+    {
+        try {
+            return $this->attributes['BirthPlace'] !== null || $this->attributes['BirthPlace'] != '' ? Crypt::decryptString($this->attributes['BirthPlace']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setCityIDAttribute($value)
+    {
+        $this->attributes['CityID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getCityIDAttribute($value)
+    {
+        try {
+            return $this->attributes['CityID'] !== null || $this->attributes['CityID'] != '' ? (int) Crypt::decryptString($this->attributes['CityID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDistrictIDAttribute($value)
+    {
+        $this->attributes['DistrictID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDistrictIDAttribute($value)
+    {
+        try {
+            return $this->attributes['DistrictID'] !== null || $this->attributes['DistrictID'] != '' ? (int) Crypt::decryptString($this->attributes['DistrictID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setNeighborhoodAttribute($value)
+    {
+        $this->attributes['Neighborhood'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getNeighborhoodAttribute($value)
+    {
+        try {
+            return $this->attributes['Neighborhood'] !== null || $this->attributes['Neighborhood'] != '' ? Crypt::decryptString($this->attributes['Neighborhood']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setVillageAttribute($value)
+    {
+        $this->attributes['Village'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getVillageAttribute($value)
+    {
+        try {
+            return $this->attributes['Village'] !== null || $this->attributes['Village'] != '' ? Crypt::decryptString($this->attributes['Village']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setCoverNoAttribute($value)
+    {
+        $this->attributes['CoverNo'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getCoverNoAttribute($value)
+    {
+        try {
+            return $this->attributes['CoverNo'] !== null || $this->attributes['CoverNo'] != '' ? Crypt::decryptString($this->attributes['CoverNo']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setPageNoAttribute($value)
+    {
+        $this->attributes['PageNo'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getPageNoAttribute($value)
+    {
+        try {
+            return $this->attributes['PageNo'] !== null || $this->attributes['PageNo'] != '' ? Crypt::decryptString($this->attributes['PageNo']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setRegisterNoAttribute($value)
+    {
+        $this->attributes['RegisterNo'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getRegisterNoAttribute($value)
+    {
+        try {
+            return $this->attributes['RegisterNo'] !== null || $this->attributes['RegisterNo'] != '' ? Crypt::decryptString($this->attributes['RegisterNo']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDateOfIssueAttribute($value)
+    {
+        $this->attributes['DateOfIssue'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDateOfIssueAttribute($value)
+    {
+        try {
+            return $this->attributes['DateOfIssue'] !== null || $this->attributes['DateOfIssue'] != '' ? Crypt::decryptString($this->attributes['DateOfIssue']) : null;
         } catch (DecryptException $e) {
             return $e->getMessage();
         }

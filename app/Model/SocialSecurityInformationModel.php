@@ -3,7 +3,9 @@
 namespace App\Model;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class SocialSecurityInformationModel extends Model
 {
@@ -13,7 +15,19 @@ class SocialSecurityInformationModel extends Model
     public $timestamps = false;
     protected $appends = [
         'DisabledDegree',
-        'ObjectFile'
+        'ObjectFile',
+        'SSICreateDate',
+        'SSINo',
+        'SSIRecord',
+        'FirstLastName',
+        'DisabledDegreeID',
+        'DisabledReport',
+        'DisabledTaxDecrease',
+        'JobCodeID',
+        'JobDescription',
+        'CriminalRecord',
+        'ConvictRecord',
+        'TerrorismComp'
     ];
 
     public static function saveSocialSecurityInformation($request)
@@ -218,5 +232,165 @@ class SocialSecurityInformationModel extends Model
         $file = $this->hasOne(ObjectFileModel::class,"ObjectId","Id");
         return $file->where(['Active' => 1,'ObjectType' => 6])->first();
     }
+
+    public function setSSICreateDateAttribute($value)
+    {
+        $this->attributes['SSICreateDate'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getSSICreateDateAttribute($value)
+    {
+        try {
+            return $this->attributes['SSICreateDate'] !== null || $this->attributes['SSICreateDate'] != '' ? Crypt::decryptString($this->attributes['SSICreateDate']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setSSINoAttribute($value)
+    {
+        $this->attributes['SSINo'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getSSINoAttribute($value)
+    {
+        try {
+            return $this->attributes['SSINo'] !== null || $this->attributes['SSINo'] != '' ? (int) Crypt::decryptString($this->attributes['SSINo']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setSSIRecordAttribute($value)
+    {
+        $this->attributes['SSIRecord'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getSSIRecordAttribute($value)
+    {
+        try {
+            return $this->attributes['SSIRecord'] !== null || $this->attributes['SSIRecord'] != '' ? (int) Crypt::decryptString($this->attributes['SSIRecord']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setFirstLastNameAttribute($value)
+    {
+        $this->attributes['FirstLastName'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getFirstLastNameAttribute($value)
+    {
+        try {
+            return $this->attributes['FirstLastName'] !== null || $this->attributes['FirstLastName'] != '' ? Crypt::decryptString($this->attributes['FirstLastName']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDisabledDegreeIDAttribute($value)
+    {
+        $this->attributes['DisabledDegreeID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDisabledDegreeIDAttribute($value)
+    {
+        try {
+            return $this->attributes['DisabledDegreeID'] !== null || $this->attributes['DisabledDegreeID'] != '' ? (int) Crypt::decryptString($this->attributes['DisabledDegreeID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDisabledReportAttribute($value)
+    {
+        $this->attributes['DisabledReport'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDisabledReportAttribute($value)
+    {
+        try {
+            return $this->attributes['DisabledReport'] !== null || $this->attributes['DisabledReport'] != '' ? (int) Crypt::decryptString($this->attributes['DisabledReport']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setDisabledTaxDecreaseAttribute($value)
+    {
+        $this->attributes['DisabledTaxDecrease'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getDisabledTaxDecreaseAttribute($value)
+    {
+        try {
+            return $this->attributes['DisabledTaxDecrease'] !== null || $this->attributes['DisabledTaxDecrease'] != '' ? (int) Crypt::decryptString($this->attributes['DisabledTaxDecrease']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setJobCodeIDAttribute($value)
+    {
+        $this->attributes['JobCodeID'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getJobCodeIDAttribute($value)
+    {
+        try {
+            return $this->attributes['JobCodeID'] !== null || $this->attributes['JobCodeID'] != '' ? (int) Crypt::decryptString($this->attributes['JobCodeID']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setJobDescriptionAttribute($value)
+    {
+        $this->attributes['JobDescription'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getJobDescriptionAttribute($value)
+    {
+        try {
+            return $this->attributes['JobDescription'] !== null || $this->attributes['JobDescription'] != '' ? Crypt::decryptString($this->attributes['JobDescription']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setCriminalRecordAttribute($value)
+    {
+        $this->attributes['CriminalRecord'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getCriminalRecordAttribute($value)
+    {
+        try {
+            return $this->attributes['CriminalRecord'] !== null || $this->attributes['CriminalRecord'] != '' ? (int) Crypt::decryptString($this->attributes['CriminalRecord']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setConvictRecordAttribute($value)
+    {
+        $this->attributes['ConvictRecord'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getConvictRecordAttribute($value)
+    {
+        try {
+            return $this->attributes['ConvictRecord'] !== null || $this->attributes['ConvictRecord'] != '' ? (int) Crypt::decryptString($this->attributes['ConvictRecord']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function setTerrorismCompAttribute($value)
+    {
+        $this->attributes['TerrorismComp'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getTerrorismCompAttribute($value)
+    {
+        try {
+            return $this->attributes['TerrorismComp'] !== null || $this->attributes['TerrorismComp'] != '' ? (int) Crypt::decryptString($this->attributes['TerrorismComp']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
+    }
+
+
+
+
 
 }

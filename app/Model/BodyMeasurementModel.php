@@ -2,7 +2,9 @@
 
 namespace App\Model;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class BodyMeasurementModel extends Model
 {
@@ -11,9 +13,9 @@ class BodyMeasurementModel extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = [
-        'UBody',
-        'LBody',
-        'SSize'
+        'UpperBody',
+        'LowerBody',
+        'ShoeSize'
     ];
 
     public static function saveBodyMeasurements($request)
@@ -59,23 +61,43 @@ class BodyMeasurementModel extends Model
 
         return $data;
     }
-
-    public function getUBodyAttribute()
+    public function setUpperBodyAttribute($value)
     {
-        $upperBody = $this->hasOne(UpperBodyModel::class, "Id", "UpperBody");
-        return $upperBody->where("Active", 1)->first();
+        $this->attributes['UpperBody'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getUpperBodyAttribute($value)
+    {
+        try {
+            return $this->attributes['UpperBody'] !== null || $this->attributes['UpperBody'] != '' ? (int) Crypt::decryptString($this->attributes['UpperBody']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
     }
 
-    public function getLBodyAttribute()
+    public function setLowerBodyAttribute($value)
     {
-        $lowerBody = $this->hasOne(LowerBodyModel::class, "Id", "LowerBody");
-        return $lowerBody->where("Active", 1)->first();
+        $this->attributes['LowerBody'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getLowerBodyAttribute($value)
+    {
+        try {
+            return $this->attributes['LowerBody'] !== null || $this->attributes['LowerBody'] != '' ? (int) Crypt::decryptString($this->attributes['LowerBody']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
     }
 
-    public function getSSizeAttribute()
+    public function setShoeSizeAttribute($value)
     {
-        $shoeSize = $this->hasOne(ShoeSizeModel::class, "Id", "ShoeSize");
-        return $shoeSize->where("Active", 1)->first();
+        $this->attributes['ShoeSize'] = $value !== null || $value != '' ? Crypt::encryptString($value) : null;
+    }
+    public function getShoeSizeAttribute($value)
+    {
+        try {
+            return $this->attributes['ShoeSize'] !== null || $this->attributes['ShoeSize'] != '' ? (int) Crypt::decryptString($this->attributes['ShoeSize']) : null;
+        } catch (DecryptException $e) {
+            return $e->getMessage();
+        }
     }
 
 }
