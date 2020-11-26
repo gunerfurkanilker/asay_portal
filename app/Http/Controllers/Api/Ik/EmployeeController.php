@@ -32,12 +32,13 @@ class EmployeeController extends ApiController
         $searchText = $request->SearchText;
 
         $employeesQ = EmployeeModel::where(['Active' => 1]);
-        $employeesQ = $employeesQ->where(function ($query) use ($searchText,$page,$recordPerPage) {
-            $query->orWhere("LastName", 'like', '%'.$searchText.'%');
-            $query->orWhere("UsageName", 'like', '%'.$searchText.'%');
-            $query->offset($page)->take($recordPerPage)->orderBy("UsageName","asc");
+        $employeesQ = $employeesQ->where(function ($query) use ($searchText) {
+            $query->orWhere(DB::table("Employee")->raw("CONCAT_WS(' ', LastName, UsageName)"), 'like', '%'.$searchText.'%');
+            $query->orWhere(DB::table("Employee")->raw("CONCAT_WS(' ', UsageName, LastName)"), 'like', '%'.$searchText.'%');
         });
+
         $dataCount = $employeesQ->count();
+        $employeesQ = $employeesQ->offset($page)->take($recordPerPage)->orderBy("UsageName","asc");
         $employees = $employeesQ->get();
 
 
@@ -52,7 +53,7 @@ class EmployeeController extends ApiController
         }
         else
             return response([
-                'status' => true,
+                'status' => false,
                 'message' => 'Sonuç Bulunamadı',
                 'dataCount' => $dataCount
             ],200);

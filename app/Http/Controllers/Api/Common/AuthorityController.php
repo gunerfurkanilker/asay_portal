@@ -45,7 +45,7 @@ class AuthorityController extends ApiController
         }
 
 
-        $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee, 'active' => 1])->whereIn('group_id',[16,17])->count();
+        $userGroupCount = EmployeePositionModel::where(["EmployeeID"=>$request->Employee, 'Active' => 2])->whereIn('TitleID',[98,99,100])->count();
         if ($userGroupCount > 0) {
             $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
             $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'HRManager', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $request->Employee])->count();

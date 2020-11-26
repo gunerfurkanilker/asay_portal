@@ -467,9 +467,9 @@ class PermitModel extends Model
             else if($permit->kind == 14)
             {
 
-                $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'Active' => 1])
+                $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' =>$permit->EmployeeID, 'Active' => 1])
                     ->whereYear("Date", "=", date('Y'))->first();
-                $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'kind' => 14])
+                $totalRestPermits = PermitModel::selectRaw("SUM(used_day) as total_day,SUM(over_hour) as over_hour,SUM(over_minute) as total_minute")->where(['Active' => 1, 'EmployeeID' => $permit->EmployeeID, 'kind' => 14])
                     ->whereYear("start_date", "=", date('Y'))->first();
 
                 $employeeOvertimeRestTotalMinute = ($employeeOvertimeRestTotalHour->total_hour * 60) + $employeeOvertimeRestTotalHour->total_minute;

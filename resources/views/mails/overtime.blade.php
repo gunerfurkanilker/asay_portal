@@ -186,7 +186,9 @@
         <tr >
 
             <td  colspan="2" >
-                <a href="{{ $overtimeLink.$overtime->id }}">Fazla Çalışma Link</a>
+                @if($overtimeLink != null || $overtimeLink != '')
+                <a href="{{ $overtimeLink }}">Fazla Çalışma Link</a>
+                    @endif
             </td>
         </tr>
     </table>

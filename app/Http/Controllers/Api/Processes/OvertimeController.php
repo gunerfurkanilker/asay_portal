@@ -42,7 +42,7 @@ class OvertimeController extends ApiController
         elseif ($request->Page === "overtime-manager")
         {
             $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
-            if ($employeePosition->UnitSupervisorID !== $request->Employee || $employeePosition->ManagerID !== $request->Employee)
+            if ($employeePosition->UnitSupervisorID !== $request->Employee && $employeePosition->ManagerID !== $request->Employee)
                 return response([
                     'status' => false,
                     'message' => 'Yetkisiz İşlem'
@@ -52,7 +52,7 @@ class OvertimeController extends ApiController
         elseif ($request->Page === "overtime-hr")
         {
             $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
-            $hrPersonnels = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->whereNotIn("EmployeeID",[$request->Employee])->get();
+            $hrPersonnels = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->whereIn('TitleID',[98,99,100])->get();
             $idArray = [];
             foreach ($hrPersonnels as $hrPersonnel)
                 array_push($idArray,$hrPersonnel->EmployeeID);

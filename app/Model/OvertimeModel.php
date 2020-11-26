@@ -796,7 +796,7 @@ class OvertimeModel extends Model
         $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
         if ($overtimeRecord->save()) {
-            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
@@ -858,7 +858,7 @@ class OvertimeModel extends Model
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
 
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
@@ -917,7 +917,7 @@ class OvertimeModel extends Model
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
 
 
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
@@ -951,7 +951,7 @@ class OvertimeModel extends Model
 
         foreach ($isgPositions as $isgPosition) {
             $userIsg = EmployeeModel::where(['Id' => $isgPosition->EmployeeID,'Active' => 1])->first();
-            $hasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $isgPosition->EmployeeID, 'group_id' => 16, 'active' => 1])->first();
+            $hasGroup = EmployeePositionModel::where(['EmployeeID' => $isgPosition->EmployeeID])->whereIn("TitleID",[101,102,103])->first();
             if ($hasGroup) {
                 array_push($mailToArray, $userIsg->JobEmail);
             }
@@ -999,7 +999,7 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
@@ -1034,7 +1034,7 @@ class OvertimeModel extends Model
         $employee = EmployeeModel::find($overtimeRequest->Employee);
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->CreatedBy);
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee,
             'assignedEmployeesManager' => $assignedEmployeesManager, 'overtime' => $overtimeRecord,
             'usingCar' => $usingCar, 'extraFields' => true,'overtimeLink' => $overtimeLink];
@@ -1142,7 +1142,7 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->ManagerID);
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
@@ -1176,7 +1176,7 @@ class OvertimeModel extends Model
         if ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
-            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
@@ -1189,7 +1189,7 @@ class OvertimeModel extends Model
             $hrSpecialist = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->first();
             $hrEmployee = EmployeeModel::find($hrSpecialist->PropertyValue);
 
-            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-hr/'.$overtimeRecord->id ;
+            $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
@@ -1209,8 +1209,8 @@ class OvertimeModel extends Model
 
         } else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
-            $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-manager/'.$overtimeRecord->id ;
-            $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+            $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
+            $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
             $mailData1 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink1];
             $mailData2 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
@@ -1320,7 +1320,7 @@ class OvertimeModel extends Model
         $reason = $overtimeRequest->ProcessReason == "" || $overtimeRequest->ProcessReason != null ? $overtimeRequest->ProcessReason : "Açıklama Yapılmamış";
         $assignedEmployeesManager = EmployeeModel::find($overtimeRecord->ManagerID);
 
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime-hr/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'reason' => $reason, 'dirtyFields' => $dirtyFieldsArray, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
@@ -1382,7 +1382,7 @@ class OvertimeModel extends Model
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
         $userAccountOfEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
-        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/dev/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/dev/#/overtime/'.$overtimeRecord->id ;
+        $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
         $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
             'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);

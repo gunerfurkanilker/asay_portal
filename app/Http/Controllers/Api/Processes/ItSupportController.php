@@ -133,7 +133,7 @@ class ItSupportController extends ApiController
 
             $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee" => $employee]);
             NotificationsModel::saveNotification($request->RequestedFrom,11,$itSupport->id,"IT Destek",$itSupport->Subject." için oluşturmuş olduğunuz IT destek kaydı sistemimize kaydedilmiştir","");
-            Asay::sendMail("ilker.guner@asay.com.tr",$employee->JobEmail,"IT Destek",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
+            Asay::sendMail("bahadir.senturk@asay.com.tr",$employee->JobEmail,"IT Destek",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
 
             return response([
                 "status"    => true,

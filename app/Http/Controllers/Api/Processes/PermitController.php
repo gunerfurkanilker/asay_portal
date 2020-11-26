@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SoapClient;
 use Whoops\Util\TemplateHelper;
@@ -129,7 +130,7 @@ class PermitController extends ApiController
         $transferEmployees = [];
 
         foreach ($transferEmployeesPositions as $transferEmployeesPosition) {
-            $tempEmployee = EmployeeModel::find($transferEmployeesPosition->EmployeeID);
+            $tempEmployee = DB::table("Employee")->find($transferEmployeesPosition->EmployeeID);
             if ($tempEmployee)
                 array_push($transferEmployees, $tempEmployee);
         }
@@ -154,7 +155,7 @@ class PermitController extends ApiController
 
     public function permitTypes(Request $request)
     {
-        $permitKinds = PermitKindModel::where(["active" => 1])->get();
+        $permitKinds = PermitKindModel::where(["active" => 1])->orderBy("order","desc")->get();
 
         $employeeOvertimeRestTotalHour = OvertimeRestModel::selectRaw("SUM(Hour) as total_hour,Sum(Minute) as total_minute")->where(['EmployeeID' => isset($request->fromHR) ? $request->EmployeeID : $request->Employee, 'Active' => 1])
             ->whereYear("Date", "=", date('Y'))->first();

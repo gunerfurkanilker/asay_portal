@@ -110,9 +110,9 @@ class CarNotifyModel extends Model
 
 
             if ($file)
-                Asay::sendMail("ilker.guner@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group",$file->FilePath, $file->FileName, $file->MimeType);
+                Asay::sendMail("bahadir.senturk@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group",$file->FilePath, $file->FileName, $file->MimeType);
             else
-                Asay::sendMail("ilker.guner@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group");
+                Asay::sendMail("bahadir.senturk@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group");
 
             return ['status' => true,'message' => 'İşlem Başarılı'];
         }
