@@ -322,10 +322,8 @@ class EmployeeController extends ApiController
 
     public function saveOtherGeneralInformations(Request $request, $id)
     {
-        $requestData = $request->all();
         $employee = EmployeeModel::where('Id', $id)->first();
-
-        $freshData = EmployeeModel::saveOtherInformations($employee, $requestData);
+        $freshData = EmployeeModel::saveOtherInformations($employee, $request);
 
         if ($freshData)
             return response([

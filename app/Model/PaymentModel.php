@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class PaymentModel extends Model
 {
@@ -51,22 +52,22 @@ class PaymentModel extends Model
 
     public static function savePayment($request)
     {
-        $employee = EmployeeModel::find($request['EmployeeID']);
-        $additionalPayments = $request['AdditionalPayments'];
-        if ($request['PaymentID'] == null || !isset($request['PaymentID'])) {
-            $currentPayment = self::checkCurrentPayment($request['EmployeeID']);
+        $employee = EmployeeModel::find($request->EmployeeID);
+        $additionalPayments = $request->AdditionalPayments;
+        if ($request->PaymentID == null || !isset($request->PaymentID)) {
+            $currentPayment = self::checkCurrentPayment($request->EmployeeID);
 
 
 
             $salary = self::create([
 
-                'EmployeeID' => $request['EmployeeID'],
-                'Pay' => $request['Pay'],
-                'CurrencyID' => $request['CurrencyID'],
-                'StartDate' => $request['StartDate'],
-                'PayPeriodID' => $request['PayPeriod'],
-                'PayMethodID' => $request['PayMethod'] ? 2 : 1,
-                'LowestPayID' => $request['LowestPay'] ? 1 : 0,
+                'EmployeeID' => $request->EmployeeID,
+                'Pay' => $request->Pay,
+                'CurrencyID' => $request->CurrencyID,
+                'StartDate' => $request->StartDate,
+                'PayPeriodID' => $request->PayPeriod,
+                'PayMethodID' => $request->PayMethod ? 2 : 1,
+                'LowestPayID' => $request->LowestPay ? 1 : 0,
             ]);
 
             if ($currentPayment != null) {
@@ -74,7 +75,9 @@ class PaymentModel extends Model
                 $currentPayment->save();
             }
 
-            $additionalPayments = $request['AdditionalPayments'];
+            $additionalPayments = $request->AdditionalPayments;
+
+
 
             foreach ($additionalPayments as $additionalPayment) {
                 AdditionalPaymentModel::create([
@@ -92,16 +95,20 @@ class PaymentModel extends Model
 
             $employee->PaymentID = $salary->Id;
             $employee->save();
+
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            LogsModel::setLog($request->Employee,$salary->Id,15,40,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana maaş bilgisi ekledi","","","","","");
+
         } else {
 
-            $salary = PaymentModel::find($request['PaymentID']);
+            $salary = PaymentModel::find($request->PaymentID);
 
-            $salary->Pay = $request['Pay'];
-            $salary->CurrencyID = $request['CurrencyID'];
-            $salary->StartDate = $request['StartDate'];
-            $salary->PayPeriodID = $request['PayPeriod'];
-            $salary->PayMethodID = $request['PayMethod'] ? 2 : 1;
-            $salary->LowestPayID = $request['LowestPay'] ? 1 : 0;
+            $salary->Pay = $request->Pay;
+            $salary->CurrencyID = $request->CurrencyID;
+            $salary->StartDate = $request->StartDate;
+            $salary->PayPeriodID = $request->PayPeriod;
+            $salary->PayMethodID = $request->PayMethod ? 2 : 1;
+            $salary->LowestPayID = $request->LowestPay ? 1 : 0;
 
             $allAdditionalPaymentTypeIDs = [1, 2, 3, 4, 5];
             $currentAdditionalPaymentIDs = [];
@@ -138,9 +145,17 @@ class PaymentModel extends Model
 
             $salary->save();
 
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $dirtyFields = $salary->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $salary->getOriginal($field);
+                if ($olddata != $newdata) {
+                    LogsModel::setLog($request->Employee,$employee->Id,15,40,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın maaş bilgisini düzenledi","","","",$field,"");
+                }
+            }
+
+
         }
-
-
         return $salary;
     }
 
@@ -284,6 +299,6 @@ class PaymentModel extends Model
         }
     }
 
-    
+
 
 }

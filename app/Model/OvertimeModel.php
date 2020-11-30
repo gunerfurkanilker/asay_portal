@@ -79,22 +79,68 @@ class OvertimeModel extends Model
     {
 
         $beginDate = Carbon::createFromFormat("Y-m-d", $request->BeginDate);
+        $publicHolidays = PublicHolidayModel::whereDate('end_date',">",$beginDate)
+            ->whereRaw('? >= DATE(start_date)', [$beginDate])->count();
 
-        $dailyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
+        if ($publicHolidays > 0)
+        {
+            $data[0] = 'Limit Yok';
+            $data[1] = 'Limit Yok';
+
+            $data[2] = 'Limit Yok';
+            $data[3] = 'Limit Yok';
+
+            $data[4] = 'Limit Yok';
+            $data[5] = 'Limit Yok';
+            $data[6] = true;
+            return $data;
+        }
+
+        $dailyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff, BeginDate, WorkBeginDate')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
             $query->whereBetween('BeginDate', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day
                 , $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day]);
         })->get(); // Günlük tanımlanmış saatleri çekiyoruz.
 
-        $monthlyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
+        foreach ($dailyTimes as $key => $dailyTime)
+        {
+            $publicHolidays = PublicHolidayModel::whereDate('end_date',">",$dailyTime->BeginDate)
+                ->whereRaw('? >= DATE(start_date)', [$dailyTime->BeginDate])->count();
+            if ($publicHolidays > 0)
+            {
+                unset($dailyTimes[$key]);
+            }
+        }
+
+        $monthlyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff, BeginDate, WorkBeginDate')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
 
             $query->whereBetween('BeginDate', [$beginDate->startOfMonth()->year . '-' . $beginDate->startOfMonth()->month . '-' . $beginDate->startOfMonth()->day
                 , $beginDate->endOfMonth()->year . '-' . $beginDate->endOfMonth()->month . '-' . $beginDate->endOfMonth()->day]);
         })->get();
 
-        $yearlyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
+        foreach ($monthlyTimes as $key => $monthlyTime)
+        {
+            $publicHolidays = PublicHolidayModel::whereDate('end_date',">",$monthlyTime)
+                ->whereRaw('? >= DATE(start_date)', [$monthlyTime->BeginDate])->count();
+            if ($publicHolidays > 0)
+            {
+                unset($monthlyTimes[$key]);
+            }
+        }
+
+        $yearlyTimes = OvertimeModel::selectRaw(' TIMEDIFF(EndTime,BeginTime) as timediff, BeginDate, WorkBeginDate')->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate) {
             $query->whereBetween('BeginDate', [$beginDate->startOfYear()->year . '-' . $beginDate->startOfYear()->month . '-' . $beginDate->startOfYear()->day
                 , $beginDate->endOfYear()->year . '-' . $beginDate->endOfYear()->month . '-' . $beginDate->endOfYear()->day]);
         })->get();
+
+        foreach ($yearlyTimes as $key => $yearlyTime)
+        {
+            $publicHolidays = PublicHolidayModel::whereDate('end_date',">",$yearlyTime->BeginDate)
+                ->whereRaw('? >= DATE(start_date)', [$yearlyTime->BeginDate])->count();
+            if ($publicHolidays > 0)
+            {
+                unset($yearlyTimes[$key]);
+            }
+        }
 
 
         $dailyMinutes = 0;
@@ -154,6 +200,7 @@ class OvertimeModel extends Model
 
         $data[4] = (int)($remainingYearlyMinutes / 60);
         $data[5] = ($remainingYearlyMinutes % 60);
+        $data[6] = false;
 
         return $data;
 
@@ -603,7 +650,7 @@ class OvertimeModel extends Model
 
     public function getAssignedEmployeeAttribute()
     {
-        if ($this->attributes['AssignedID']) {
+        if (isset($this->attributes['AssignedID'])) {
             return EmployeeModel::where(['Id' => $this->attributes['AssignedID']])->first();
         } else {
             return "";
@@ -1497,7 +1544,7 @@ class OvertimeModel extends Model
 
     public function getCreatedFromAttribute()
     {
-        if ($this->attributes['CreatedBy']) {
+        if (isset($this->attributes['CreatedBy'])) {
             return DB::table("Employee")->where(['Id' => $this->attributes['CreatedBy']])->first();
         } else {
             return "";
@@ -1507,7 +1554,7 @@ class OvertimeModel extends Model
 
     public function getApproveWhoAttribute()
     {
-        if ($this->attributes['ManagerID']) {
+        if (isset($this->attributes['ManagerID'])) {
             return DB::table("Employee")->where(['Id' => $this->attributes['ManagerID']])->first();
         } else {
             return "";

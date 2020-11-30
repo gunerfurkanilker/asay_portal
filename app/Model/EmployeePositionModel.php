@@ -88,6 +88,9 @@ class EmployeePositionModel extends Model
 
 
             $position->save();
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $employee = DB::table("Employee")->find($position->EmployeeID);
+            LogsModel::setLog($request->Employee,$position->Id,15,36,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana pozisyon bilgisi ekledi","","","","","");
 
             return $position->fresh();
         }
@@ -119,6 +122,16 @@ class EmployeePositionModel extends Model
         $position->Active               = $request->ActivePosition ? 1:0;
         $position->Share                = $request->Share ? 1:0;
 
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($position->EmployeeID);
+        $dirtyFields = $position->getDirty();
+        foreach ($dirtyFields as $field => $newdata) {
+            $olddata = $position->getOriginal($field);
+            if ($olddata != $newdata) {
+                LogsModel::setLog($request->Employee,$employee->Id,15,37,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın pozisyon bilgisini düzenledi","","","",$field,"");
+            }
+        }
+
         if ($request->ActualPosition)
         {
 
@@ -139,7 +152,10 @@ class EmployeePositionModel extends Model
         }
 
         if ($position->save())
+        {
             return true;
+        }
+
         else
             return false;
 

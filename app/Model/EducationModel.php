@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class EducationModel extends Model
@@ -29,6 +30,19 @@ class EducationModel extends Model
         $education->StatusID = $request->EducationStatus;
         $education->Institution = $request->Institution;
         $education->LevelID = $request->EducationLevel;
+
+        if ($education != null)
+        {
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $dirtyFields = $education->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $education->getOriginal($field);
+                if ($olddata != $newdata) {
+                    LogsModel::setLog($request->Employee,$education->Id,15,40,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın eğitim bilgisini düzenledi","","","",$field,"");
+                }
+            }
+        }
+
         $result = $education->save();
 
         if ($result && $request->hasFile('education_file')) {
@@ -66,6 +80,14 @@ class EducationModel extends Model
             }
 
         }
+
+        if ($education == null)
+        {
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            LogsModel::setLog($request->Employee,$education->Id,15,40,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana maaş bilgisi ekledi","","","","","");
+        }
+
+
 
         return $result;
 

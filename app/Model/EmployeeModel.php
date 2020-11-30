@@ -9,6 +9,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeModel extends Model
 {
@@ -64,6 +65,8 @@ class EmployeeModel extends Model
         {
             $employee->save();
             $employee = $employee->fresh();
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            LogsModel::setLog($request->Employee,$employee->Id,15,34,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adında bir çalışan oluşturdu","","","","","");
 
         }catch (QueryException $queryException)
         {
@@ -141,6 +144,17 @@ class EmployeeModel extends Model
         $employee->JobEmail             = $request->jobemail;
         $employee->JobMobilePhone       = $request->jobphone;
         $employee->InterPhone           = $request->internalphone;
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $dirtyFields = $employee->getDirty();
+        $dirtyFieldsString = "";
+        $dirtyFieldsArray = [];
+        foreach ($dirtyFields as $field => $newdata) {
+            $olddata = $employee->getOriginal($field);
+            if ($olddata != $newdata) {
+                LogsModel::setLog($request->Employee,$employee->Id,15,35,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın genel bilgilerini düzenledi","","","","","");
+            }
+        }
 
 
         try
@@ -274,12 +288,21 @@ class EmployeeModel extends Model
         return $accessTypeIDs;
     }
 
-    public static function saveOtherInformations($employee,$requestData)
+    public static function saveOtherInformations($employee,$request)
     {
-        $employee->ContractTypeID    = $requestData['contracttypeid'];
-        $employee->StartDate            = new Carbon($requestData['jobbegindate']);
-        $employee->ContractFinishDate   = isset($requestData['contractfinishdate']) ? new Carbon($requestData['contractfinishdate']) : null;
-        $employee->WorkingScheduleID    = $requestData['workingscheduleid'];
+        $employee->ContractTypeID    = $request->contracttypeid;
+        $employee->StartDate            = new Carbon($request->jobbegindate);
+        $employee->ContractFinishDate   = isset($request->contractfinishdate) ? new Carbon($request->contractfinishdate) : null;
+        $employee->WorkingScheduleID    = $request->workingscheduleid;
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $dirtyFields = $employee->getDirty();
+        foreach ($dirtyFields as $field => $newdata) {
+            $olddata = $employee->getOriginal($field);
+            if ($olddata != $newdata) {
+                LogsModel::setLog($request->Employee,$employee->Id,15,38,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın sözleşme bilgisini düzenledi","","","",$field,"");
+            }
+        }
 
         if ($employee->save())
             return $employee->fresh();
