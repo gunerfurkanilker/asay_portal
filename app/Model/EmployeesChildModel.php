@@ -4,6 +4,7 @@ namespace App\Model;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EmployeesChildModel extends Model
 {
@@ -15,6 +16,8 @@ class EmployeesChildModel extends Model
     public static function saveEmployeesChild($request)
     {
         $record = $request->childId ? self::find($request->childId) : new EmployeesChildModel();
+
+
 
         if ($request->isEducationContinue == 1)
         {
@@ -48,6 +51,10 @@ class EmployeesChildModel extends Model
             $record->EducationLevelID = null;
             $record->description = null;
         }
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$record->id,15,48,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, çocuk bilgisini düzenlendi","","","","","");
 
         return $record->save() ? true : false;
 

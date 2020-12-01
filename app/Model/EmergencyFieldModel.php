@@ -5,6 +5,7 @@ namespace App\Model;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class EmergencyFieldModel extends Model
 {
@@ -37,16 +38,19 @@ class EmergencyFieldModel extends Model
             $emergencyPersonSecond->Priority = 0;
         }
 
-        $emergencyPersonFirst->BloodTypeID          = $request->BloodTypeID;
         $emergencyPersonFirst->EmergencyPerson      = $request->EmergencyPersonFirst ? $request->EmergencyPersonFirst : "";
         $emergencyPersonFirst->EPDegree             = $request->EmergencyPersonRelationshipDegreeFirst ? $request->EmergencyPersonRelationshipDegreeFirst : "";
         $emergencyPersonFirst->EPGsm                = $request->EmergencyPersonPhoneNoFirst ? $request->EmergencyPersonPhoneNoFirst : "";
 
-        $emergencyPersonSecond->BloodTypeID         = $request->BloodTypeID;
         $emergencyPersonSecond->EmergencyPerson     = $request->EmergencyPersonSecond ? $request->EmergencyPersonSecond : "";
         $emergencyPersonSecond->EPDegree            = $request->EmergencyPersonRelationshipDegreeSecond ? $request->EmergencyPersonRelationshipDegreeSecond : "";
         $emergencyPersonSecond->EPGsm               = $request->EmergencyPersonPhoneNoSecond ? $request->EmergencyPersonPhoneNoSecond : "";
 
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$emergencyPersonFirst->Id,15,50,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, acil durum aranacak kişi alanını düzenledi","","","","","");
+        LogsModel::setLog($request->Employee,$emergencyPersonSecond->Id,15,50,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, acil durum aranacak kişi alanını düzenledi","","","","","");
 
         return $emergencyPersonFirst->save() && $emergencyPersonSecond->save() ? true : false;
 

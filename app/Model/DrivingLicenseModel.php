@@ -4,6 +4,7 @@ namespace App\Model;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class DrivingLicenseModel extends Model
 {
@@ -42,6 +43,11 @@ class DrivingLicenseModel extends Model
         $drivingLicense->EditPerson             = $request->EditPerson;
         $drivingLicense->BackSerialNo           = $request->BackSerialNo;
             //$drivingLicenseID->DrivingLicenceClass = $request['licenseclass'];
+
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$drivingLicense->id,15,49,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, ehliyet bilgilerini düzenledi","","","","","");
 
         return $drivingLicense->save() ? true : false;
 

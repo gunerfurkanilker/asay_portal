@@ -99,12 +99,11 @@ class PaymentController extends ApiController
             }
         }
 
-        $salary = PaymentModel::savePayment($request->all());
+        $salary = PaymentModel::savePayment($request);
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $salary
         ],200);
 
     }

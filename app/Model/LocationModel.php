@@ -5,6 +5,7 @@ namespace App\Model;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class LocationModel extends Model
 {
@@ -31,12 +32,33 @@ class LocationModel extends Model
         else
             $location = new LocationModel();
 
+
+
         $location->EmployeeID   = $request->EmployeeID;
         $location->Address      = $request->Address;
         $location->CityID       = $request->CityID;
         $location->DistrictID   = $request->DistrictID;
         $location->CountryID    = $request->CountryID;
         $location->ZIPCode      = $request->ZIPCode;
+
+        if ($request->LocationID != null)
+        {
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $employee = DB::table("Employee")->find($request->EmployeeID);
+            $dirtyFields = $location->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $location->getOriginal($field);
+                if ($olddata != $newdata) {
+                    LogsModel::setLog($request->Employee,$location->Id,15,46,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın lokasyon bilgisini güncelledi","","","",$field,"");
+                }
+            }
+        }
+        else
+        {
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $employee = DB::table("Employee")->find($request->EmployeeID);
+            LogsModel::setLog($request->Employee,$location->Id,15,46,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın lokasyon bilgisini güncelledi","","","","","");
+        }
 
         return $location->save();
 

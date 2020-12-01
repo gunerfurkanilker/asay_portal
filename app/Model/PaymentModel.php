@@ -59,16 +59,15 @@ class PaymentModel extends Model
 
 
 
-            $salary = self::create([
-
-                'EmployeeID' => $request->EmployeeID,
-                'Pay' => $request->Pay,
-                'CurrencyID' => $request->CurrencyID,
-                'StartDate' => $request->StartDate,
-                'PayPeriodID' => $request->PayPeriod,
-                'PayMethodID' => $request->PayMethod ? 2 : 1,
-                'LowestPayID' => $request->LowestPay ? 1 : 0,
-            ]);
+            $salary = new PaymentModel();
+            $salary->EmployeeID = $request->EmployeeID;
+            $salary->Pay = $request->Pay;
+            $salary->CurrencyID = $request->CurrencyID;
+            $salary->StartDate = $request->StartDate;
+            $salary->PayPeriodID = $request->PayPeriodID;
+            $salary->PayMethodID = $request->PayMethodID;
+            $salary->LowestPayID = $request->LowestPay ? 1 : 0;
+            $salary->save();
 
             if ($currentPayment != null) {
                 $currentPayment->EndDate = $salary->StartDate;
@@ -77,27 +76,31 @@ class PaymentModel extends Model
 
             $additionalPayments = $request->AdditionalPayments;
 
-
+            $loggedUser = DB::table("Employee")->find($request->Employee);
 
             foreach ($additionalPayments as $additionalPayment) {
-                AdditionalPaymentModel::create([
-                    'Pay' => $additionalPayment['Pay'],
-                    'PayPeriodID' => $additionalPayment['PayPeriodID'],
-                    'PayMethodID' => $additionalPayment['PayMethodID'],
-                    'AdditionalPaymentTypeID' => $additionalPayment['AdditionalPaymentTypeID'],
-                    'PaymentID' => $salary->Id,
-                    'AddPayroll' => $additionalPayment['AddPayroll'] ? 1 : 0,
-                    'CurrencyID' => $additionalPayment['CurrencyID'],
-                    'Description' => $additionalPayment['Description']
-                ]);
+
+                $additionalPaymentNew = new AdditionalPaymentModel();
+                $additionalPaymentNew->Pay = $additionalPayment['Pay'];
+                $additionalPaymentNew->PayPeriodID = $additionalPayment['PayPeriodID'];
+                $additionalPaymentNew->PayMethodID = $additionalPayment['PayMethodID'];
+                $additionalPaymentNew->AdditionalPaymentTypeID = $additionalPayment['AdditionalPaymentTypeID'];
+                $additionalPaymentNew->PaymentID = $salary->Id;
+                $additionalPaymentNew->AddPayroll = $additionalPayment['AddPayroll'] ? 1 : 0;
+                $additionalPaymentNew->CurrencyID = $additionalPayment['CurrencyID'];
+                $additionalPaymentNew->Description = $additionalPayment['Description'];
+
+                $additionalPaymentNew->save();
+
+                LogsModel::setLog($request->Employee,$additionalPaymentNew->Id,15,43,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana ek ödeme bilgisi ekledi","","","","","");
             }
 
 
             $employee->PaymentID = $salary->Id;
             $employee->save();
 
-            $loggedUser = DB::table("Employee")->find($request->Employee);
-            LogsModel::setLog($request->Employee,$salary->Id,15,40,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana maaş bilgisi ekledi","","","","","");
+
+            LogsModel::setLog($request->Employee,$salary->Id,15,39,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana maaş bilgisi ekledi","","","","","");
 
         } else {
 
@@ -129,6 +132,15 @@ class PaymentModel extends Model
 
                 array_push($currentAdditionalPaymentIDs, $additionalPayment['AdditionalPaymentTypeID']);
 
+                $loggedUser = DB::table("Employee")->find($request->Employee);
+                $dirtyFields = $tempPayment->getDirty();
+                foreach ($dirtyFields as $field => $newdata) {
+                    $olddata = $tempPayment->getOriginal($field);
+                    if ($olddata != $newdata) {
+                        LogsModel::setLog($request->Employee,$tempPayment->Id,15,40,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın maaş ek ödeme bilgisini düzenledi","","","",$field,"");
+                    }
+                }
+
                 $tempPayment->save();
             }
 
@@ -143,8 +155,6 @@ class PaymentModel extends Model
             }
 
 
-            $salary->save();
-
             $loggedUser = DB::table("Employee")->find($request->Employee);
             $dirtyFields = $salary->getDirty();
             foreach ($dirtyFields as $field => $newdata) {
@@ -153,6 +163,10 @@ class PaymentModel extends Model
                     LogsModel::setLog($request->Employee,$employee->Id,15,40,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın maaş bilgisini düzenledi","","","",$field,"");
                 }
             }
+
+            $salary->save();
+
+
 
 
         }

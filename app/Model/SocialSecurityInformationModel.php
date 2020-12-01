@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class SocialSecurityInformationModel extends Model
 {
@@ -92,8 +93,12 @@ class SocialSecurityInformationModel extends Model
             {
                 $socialSecurityInformation->DisabledTaxDecrease = self::saveDisabiltyTaxDecreaseFile($request,$socialSecurityInformation->Id);
                 $result = $socialSecurityInformation->save();
+
             }
 
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$socialSecurityInformation->Id,15,53,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, sosyal güvenlik bilglerini düzenledi","","","","","");
 
             return $result;
     }

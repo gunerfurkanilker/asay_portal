@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class AgiModel extends Model
 {
@@ -26,15 +27,25 @@ class AgiModel extends Model
         $agiID = self::find($agiID);
 
         if ($agiID != null) {
-            $agiID->EmployeeID = $request['employeeid'];
-            $agiID->MaritalStatusID = $request['maritalstatus'];
-            $agiID->SpouseWorkingStatusID = isset($request['spouseworkingstatus'])  ?  $request['spouseworkingstatus']:null ;
-            $agiID->TotalChildren = $request['totalchildren'];
-            $agiID->PrePrimaryChild = $request['preprimarychild'];
-            $agiID->PrimaryChild = $request['primarychild'];
-            $agiID->MiddleSchoolChild = $request['middleschoolchild'];
-            $agiID->HighSchoolChild = $request['highschoolchild'];
-            $agiID->UniversityChild = $request['universitychild'];
+            $agiID->EmployeeID = $request->employeeid;
+            $agiID->MaritalStatusID = $request->maritalstatus;
+            $agiID->SpouseWorkingStatusID = isset($request->spouseworkingstatus)  ?  $request->spouseworkingstatus:null ;
+            $agiID->TotalChildren = $request->totalchildren;
+            $agiID->PrePrimaryChild = $request->preprimarychild;
+            $agiID->PrimaryChild = $request->primarychild;
+            $agiID->MiddleSchoolChild = $request->middleschoolchild;
+            $agiID->HighSchoolChild = $request->highschoolchild;
+            $agiID->UniversityChild = $request->universitychild;
+
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $employee = DB::table("Employee")->find($request->employeeid);
+            $dirtyFields = $agiID->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $agiID->getOriginal($field);
+                if ($olddata != $newdata) {
+                    LogsModel::setLog($request->Employee,$agiID->Id,15,47,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın asgari geçim indirimi bilgisini güncelledi","","","",$field,"");
+                }
+            }
 
             $agiID->save();
 
@@ -46,17 +57,21 @@ class AgiModel extends Model
 
     public static function addAgi($request)
     {
-        $agiID = self::create([
-            'EmployeeID' => $request['employeeid'],
-            'MaritalStatusID' => $request['maritalstatus'],
-            'SpouseWorkingStatusID' => $request['spouseworkingstatus'],
-            'TotalChildren' => $request['totalchildren'],
-            'PrePrimaryChild' => $request['preprimarychild'],
-            'PrimaryChild' => $request['primarychild'],
-            'MiddleSchoolChild' => $request['middleschoolchild'],
-            'HighSchoolChild' => $request['highschoolchild'],
-            'UniversityChild' => $request['universitychild']
-        ]);
+        $agiID = new AgiModel();
+
+        $agiID->EmployeeID = $request->employeeid;
+        $agiID->MaritalStatusID = $request->maritalstatus;
+        $agiID->SpouseWorkingStatusID = $request->spouseworkingstatus;
+        $agiID->TotalChildren = $request->totalchildren;
+        $agiID->PrePrimaryChild = $request->preprimarychild;
+        $agiID->PrimaryChild = $request->primarychild;
+        $agiID->MiddleSchoolChild = $request->middleschoolchild;
+        $agiID->HighSchoolChild = $request->highschoolchild;
+        $agiID->UniversityChild = $request->universitychild;
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->employeeid);
+        LogsModel::setLog($request->Employee,$agiID->Id,15,47,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın asgari geçim indirimi bilgisini güncelledi","","","",$field,"");
 
         if ($agiID != null)
         {

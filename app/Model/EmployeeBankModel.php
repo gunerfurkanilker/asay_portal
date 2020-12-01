@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeBankModel extends Model
 {
@@ -53,6 +54,13 @@ class EmployeeBankModel extends Model
         $jobAllowanceAccount->AccountNo  = ((object)$request->JobAllowanceAccount)->AccountNo;
         $jobAllowanceAccount->IBAN       = ((object)$request->JobAllowanceAccount)->IBAN;
         $jobAllowanceAccount->BranchNo   = ((object)$request->JobAllowanceAccount)->BranchNo;
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$paymentAccount->Id,15,54,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, banka bilgilerini düzenledi","","","","","");
+        LogsModel::setLog($request->Employee,$personalAccount->Id,15,54,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, banka bilgilerini düzenledi","","","","","");
+        LogsModel::setLog($request->Employee,$jobAllowanceAccount->Id,15,54,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, banka bilgilerini düzenledi","","","","","");
+
 
         return $paymentAccount->save() && $personalAccount->save() && $jobAllowanceAccount->save() ? true : false;
 

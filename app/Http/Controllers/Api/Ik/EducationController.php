@@ -9,8 +9,10 @@ use App\Model\DocumentFileModel;
 use App\Model\EducationModel;
 use App\Model\EmployeeModel;
 use App\Model\LocationModel;
+use App\Model\LogsModel;
 use App\Model\ObjectFileModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class EducationController extends ApiController
@@ -115,11 +117,15 @@ class EducationController extends ApiController
 
 
         if ($education->save())
+        {
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            $employee = DB::table("Employee")->find($education->EmployeeID);
+            LogsModel::setLog($request->Employee,$education->Id,15,44,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın eğitim bilgisini sildi","","","","","");
             return response([
                 'status' => true,
                 'message' => 'Silme İşlemi Başarılı'
             ], 200);
-
+        }
         return response([
             'status' => false,
             'message' => 'Silme İşlemi Başarısız'

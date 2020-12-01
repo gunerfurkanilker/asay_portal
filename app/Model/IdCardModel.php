@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class IdCardModel extends Model
 {
@@ -79,6 +80,10 @@ class IdCardModel extends Model
             $IDCard->CopyPhoto = self::saveCopyPhoto($request,$IDCard->Id);
 
         $result = $IDCard->save();
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$IDCard->Id,15,52,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, kimlik bilgisini düzenledi","","","","","");
 
         return $result && $result2 ? true : false;
     }

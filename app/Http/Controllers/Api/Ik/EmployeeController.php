@@ -359,10 +359,9 @@ class EmployeeController extends ApiController
     public function saveContactInformation(Request $request)
     {
 
-        $requestData = $request->all();
-        $employee = EmployeeModel::find($requestData['employeeid']);
+        $employee = EmployeeModel::find($request->employeeid);
 
-        $freshData = EmployeeModel::saveContactInformation($employee, $requestData);
+        $freshData = EmployeeModel::saveContactInformation($employee, $request);
 
         if ($freshData)
             return response([

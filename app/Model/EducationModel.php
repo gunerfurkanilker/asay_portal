@@ -20,25 +20,29 @@ class EducationModel extends Model
     public static function saveEducation($request)
     {
         $education = EducationModel::find($request->EducationID);
-
-        if ($education == null)
-            $education = new EducationModel();
-
         $employee = EmployeeModel::find($request->EmployeeID);
+        $bool = true;
+        if ($education == null)
+        {
+            $education = new EducationModel();
+            $loggedUser = DB::table("Employee")->find($request->Employee);
+            LogsModel::setLog($request->Employee,$education->Id,15,41,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana eğitim bilgisi ekledi","","","","","");
+            $bool = false;
+        }
 
         $education->EmployeeID = $request->EmployeeID;
         $education->StatusID = $request->EducationStatus;
         $education->Institution = $request->Institution;
         $education->LevelID = $request->EducationLevel;
 
-        if ($education != null)
+        if ($bool)
         {
             $loggedUser = DB::table("Employee")->find($request->Employee);
             $dirtyFields = $education->getDirty();
             foreach ($dirtyFields as $field => $newdata) {
                 $olddata = $education->getOriginal($field);
                 if ($olddata != $newdata) {
-                    LogsModel::setLog($request->Employee,$education->Id,15,40,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın eğitim bilgisini düzenledi","","","",$field,"");
+                    LogsModel::setLog($request->Employee,$education->Id,15,42,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın eğitim bilgisini düzenledi","","","",$field,"");
                 }
             }
         }
@@ -80,15 +84,6 @@ class EducationModel extends Model
             }
 
         }
-
-        if ($education == null)
-        {
-            $loggedUser = DB::table("Employee")->find($request->Employee);
-            LogsModel::setLog($request->Employee,$education->Id,15,40,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışana maaş bilgisi ekledi","","","","","");
-        }
-
-
-
         return $result;
 
     }

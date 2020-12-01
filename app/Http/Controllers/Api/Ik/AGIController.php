@@ -19,9 +19,9 @@ class AGIController extends ApiController
         $agi = AgiModel::where(['EmployeeID' => $request_data['employeeid']])->first();
 
         if ($agi)
-            $agi = AgiModel::saveAgi($request_data, $agi->Id);
+            $agi = AgiModel::saveAgi($request, $agi->Id);
         else
-            $agi = AgiModel::addAgi($request_data);
+            $agi = AgiModel::addAgi($request);
 
         if ($agi)
             return response([

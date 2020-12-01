@@ -5,6 +5,7 @@ namespace App\Model;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class BodyMeasurementModel extends Model
 {
@@ -20,16 +21,21 @@ class BodyMeasurementModel extends Model
 
     public static function saveBodyMeasurements($request)
     {
-        if ($request->BodyMeasurementID != null)
-            $bodyMeasurement = self::find($request->BodyMeasurementID)->first();
-        else
+
+        $bodyMeasurement = self::where(['EmployeeID' => $request->EmployeeID])->first();
+        if (!$bodyMeasurement)
             $bodyMeasurement = new BodyMeasurementModel();
+
 
         $bodyMeasurement->EmployeeID = $request->EmployeeID;
         $bodyMeasurement->UpperBody = $request->UpperBody;
         $bodyMeasurement->LowerBody = $request->LowerBody;
         $bodyMeasurement->ShoeSize = $request->ShoeSize;
 
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $employee = DB::table("Employee")->find($request->EmployeeID);
+        LogsModel::setLog($request->Employee,$bodyMeasurement->Id,15,51,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın, giyim aksesuar bilgisini düzenledi","","","","","");
 
         return $bodyMeasurement->save();
 

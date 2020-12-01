@@ -310,13 +310,22 @@ class EmployeeModel extends Model
             return false;
     }
 
-    public static function saveContactInformation($employee,$requestData)
+    public static function saveContactInformation($employee,$request)
     {
 
-        $employee->MobilePhone = $requestData['personalmobilephone'];
-        $employee->HomePhone = $requestData['personalhomephone'];
-        $employee->Email = $requestData['personalemail'];
-        $employee->REMMail = $requestData['kepemail'];
+        $employee->MobilePhone = $request->personalmobilephone;
+        $employee->HomePhone = $request->personalhomephone;
+        $employee->Email = $request->personalemail;
+        $employee->REMMail = $request->kepemail;
+
+        $loggedUser = DB::table("Employee")->find($request->Employee);
+        $dirtyFields = $employee->getDirty();
+        foreach ($dirtyFields as $field => $newdata) {
+            $olddata = $employee->getOriginal($field);
+            if ($olddata != $newdata) {
+                LogsModel::setLog($request->Employee,$employee->Id,15,45,$olddata,$newdata,$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adındaki çalışanın iletişim bilgisini güncelledi","","","",$field,"");
+            }
+        }
 
 
         if ($employee->save())
