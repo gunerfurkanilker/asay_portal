@@ -103,18 +103,30 @@ class PermitController extends ApiController
         $employee = EmployeeModel::find($request->Employee);
 
         if (!isset($request->status) || $request->status == null)
+        {
+            $permitQ = PermitModel::where(['active' => 1, 'EmployeeID' => $employee->Id]);
+            $request->Correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
+            $permits = $permitQ->get();
             return response([
                 'status' => true,
                 'message' => "İşlem Başarılı",
-                'data' => PermitModel::where(['active' => 1, 'EmployeeID' => $employee->Id])->get()
+                'data' => $permits
             ], 200);
+        }
+
 
         else
+        {
+            $permitQ = PermitModel::where(['EmployeeID' => $employee->Id, 'status' => $request->status, 'active' => 1]);
+            $request->Correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
+            $permits = $permitQ->get();
             return response([
                 'status' => true,
                 'message' => "İşlem Başarılı",
-                'data' => PermitModel::where(['EmployeeID' => $employee->Id, 'status' => $request->status, 'active' => 1])->get()
+                'data' => $permits
             ], 200);
+        }
+
 
 
     }
@@ -417,6 +429,8 @@ class PermitController extends ApiController
         $status = ($request->status !== null) ? $request->status : null;
         $status = $status == "2" || $status == "3" || $status == "4" ? intval($status) : 1;
 
+        $correction = $request->Correction;
+
         $ApprovalStatus = ($request->ApprovalStatus !== null) ? intval($request->ApprovalStatus) : null;
         if (($ApprovalStatus == 1 || $ApprovalStatus == 2) && $status <> 4) {
             $QueryStatus = $status + 1;
@@ -432,13 +446,13 @@ class PermitController extends ApiController
         $permitQ = PermitModel::where(["active" => 1])->whereNotIn("netsis", [1]);
         if ($status == 1) {
             $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerId" => $request->Employee])->pluck("EmployeeID");
-
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "manager_status" => $ApprovalStatus]);
+            $correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
         } else if ($status == 2) {
             $hrRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "PropertyValue" => $request->Employee])->pluck("RegionID");
             $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
-
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "hr_status" => $ApprovalStatus]);
+            $correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
         } else if ($status == 3) {
             $psRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "PropertyValue" => $request->Employee])->pluck("RegionID");
             $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $psRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
@@ -465,6 +479,16 @@ class PermitController extends ApiController
             ], 200);
         }
         $permit = PermitModel::find($permitId);
+        if ($permit->correction_status == 1 && $permit->EmployeeID == $request->Employee)
+        {
+            $permit->correction_status = 0;
+            $permit->save();
+
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı'
+            ],200);
+        }
         $status = self::permitAuthority($permit, $request->Employee, "confirm");
         if ($status == false) {
             return response([

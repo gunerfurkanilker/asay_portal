@@ -30,8 +30,7 @@ class ContactUsController extends ApiController
 
             if ($result)
             {
-                $mailTo = "ilker.guner@asay.com.tr";
-                //$mailTo = "projeyonetim@ms.asay.com.tr";
+                $mailTo = "Projeyonetim@ms.asay.com.tr";
 
                 $mailTable = view("mails.contact-us",[
                     'employee' => $employee, 'contactUs' => $contactUs

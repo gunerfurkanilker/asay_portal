@@ -44,12 +44,42 @@ class PermitModel extends Model
         $newPermit->EmployeeID      = $req->RequestFromHR ? $req->EmployeeID : $EmployeeID;
         $req->RequestFromHR ? $newPermit->status = 1 : '';
 
-        $newPermit->kind            = $req->kind;
-        $newPermit->description     = $req->description;
-        $newPermit->start_date      = $req->startDate;
-        $newPermit->end_date        = $req->endDate;
-        $newPermit->transfer_id     = $req->transfer_id;
-        $newPermit->permit_address  = $req->permitAddress;
+        $newPermit->kind                    = $req->kind;
+        $newPermit->description             = $req->description;
+        $newPermit->start_date              = $req->startDate;
+        $newPermit->end_date                = $req->endDate;
+        $newPermit->transfer_id             = $req->transfer_id;
+        $newPermit->permit_address          = $req->permitAddress;
+        $newPermit->correction_description  = $req->correctionDescription;
+        if ($req->CorrectionRequest) // Düzeltme isteği ise
+        {
+            $dirtyFields = $newPermit->getDirty();
+            $dirtyFieldsArray = [];
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $newPermit->getOriginal($field);
+                if ($field == 'correction_description')
+                    continue;
+                if ($olddata != $newdata) {
+                    $dataObject = new \stdClass();
+                    $dataObject->changedFieldName = self::columnNameToTurkish($field);
+                    $dataObject->oldData = $olddata;
+                    $dataObject->newData = $newdata;
+                    array_push($dirtyFieldsArray, $dataObject);
+                    $newPermit->correction_description .= "\n\n" . $dataObject->changedFieldName ." (İlk Değer) : " . $dataObject->oldData . "\n" .
+                        $dataObject->changedFieldName ." (Düzenlenen Değer) : " . $dataObject->newData;
+                }
+            }
+
+            if ($newPermit->status == 1)
+            {
+                $newPermit->correction_status = 1;
+            }
+            elseif ($newPermit->status == 2)
+            {
+                $newPermit->correction_status = 2;
+            }
+
+        }
         $newPermit->used_day        = $totalPermitDayHour['UsedDay'];
         $newPermit->over_hour       = $totalPermitDayHour['OverHour'];
         $newPermit->over_minute     = $totalPermitDayHour['OverMinute'];
@@ -524,6 +554,24 @@ class PermitModel extends Model
         }
 
 
+    }
+
+    public static function columnNameToTurkish($columnName)
+    {
+        switch ($columnName) {
+            case 'transfer_id':
+                return 'Yerine Bakacak Kişi';
+            case 'permit_address':
+                return 'Dinlendirme İzninin Geçirileceği Adres ve Telefon Numarası';
+            case 'description':
+                return 'Açıklama';
+            case 'start_date':
+                return 'Başlangıç Tarihi';
+            case 'end_date':
+                return 'Bitiş Tarihi';
+            case 'kind':
+                return 'İzin Türü';
+        }
     }
 
     public function getPermitKindAttribute()

@@ -377,4 +377,84 @@ class EmployeeController extends ApiController
 
     }
 
+    public function sendSMSCode(Request $request)
+    {
+        $employee = EmployeeModel::find($request->Employee);
+        $username = "8503073830"; //
+        $password = "N7LERJ4F"; //
+
+        $url= "https://api.netgsm.com.tr/sms/send/get";
+
+        $randomNumber = rand(100000,999999);
+        $employee->SMSCode = $randomNumber;
+        $employee->save();
+
+        $message = "Sayın " . $employee->UsageName . ' ' .$employee->LastName .", aSAY Connect erişim şifreniz : ".$randomNumber;
+        $messageHeader = "aSAY";
+        $guzzleParams = [
+            'query' => [
+                'usercode'      => $username,
+                'password'      => $password,
+                'gsmno'         => $employee->JobMobilePhone,
+                'message'       => $message,
+                'msgheader'     => $messageHeader
+            ],
+        ];
+
+        $client = new \GuzzleHttp\Client();
+        $res = $client->request("GET", $url,$guzzleParams);
+        $responseBody = json_decode($res->getBody());
+
+        $responseBodyArray = explode(" ",$responseBody); // 00 => hata kodu 123456 => SMS kontrol kodu
+
+        if ($responseBodyArray[0] == "20")
+            return response([
+                'status' => false,
+                'message' => 'Mesaj karakter sınırını aşıyor.'
+            ],200);
+        if ($responseBodyArray[0] == "30")
+            return response([
+                'status' => false,
+                'message' => 'API username veya password hatası'
+            ],200);
+        if ($responseBodyArray[0] == "40")
+            return response([
+                'status' => false,
+                'message' => 'Gönderici adı sistemde kayıtlı değil'
+            ],200);
+        if ($responseBodyArray[0] == "70")
+            return response([
+                'status' => false,
+                'message' => 'Hatalı parametre gönderdiniz, parametreleri kontrol ediniz'
+            ],200);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+        ],200);
+
+    }
+
+    public function verifySMSCode(Request $request)
+    {
+        $smsCode = EmployeeModel::where(['Id' => $request->Employee, 'SMSCode' => $request->verifyCode])->first();
+
+        if ($smsCode)
+        {
+            $smsCode->SMSCode = null;
+            $smsCode->save();
+            return response([
+                'status' => true,
+                'message' => 'Kod doğru'
+            ],200);
+        }
+
+        else
+            return response([
+                'status' => false,
+                'message' => 'Kod yanlış'
+            ]);
+
+    }
+
 }

@@ -158,6 +158,8 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
+            Route::post('employee/verifySMSCode', "EmployeeController@verifySMSCode")->name("verifySMSCode");
+            Route::get('employee/sendSMSCode', "EmployeeController@sendSMSCode")->name("sendSMSCode");
             Route::get('employee/searchEmployee', "EmployeeController@searchEmployees")->name("search_employees");
             Route::get('employee/all', "EmployeeController@allEmployees")->name("all_employees");
             Route::get('employee/employeeFullRecorded', "EmployeeController@employeeFullRecorded")->name("is_employee_full_recorded");
