@@ -70,15 +70,13 @@ class PermitModel extends Model
                 }
             }
 
+            $newPermit->correction_status = 1;
             if ($newPermit->status == 1)
-            {
-                $newPermit->correction_status = 1;
-            }
-            elseif ($newPermit->status == 2)
-            {
-                $newPermit->correction_status = 2;
-            }
-
+                NotificationsModel::saveNotification($newPermit->EmployeeID,3,$newPermit->id,$newPermit->PermitKind['name'],
+                    $newPermit->PermitKind['name']." talebiniz için yöneticiniz tarafından düzenleme talep edildi","my-permits/".$newPermit->id);
+            elseif($newPermit->status == 2)
+                NotificationsModel::saveNotification($newPermit->EmployeeID,3,$newPermit->id,$newPermit->PermitKind['name'],
+                    $newPermit->PermitKind['name']." talebiniz için insan kaynakları birimi tarafından düzenleme talep edildi","my-permits/".$newPermit->id);
         }
         $newPermit->used_day        = $totalPermitDayHour['UsedDay'];
         $newPermit->over_hour       = $totalPermitDayHour['OverHour'];
@@ -90,7 +88,7 @@ class PermitModel extends Model
         if($result)
         {
             $req->RequestFromHR ? $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $req->EmployeeID])->first() : $employeePosition = null;
-            $req->RequestFromHR ? NotificationsModel::saveNotification($employeePosition->ManagerID,3,$freshPermit->id,$freshPermit->PermitKind->Name,$freshPermit->PermitKind->Name." talebi, onayınızı bekliyor","permits/".$freshPermit->id) : '';
+            $req->RequestFromHR ? NotificationsModel::saveNotification($employeePosition->ManagerID,3,$freshPermit->id,$freshPermit->PermitKind['name'],$freshPermit->PermitKind['name']." talebi, onayınızı bekliyor","permits/".$freshPermit->id) : '';
         }
         return $result ? $newPermit->fresh() : false;
     }
@@ -423,7 +421,7 @@ class PermitModel extends Model
         $permitKind = $permit->PermitKind['name'];
         $permitStartDate = date("d.m.Y H:i:s", strtotime($permit->start_date));
         $permitEndDate = date("d.m.Y H:i:s", strtotime($permit->end_date));
-        $permitCount = $permit->used_day. ' gün, ' . $permit->over_hour . ' saat';
+        $permitCount = $permit->used_day. ' gün, ' . $permit->over_hour . ' saat, ' . $permit->over_minute .' dakika';
         $permitAddress = $permit->permit_address;
         $employeeManagerFullName = $employee->EmployeePosition->Manager->UsageName . ' ' . $employee->EmployeePosition->Manager->LastName;
         $employeePositionStartDate =  date("d.m.Y", strtotime($employee->EmployeePosition->StartDate));

@@ -6,11 +6,13 @@ namespace App\Http\Controllers\Api\Common;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeHasGroupModel;
+use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuthorityController extends ApiController
 {
@@ -46,12 +48,9 @@ class AuthorityController extends ApiController
 
 
         $userGroupCount = EmployeePositionModel::where(["EmployeeID"=>$request->Employee, 'Active' => 2])->whereIn('TitleID',[98,99,100])->count();
-        if ($userGroupCount > 0) {
-            $userPosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->Employee])->first();
-            $processSetting = ProcessesSettingsModel::where(['object_type' => $request->ObjectType,'PropertyCode' => 'HRManager', 'RegionID' => $userPosition->RegionID,'PropertyValue' => $request->Employee])->count();
-            if ($processSetting > 0){
-                $isHRPersonel = true;
-            }
+        $exceptionalEmployees = [753,754];// Onur Bey ve Bahadır'ın Employee ID'leri istisna durumlar
+        if ($userGroupCount > 0 || in_array($request->Employee,$exceptionalEmployees)) {
+            $isHRPersonel = true;
         }
 
         $permitPersonelCount = ProcessesSettingsModel::where(['object_type' => 3, 'PropertyCode' => 'PersonnelSpecialist', 'PropertyValue' => $request->Employee])->count();

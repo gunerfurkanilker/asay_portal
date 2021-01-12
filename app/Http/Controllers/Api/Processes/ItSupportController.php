@@ -13,6 +13,7 @@ use App\Model\PriorityModel;
 use App\Model\ITSupportCategoryModel;
 use App\Model\ITSupportModel;
 use App\Model\ITSupportRequestTypeModel;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,10 @@ class ItSupportController extends ApiController
 
     public function getEmployeeList(Request $request)
     {
-        $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
+
+        $employees =DB::table("Employee")->where(['Active' => 1])->where("Id",">",999)->get();
+
+        /*$employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
 
         $employeePositions = EmployeePositionModel::where(['Active' => 2,'RegionID' => $employeePosition->RegionID])->get();
 
@@ -32,12 +36,12 @@ class ItSupportController extends ApiController
         {
             $tempEmployee = EmployeeModel::find($employeePosition->EmployeeID);
             array_push($employeeArray,$tempEmployee);
-        }
+        }*/
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $employeeArray
+            'data' => $employees
         ],200);
 
     }
@@ -133,7 +137,7 @@ class ItSupportController extends ApiController
 
             $mail = view('mails.it-support', ["itSupport"=>$itSupport,"employee" => $employee]);
             NotificationsModel::saveNotification($request->RequestedFrom,11,$itSupport->id,"IT Destek",$itSupport->Subject." için oluşturmuş olduğunuz IT destek kaydı sistemimize kaydedilmiştir","");
-            Asay::sendMail("bahadir.senturk@asay.com.tr",$employee->JobEmail,"IT Destek",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
+            Asay::sendMail("itdestek@ms.asay.com.tr",$employee->JobEmail,"IT Destek",$mail,"aSAY Group",$itSupport->FileUrl,$itSupport->FileName,$itSupport->Mime);
 
             return response([
                 "status"    => true,

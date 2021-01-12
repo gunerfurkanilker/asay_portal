@@ -64,7 +64,6 @@ class EmployeeModel extends Model
         try
         {
             $employee->save();
-            $employee = $employee->fresh();
             $loggedUser = DB::table("Employee")->find($request->Employee);
             LogsModel::setLog($request->Employee,$employee->Id,15,34,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adında bir çalışan oluşturdu","","","","","");
 

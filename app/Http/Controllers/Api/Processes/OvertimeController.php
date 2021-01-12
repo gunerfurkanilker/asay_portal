@@ -11,6 +11,7 @@ use App\Model\OvertimeKindModel;
 use App\Model\OvertimeModel;
 use App\Model\OvertimeStatusModel;
 use App\Model\ProjectsModel;
+use App\Model\PublicHolidayModel;
 use App\Model\UserProjectsModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,43 +29,36 @@ class OvertimeController extends ApiController
             return response([
                 'status' => false,
                 'message' => 'Kayıt Bulunamadı',
-            ],200);
+            ], 200);
 
-        if($request->Page === "overtime")
-        {
+        if ($request->Page === "overtime") {
             if ($request->Employee !== $overtime->AssignedID)
                 return response([
                     'status' => false,
                     'message' => 'Yetkisiz İşlem'
-                ],200);
-        }
-
-        elseif ($request->Page === "overtime-manager")
-        {
-            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
+                ], 200);
+        } elseif ($request->Page === "overtime-manager") {
+            $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtime->AssignedID])->first();
             if ($employeePosition->UnitSupervisorID !== $request->Employee && $employeePosition->ManagerID !== $request->Employee)
                 return response([
                     'status' => false,
                     'message' => 'Yetkisiz İşlem'
-                ],200);
-        }
-
-        elseif ($request->Page === "overtime-hr")
-        {
-            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $overtime->AssignedID])->first();
-            $hrPersonnels = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->whereIn('TitleID',[98,99,100])->get();
+                ], 200);
+        } elseif ($request->Page === "overtime-hr") {
+            $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtime->AssignedID])->first();
+            $hrPersonnels = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])->whereIn('TitleID', [98, 99, 100])->get();
             $idArray = [];
             foreach ($hrPersonnels as $hrPersonnel)
-                array_push($idArray,$hrPersonnel->EmployeeID);
-            if(!in_array($request->Employee,$idArray))
+                array_push($idArray, $hrPersonnel->EmployeeID);
+            if (!in_array($request->Employee, $idArray))
                 return response([
                     'status' => false,
                     'message' => 'Yetkisiz İşlem'
-                ],200);
+                ], 200);
         }
 
         $data = [];
-        array_push($data,$overtime);
+        array_push($data, $overtime);
         return response([
             'status' => true,
             'messsage' => 'İşlem Başarılı',
@@ -102,6 +96,82 @@ class OvertimeController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $overtimes,
             'amounts' => $amount
+        ], 200);
+
+    }
+
+    public function getOvertimeHRReports(Request $request)
+    {
+
+        $overtimes = [];
+
+        if ($request->OvertimeStatus == 1 || $request->OvertimeStatus == 4) {
+            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
+                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ1->where(['KindID' => $request->KindID]);
+            if ($request->OvertimeStatus)
+                $overtimeQ1->where(['StatusID' => $request->OvertimeStatus]);
+
+            $overtimes = $overtimeQ1->get();
+
+        }
+        else if ($request->OvertimeStatus == 6 || $request->OvertimeStatus == 8 || $request->OvertimeStatus == 9 || $request->OvertimeStatus == 10) {
+            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
+                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ2->where(['KindID' => $request->KindID]);
+            if ($request->OvertimeStatus)
+                $overtimeQ2->where(['StatusID' => $request->OvertimeStatus]);
+
+            $overtimes = $overtimeQ2->get();
+
+        }
+        else
+        {
+            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
+                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ1->where(['KindID' => $request->KindID]);
+
+            $overtimeQ1->whereIn("StatusID", [1, 4]);
+
+            $dataQ1 = $overtimeQ1->get();
+
+            foreach ($dataQ1 as $item)
+                array_push($overtimes,$item);
+
+            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
+                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ2->where(['KindID' => $request->KindID]);
+
+            $overtimeQ2->whereIn("StatusID", [6, 8, 9, 10]);
+
+            $dataQ2 = $overtimeQ2->get();
+
+            foreach ($dataQ2 as $item)
+                array_push($overtimes,$item);
+
+        }
+
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $overtimes
         ], 200);
 
     }
@@ -194,7 +264,8 @@ class OvertimeController extends ApiController
 
     public function managersProjectList(Request $request)
     {
-        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $request->Employee])->get();
+        $employeeID = isset($request->EmployeeID) ? $request->EmployeeID : $request->Employee;
+        $managersProjects = UserProjectsModel::where(['Active' => 1, 'EmployeeID' => $employeeID])->get();
         $managerProjectList = [];
 
         foreach ($managersProjects as $managersProject) {
@@ -322,6 +393,42 @@ class OvertimeController extends ApiController
             ], 200);
 
         $data = OvertimeModel::getRemainingOvertimeLimits($request);
+
+    }
+
+    public function getOvertimeKindByDate(Request $request)
+    {
+
+
+        $beginDate = Carbon::createFromFormat("Y-m-d", $request->BeginDate);
+
+        $publicHolidayRecCount = PublicHolidayModel::whereDate('end_date', ">", $beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day)
+            ->whereRaw('? >= DATE(start_date)', [$beginDate->year . '-' . $beginDate->month . '-' . $beginDate->day])
+            ->count();
+        if ($publicHolidayRecCount > 0) {
+
+            return response([
+                'status' => true,
+                'message' => 'Resmi Tatil',
+                'data' => 3
+            ], 200);
+        }
+
+        $weekDay = date('w', strtotime($request->BeginDate));
+        if ($weekDay == 0) {
+            return response([
+                'status' => true,
+                'message' => 'Hafta Sonu',
+                'data' => 2
+            ], 200);
+        }
+
+        return response([
+            'status' => true,
+            'message' => 'Is Gunu',
+            'data' => 1
+        ], 200);
+
 
     }
 

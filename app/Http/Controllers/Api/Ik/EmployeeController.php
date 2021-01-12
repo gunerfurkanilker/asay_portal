@@ -31,7 +31,7 @@ class EmployeeController extends ApiController
         $recordPerPage = $request->RecordPerPage;
         $searchText = $request->SearchText;
 
-        $employeesQ = EmployeeModel::where(['Active' => 1]);
+        $employeesQ = $request->isHrEmployee == 'true' ? EmployeeModel::whereIn("Active",[1,0]) : EmployeeModel::where(['Active' => 1])->where("Id",">=",753)->where("Id","!=","1636");
         $employeesQ = $employeesQ->where(function ($query) use ($searchText) {
             $query->orWhere(DB::table("Employee")->raw("CONCAT_WS(' ', LastName, UsageName)"), 'like', '%'.$searchText.'%');
             $query->orWhere(DB::table("Employee")->raw("CONCAT_WS(' ', UsageName, LastName)"), 'like', '%'.$searchText.'%');
@@ -40,6 +40,22 @@ class EmployeeController extends ApiController
         $dataCount = $employeesQ->count();
         $employeesQ = $employeesQ->offset($page)->take($recordPerPage)->orderBy("UsageName","asc");
         $employees = $employeesQ->get();
+
+        foreach ($employees as $employee) {
+            $countsOfPositions = DB::table("EmployeePosition")->where("EmployeeID", $employee->Id)->whereIn("Active", [1, 2])->count();
+            $countsOfPayments = PaymentModel::where(["EmployeeID" => $employee->Id, "Active" => 1])->count();
+            $countsOfContractType = EmployeeModel::where(['Id' => $employee->Id])->whereNotNull("ContractTypeID")->count();
+
+            if ($employee->Active == 0)
+                $statusVal = "İşten Ayrılan";
+            else if ($countsOfPositions < 1 || $countsOfPayments < 1 || $countsOfContractType < 1)
+                $statusVal = "Çalışan Adayı";
+            else
+                $statusVal = "Aktif Çalışan";
+
+            $employee->StatusVal = $statusVal;
+
+        }
 
 
         if (count($employees) > 0)
@@ -383,19 +399,38 @@ class EmployeeController extends ApiController
         $username = "8503073830"; //
         $password = "N7LERJ4F"; //
 
+
         $url= "https://api.netgsm.com.tr/sms/send/get";
 
         $randomNumber = rand(100000,999999);
         $employee->SMSCode = $randomNumber;
         $employee->save();
+        if ($request->SMSType == null || $request->SMSType == '')
+        {
+            return response([
+                'status' => false,
+                'message' => 'SMSType alanı boş olamaz'
+            ],200);
+        }
+        $phoneNumber = '';
+        switch ($request->SMSType)
+        {
+            case 'login':
+                $message = "Sayın " . $employee->UsageName . ' ' .$employee->LastName .", aSAY Connect erişim şifreniz : ".$randomNumber;
+                $phoneNumber = $employee->JobMobilePhone;
+                break;
+            case 'accessType':
+                $message = "Sayın Birsel Nalkıran, ". $request->EmployeeName ." adlı çalışan için ik erişim yetkisi talep edilmiştir. Bu işlemin gerçekleştirilmesi için ". $employee->UsageName.' '.$employee->LastName ." adlı çalışana iletmeniz gereken kod : ".$randomNumber;
+                $phoneNumber = '5051095345';
+                break;
 
-        $message = "Sayın " . $employee->UsageName . ' ' .$employee->LastName .", aSAY Connect erişim şifreniz : ".$randomNumber;
+        }
         $messageHeader = "aSAY";
         $guzzleParams = [
             'query' => [
                 'usercode'      => $username,
                 'password'      => $password,
-                'gsmno'         => $employee->JobMobilePhone,
+                'gsmno'         => $phoneNumber,
                 'message'       => $message,
                 'msgheader'     => $messageHeader
             ],

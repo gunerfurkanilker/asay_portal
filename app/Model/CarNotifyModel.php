@@ -88,9 +88,9 @@ class CarNotifyModel extends Model
             $mailData = ['employee' => $employee, 'ticket' => $carNotify];
             $mailTable = view('mails.vehicle-notify', $mailData);
 
-            $mailTo = "ilker.guner@asay.com.tr";
+            $mailTo="";
 
-            /*switch ($employee->EmployeePosition->Organization->id)
+            switch ($employee->EmployeePosition->Organization->id)
             {
                 case 4:
                     if ($employee->EmployeePosition->RegionID == 1) // Bursa ise
@@ -106,13 +106,13 @@ class CarNotifyModel extends Model
                 default:
                     $mailTo = "aracfilo@asay.com.tr";
                     break;
-            }*/
+            }
 
 
             if ($file)
-                Asay::sendMail("bahadir.senturk@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group",$file->FilePath, $file->FileName, $file->MimeType);
+                Asay::sendMail($mailTo, $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group",$file->FilePath, $file->FileName, $file->MimeType);
             else
-                Asay::sendMail("bahadir.senturk@asay.com.tr", $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group");
+                Asay::sendMail($mailTo, $employee->JobEmail, "Araç Bildirim", $mailTable, "aSAY Group");
 
             return ['status' => true,'message' => 'İşlem Başarılı'];
         }

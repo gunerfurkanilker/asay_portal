@@ -107,10 +107,30 @@ class PermitController extends ApiController
             $permitQ = PermitModel::where(['active' => 1, 'EmployeeID' => $employee->Id]);
             $request->Correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
             $permits = $permitQ->get();
+            $permitQ = DB::table("Permits")->where(["active" => 1,'EmployeeID' => $request->Employee]);
+
+            $permitCountQ1 = clone $permitQ; //Kaydedilenler Query
+            $permitCountQ2 = clone $permitQ; //Yönetici Onayı Bekleyenler Query
+            $permitCountQ3 = clone $permitQ; //İk Onayı Bekleyenler Query
+            $permitCountQ4 = clone $permitQ; //Evrak Onayı Bekleyenler Query
+            $permitCountQ5 = clone $permitQ; //Yönetici Düzenleme Query
+            $permitCountQ6 = clone $permitQ; //İk düzenleme Query
+            $permitCountQ7 = clone $permitQ; //Tamamlananlar Query
+
+
+            $countData["Status_0"] = $permitCountQ1->where(["status" => 0, "correction_status" => 0])->count();
+            $countData["Status_1"] = $permitCountQ2->where(["status" => 1, "correction_status" => 0])->count();
+            $countData["Status_2"] = $permitCountQ3->where(["status" => 2, "correction_status" => 0])->count();
+            $countData["Status_3"] = $permitCountQ4->where(["status" => 3, "correction_status" => 0])->count();
+            $countData["Correction_1"] = $permitCountQ5->where(["status" => 1, "correction_status" => 1])->count();
+            $countData["Correction_2"] = $permitCountQ6->where(["status" => 2, "correction_status" => 1])->count();
+            $countData["Status_4"] = $permitCountQ7->where(["status" => 4, "correction_status" => 0])->count();
+
             return response([
                 'status' => true,
                 'message' => "İşlem Başarılı",
-                'data' => $permits
+                'data' => $permits,
+                'countData' => $countData
             ], 200);
         }
 
@@ -120,10 +140,33 @@ class PermitController extends ApiController
             $permitQ = PermitModel::where(['EmployeeID' => $employee->Id, 'status' => $request->status, 'active' => 1]);
             $request->Correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
             $permits = $permitQ->get();
+
+            $permitQ = DB::table("Permits")->where(["active" => 1,'EmployeeID' => $request->Employee]);
+
+            $permitCountQ1 = clone $permitQ; //Kaydedilenler Query
+            $permitCountQ2 = clone $permitQ; //Yönetici Onayı Bekleyenler Query
+            $permitCountQ3 = clone $permitQ; //İk Onayı Bekleyenler Query
+            $permitCountQ4 = clone $permitQ; //Evrak Onayı Bekleyenler Query
+            $permitCountQ5 = clone $permitQ; //Yönetici Düzenleme Query
+            $permitCountQ6 = clone $permitQ; //İk düzenleme Query
+            $permitCountQ7 = clone $permitQ; //Tamamlananlar Query
+
+
+            $countData["Status_0"] = $permitCountQ1->where(["status" => 0, "correction_status" => 0])->count();
+            $countData["Status_1"] = $permitCountQ2->where(["status" => 1, "correction_status" => 0])->count();
+            $countData["Status_2"] = $permitCountQ3->where(["status" => 2, "correction_status" => 0])->count();
+            $countData["Status_3"] = $permitCountQ4->where(["status" => 3, "correction_status" => 0])->count();
+            $countData["Correction_1"] = $permitCountQ5->where(["status" => 1, "correction_status" => 1])->count();
+            $countData["Correction_2"] = $permitCountQ6->where(["status" => 2, "correction_status" => 1])->count();
+            $countData["Status_4"] = $permitCountQ7->where(["status" => 4, "correction_status" => 0])->count();
+
+
+
             return response([
                 'status' => true,
                 'message' => "İşlem Başarılı",
-                'data' => $permits
+                'data' => $permits,
+                'countData' => $countData
             ], 200);
         }
 
@@ -133,7 +176,7 @@ class PermitController extends ApiController
 
     public function getTransferPersons(Request $request)
     {
-        $employee = EmployeeModel::find($request->Employee);
+        /*$employee = EmployeeModel::find($request->Employee);
         $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $employee->Id])->first();
 
         $transferEmployeesPositions = EmployeePositionModel::where(['Active' => 2, 'RegionID' => $employeePosition->RegionID])
@@ -145,7 +188,8 @@ class PermitController extends ApiController
             $tempEmployee = DB::table("Employee")->find($transferEmployeesPosition->EmployeeID);
             if ($tempEmployee)
                 array_push($transferEmployees, $tempEmployee);
-        }
+        }*/
+        $transferEmployees = DB::table("Employee")->where(['Active' => 1])->where("Id", ">=",1000)->get();
 
         return response([
             'status' => true,
@@ -197,6 +241,7 @@ class PermitController extends ApiController
 
     public function savePermit(Request $request)
     {
+
         if ($request->permitId !== null) {
             $EmployeeID = PermitModel::find($request->permitId)->EmployeeID;
         } else
@@ -228,7 +273,7 @@ class PermitController extends ApiController
 
         if ($request->kind == 12) {
             //Yıllık İzin ise
-            $remainingDays = PermitModel::netsisRemainingPermit($EmployeeID);
+            /*$remainingDays = PermitModel::netsisRemainingPermit($EmployeeID);
             if (($calculatePermit["UsedDay"] > $remainingDays['daysLeft']) ||
                 ($calculatePermit["UsedDay"] == $remainingDays['daysLeft'] && $calculatePermit["OverHour"] > $remainingDays['hoursLeft'])) {
                 return response([
@@ -236,7 +281,7 @@ class PermitController extends ApiController
                     'message' => "Yıllık izin hakkınızdan fazla bir izin talep ettiniz.\n Kullandığınız izin miktarı : "
                         . $calculatePermit["UsedDay"] . ' gün, ' . $calculatePermit["OverHour"] . 'saat.' . '\n Kalan İzin Miktarı : ' . $remainingDays['daysLeft'] . ' gün, ' . $remainingDays['hoursLeft'] . ' saat.',
                 ], 200);
-            }
+            }*/
         } else {
             $getLimitOfKind = PermitKindModel::where(['Active' => 1, 'id' => $request->kind])->first();
 
@@ -445,7 +490,7 @@ class PermitController extends ApiController
 
         $permitQ = PermitModel::where(["active" => 1])->whereNotIn("netsis", [1]);
         if ($status == 1) {
-            $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerId" => $request->Employee])->pluck("EmployeeID");
+            $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerID" => $request->Employee])->pluck("EmployeeID");
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "manager_status" => $ApprovalStatus]);
             $correction == 'true' ? $permitQ->where(['correction_status' => 1]) : $permitQ->where(['correction_status' => 0]);
         } else if ($status == 2) {
@@ -462,9 +507,71 @@ class PermitController extends ApiController
         $permitQ->orderBy("created_date", "DESC");
         $permits = $permitQ->get();
 
+        $dataCounts = [];
+        $permitQ = DB::table("Permits")->where(['active' => 1]);
+
+        $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerID" => $request->Employee])->pluck("EmployeeID");
+
+        if ($status == 1)
+        {
+            $permitQ1 = clone $permitQ;
+            $usersApprove = EmployeePositionModel::where(["Active" => 2, "ManagerID" => $request->Employee])->pluck("EmployeeID");
+            $permitQ1->whereIn("EmployeeID", $usersApprove);
+            $permitQ2 = clone $permitQ1;
+            $permitQ3 = clone $permitQ1;
+            $permitQ4 = clone $permitQ1;
+            $permitQ1->where(['status' => 1,'correction_status' => 0, 'manager_status' => 0]);
+            $dataCounts['Waiting_1'] = $permitQ1->count();
+            $permitQ2->where(['status' => 1,'correction_status' => 1, 'manager_status' => 0]);
+            $dataCounts['Correction_1'] = $permitQ2->count();
+            $permitQ3->where(['status' => 2,'manager_status' => 2, 'correction_status' => 0]);
+            $dataCounts['Rejects_1'] = $permitQ3->count();
+            $permitQ4->where(['status' => 2, 'manager_status' => 1, 'hr_status' => 0]);
+            $dataCounts['Approved_1'] = $permitQ4->count();
+        }
+        else if($status == 2)
+        {
+            $permitQ1 = clone $permitQ;
+            $hrRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "PropertyValue" => $request->Employee])->pluck("RegionID");
+            $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
+            $permitQ1->whereIn("EmployeeID", $usersApprove);
+            $permitQ2 = clone $permitQ1;
+            $permitQ3 = clone $permitQ1;
+            $permitQ4 = clone $permitQ1;
+            $permitQ1->where(['status' => 2,'correction_status' => 0, 'hr_status' => 0]);
+            $dataCounts['Waiting_2'] = $permitQ1->count();
+            $permitQ2->where(['status' => 2,'correction_status' => 1, 'hr_status' => 0]);
+            $dataCounts['Correction_2'] = $permitQ2->count();
+            $permitQ3->where(['status' => 3,'hr_status' => 2, 'correction_status' => 0]);
+            $dataCounts['Rejects_2'] = $permitQ3->count();
+            $permitQ4->where(['status' => 3, 'hr_status' => 1, 'ps_status' => 0]);
+            $dataCounts['Approved_2'] = $permitQ4->count();
+        }
+        else if($status == 3)
+        {
+            $permitQ1 = clone $permitQ;
+            $hrRegion = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "PropertyValue" => $request->Employee])->pluck("RegionID");
+            $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
+            $permitQ1->whereIn("EmployeeID", $usersApprove);
+            $permitQ2 = clone $permitQ1;
+            $permitQ3 = clone $permitQ1;
+            $permitQ4 = clone $permitQ1;
+            $permitQ2->where(['status' => 3,'correction_status' => 0, 'ps_status' => 0]);
+            $dataCounts['Waiting_3'] = $permitQ2->count();
+            $permitQ3->where(['status' => 4,'ps_status' => 2, 'correction_status' => 0]);
+            $dataCounts['Rejects_3'] = $permitQ3->count();
+            $permitQ4->where(['status' => 4, 'ps_status' => 1]);
+            $dataCounts['Approved_3'] = $permitQ4->count();
+        }
+
+
+
+
+
         return response([
             'status' => true,
             'data' => $permits,
+            'dataCounts' => $dataCounts
         ], 200);
     }
 
@@ -481,8 +588,15 @@ class PermitController extends ApiController
         $permit = PermitModel::find($permitId);
         if ($permit->correction_status == 1 && $permit->EmployeeID == $request->Employee)
         {
+            //Yönetici Onayına Gidiyor
+            $permit->status = 1;
+            $permit->hr_status = 0;
+            $permit->manager_status = 0;
             $permit->correction_status = 0;
             $permit->save();
+            $employee = EmployeeModel::find($permit->EmployeeID);
+            NotificationsModel::saveNotification($employee->EmployeePosition->Manager->Id,3,$permit->id,$permit->PermitKind['name'],
+                $permit->PermitKind['name']." talebi için onayınız bekleniyor","permits/".$permit->id);
 
             return response([
                 'status' => true,

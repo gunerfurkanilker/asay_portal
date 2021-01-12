@@ -107,6 +107,8 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/Overtime/')->group(function () {
+            Route::get('getOvertimeKindByDate','OvertimeController@getOvertimeKindByDate')->name('overtime_kind_by_date');
+            Route::get('getOvertimeHRReports','OvertimeController@getOvertimeHRReports')->name('overtime_hr_reports');
             Route::get('getOvertimeById','OvertimeController@getOvertimeById')->name('overtime_getById');
             Route::get('getCarLocation','OvertimeController@getCarLocation')->name('overtime_getCarLocation');
             Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
