@@ -334,9 +334,9 @@ class EmployeeModel extends Model
 
     }
 
-    public static function LdapUserLogin($search,$username,$ldap)
+    public static function LdapUserLogin($search,$email,$ldap)
     {
-        $userDetail = $search->in($ldap->base_dn)->findBy('samaccountname', $username);
+        $userDetail = $search->in($ldap->base_dn)->findBy('samaccountname', $email);
 
         if($userDetail->useraccountcontrol[0]==66048 || $userDetail->useraccountcontrol[0]==66080  || $userDetail->useraccountcontrol[0]==512)
             return true;

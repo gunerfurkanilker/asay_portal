@@ -52,10 +52,10 @@ class AuthController extends Controller
         $ad = new \Adldap\Adldap($connections);
 
         try {
-            $provider = $ad->connect("ldap", $ldap->prefix."\\".$data["username"], $data["password"]);
+            $provider = $ad->connect("ldap", $data["username"]."@".$ldap->domain, $data["password"]);
             $search = $provider->search();
             //$user = UserModel::LdapUserCreate($search,$data["username"]);
-            $userLogin = EmployeeModel::LdapUserLogin($search,$data["username"],$ldap);
+            $userLogin = EmployeeModel::LdapUserLogin($search,$employee->JobEmail,$ldap);
             if(!$userLogin)
             {
                 return response([
