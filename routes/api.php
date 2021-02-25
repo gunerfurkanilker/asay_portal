@@ -19,6 +19,7 @@ Route::namespace("Api")->group(function(){
     Route::post('auth/logout', "AuthController@logout")->name("apilogout");
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
     Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
+    Route::post('file/connectUpload', "FileController@connectUpload");
 
 
     Route::namespace('Processes')->group(function (){
