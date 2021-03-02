@@ -33,6 +33,7 @@ Route::namespace("Api")->group(function(){
             Route::get('monthlyAll', "ExpenseController@expenseAllMonthly")->name("expense_allMonthly");
             Route::get('list', "ExpenseController@expenseList")->name("expense_expenseList");
             Route::post('expenseSave', "ExpenseController@expenseSave")->name("expense_expenseSave");
+            Route::post('restartExpenseProcess', "ExpenseController@restartExpenseProcess")->name("expense_restart_process");
             Route::post('documentSave', "ExpenseController@documentSave")->name("expense_documentSave");
             Route::post('documentElementSave', "ExpenseController@documentElementSave")->name("document_elementsave");
             Route::get('getExpense', "ExpenseController@getExpense")->name("expense_getExpense");
@@ -81,6 +82,7 @@ Route::namespace("Api")->group(function(){
             Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_getPermitTypes');
             Route::get('permitList', 'PermitController@permitList')->name('permit_permitList');
             Route::get('permitListManager', 'PermitController@permitListManager')->name('permit_permitListManager');
+            Route::get('getRemainingYearlyPermit', 'PermitController@getRemainingYearlyPermit')->name('permit_getRemainingYearlyPermit');
             Route::get('permitListHR', 'PermitController@permitListHR')->name('permit_permitListHR');
             Route::get('permitListPS', 'PermitController@permitListPS')->name('permit_permitListPS');
             Route::get('getPermit', 'PermitController@getPermit')->name('permit_getPermit');
@@ -110,10 +112,13 @@ Route::namespace("Api")->group(function(){
         Route::prefix('processes/Overtime/')->group(function () {
             Route::get('getOvertimeKindByDate','OvertimeController@getOvertimeKindByDate')->name('overtime_kind_by_date');
             Route::get('getOvertimeHRReports','OvertimeController@getOvertimeHRReports')->name('overtime_hr_reports');
+            Route::get('getOvertimeHRReports2','OvertimeController@getOvertimeHRReports2')->name('overtime_hr_reports2');
             Route::get('getOvertimeById','OvertimeController@getOvertimeById')->name('overtime_getById');
             Route::get('getCarLocation','OvertimeController@getCarLocation')->name('overtime_getCarLocation');
             Route::get('Employees/all','OvertimeController@getEmployeesOvertimeRequests')->name('overtime_employee_all');
+            Route::get('Employees/all2','OvertimeController@getEmployeesOvertimeRequests2')->name('overtime_employee_all2');
             Route::get('Managers/all','OvertimeController@getManagersOvertimeRequests')->name('overtime_manager_all');
+            Route::get('Managers/all2','OvertimeController@getManagersOvertimeRequests2')->name('overtime_manager_all2');
             Route::get('statuses','OvertimeController@getOvertimeStatuses')->name('overtime_statuses');
             Route::get('hrEmployees','OvertimeController@getHREmployees')->name('overtime_hr_employees');
             Route::get('managersEmployees','OvertimeController@getManagersEmployees')->name('overtime_managers_employees');

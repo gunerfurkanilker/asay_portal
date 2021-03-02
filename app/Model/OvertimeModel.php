@@ -284,7 +284,7 @@ class OvertimeModel extends Model
         $endTime2 = isset($request->WorkEndTime) && !is_null($request->WorkEndTime) ? Carbon::createFromFormat("H:i", $request->WorkEndTime) : null;
 
         $publicHolidays     = PublicHolidayModel::whereYear("start_date","=",$beginDate->year)->get();
-        $publicHolidays2    = !is_null($beginDate2) ? PublicHolidayModel::whereYear("start_date","=",$beginDate2->year)->get() : [];
+        $publicHolidays2    = !is_null($beginDate2) ? PublicHolidayModel::whereYear("start_date","=",$beginDate2->year)->get() : PublicHolidayModel::whereYear("start_date","=",$beginDate->year)->get();
 
         $publicHolidaysArray = [];
         $publicHolidaysArray2 = [];
@@ -372,14 +372,28 @@ class OvertimeModel extends Model
 
         if (isset($beginDate2) && !is_null($beginDate2)) {
 
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($dailyHours *60) + abs($endTime->minute - $beginTime->minute);
-            $totalMinutes2 = (($endTime2->hour - $beginTime2->hour)*60) + ($dailyHours*60) + abs($endTime2->minute - $beginTime2->minute);
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
+            $timeDiff2_Hour = explode(":",$timeDiff2)[0];
+            $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($dailyHours *60) + abs($timeDiff1_Minute) + $dailyMinutes;
+            $totalMinutes2 = (($timeDiff2_Hour)*60) + ($dailyHours *60) + abs($timeDiff2_Minute) + $dailyMinutes;
             $dailyLimitMinute = ($dailyHoursLimit*60) + $dailyMinutesLimit;
             if ($totalMinutes1 > $dailyLimitMinute || $totalMinutes2 > $dailyLimitMinute)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
 
         } else {
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($dailyHours *60) + abs($endTime->minute - $beginTime->minute);
+
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($dailyHours *60) + abs($timeDiff1_Minute) + $dailyMinutes;
             $dailyLimitMinute = ($dailyHoursLimit*60) + $dailyMinutesLimit;
             if ($totalMinutes1 > $dailyLimitMinute )
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
@@ -456,13 +470,27 @@ class OvertimeModel extends Model
 
 
         if ($beginDate2 && !is_null($beginDate2)) {
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($monthlyHours *60) + $monthlyMinutes + abs($endTime->minute - $beginTime->minute);
-            $totalMinutes2 = (($endTime2->hour - $beginTime2->hour)*60) + ($monthlyHours*60) + $monthlyMinutes + abs($endTime2->minute - $beginTime2->minute);
+
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
+            $timeDiff2_Hour = explode(":",$timeDiff2)[0];
+            $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($monthlyHours *60) + $monthlyMinutes + abs($timeDiff1_Minute);
+            $totalMinutes2 = (($timeDiff2_Hour)*60) + ($monthlyHours*60) + $monthlyMinutes + abs($timeDiff2_Minute);
             $monthlyLimitMinute = ($monthlyHoursLimit*60) + $monthlyMinutesLimit;
             if (($totalMinutes1 > $monthlyLimitMinute || $totalMinutes2 > $monthlyLimitMinute))
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
         } else {
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($monthlyHours *60) + abs($endTime->minute - $beginTime->minute) +$monthlyMinutes;
+
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($monthlyHours *60) + abs($timeDiff1_Minute) +$monthlyMinutes;
             $monthlyLimitMinute = ($monthlyHoursLimit*60) + $monthlyMinutesLimit;
             if (($totalMinutes1 > $monthlyLimitMinute))
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, aylık yasal fazla çalışma limitini aşıyor.'];
@@ -537,13 +565,27 @@ class OvertimeModel extends Model
         }
 
         if (isset($beginDate2) && !is_null($beginDate2)) {
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($yearlyHours *60) + abs($endTime->minute - $beginTime->minute);
-            $totalMinutes2 = (($endTime2->hour - $beginTime2->hour)*60) + ($yearlyHours*60) + abs($endTime2->minute - $beginTime2->minute);
+
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
+            $timeDiff2_Hour = explode(":",$timeDiff2)[0];
+            $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($yearlyHours *60) + abs($timeDiff1_Minute) + $yearlyMinutes;
+            $totalMinutes2 = (($timeDiff2_Hour)*60) + ($yearlyHours*60) + abs($timeDiff2_Minute) + $yearlyMinutes;
             $yearlyLimitMinute = ($yearlyHoursLimit*60) + $yearlyMinutesLimit;
             if ($totalMinutes1 > $yearlyLimitMinute || $totalMinutes2 > $yearlyLimitMinute)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, yıllık yasal fazla çalışma limitini aşıyor.'];
         } else {
-            $totalMinutes1 = (($endTime->hour - $beginTime->hour)*60) + ($yearlyHours *60) + abs($endTime->minute - $beginTime->minute);
+
+            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+
+            $totalMinutes1 = (($timeDiff1_Hour)*60) + ($yearlyHours *60) + abs($timeDiff1_Minute) + $yearlyMinutes;
             $yearlyLimitMinute = ($yearlyHoursLimit*60) + $yearlyMinutesLimit;
             if ($totalMinutes1 > $yearlyLimitMinute )
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, yıllık yasal fazla çalışma limitini aşıyor.'];
@@ -582,10 +624,14 @@ class OvertimeModel extends Model
 
     public static function getOvertimeByStatus($status, $EmployeeID)
     {
-        $userEmployees = EmployeePositionModel::where(['Active' => 2])->orWhere(['UnitSupervisorID' => $EmployeeID, 'ManagerID' => $EmployeeID])->get();
+        $userEmployees = EmployeePositionModel::where(['Active' => 2])->where(['UnitSupervisorID' => $EmployeeID])->get();
+        $userEmployees2 = EmployeePositionModel::where(['Active' => 2])->where(['ManagerID' => $EmployeeID])->get();
         $userEmployeesIDs = [];
         foreach ($userEmployees as $userEmployee) {
             array_push($userEmployeesIDs, $userEmployee->EmployeeID);
+        }
+        foreach ($userEmployees2 as $userEmployee2) {
+            array_push($userEmployeesIDs, $userEmployee2->EmployeeID);
         }
         $overtimeQ = self::where(['Active' => 1, 'StatusID' => $status])->where(function ($query) use ($EmployeeID, $userEmployeesIDs, $status) {
             if ($status == 8 || $status == 9 || $status == 10){
@@ -594,10 +640,10 @@ class OvertimeModel extends Model
                 if (count($hrRegion) > 0)
                 {
                     $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
-                    $query->orWhereIn('AssignedID', $usersApprove);
+                    $query->whereIn('AssignedID', $usersApprove);
                 }
                 else{
-                    $query->orWhereIn('AssignedID', $userEmployeesIDs);
+                    $query->whereIn('AssignedID', $userEmployeesIDs);
                     $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
                 }
 
@@ -613,9 +659,67 @@ class OvertimeModel extends Model
 
     }
 
+    public static function getOvertimeByStatus2($status, $EmployeeID, $paginationPage, $recordPerPage)
+    {
+        $userEmployees = EmployeePositionModel::where(['Active' => 2])->where(['UnitSupervisorID' => $EmployeeID])->get();
+        $userEmployees2 = EmployeePositionModel::where(['Active' => 2])->where(['ManagerID' => $EmployeeID])->get();
+        $userEmployeesIDs = [];
+        foreach ($userEmployees as $userEmployee) {
+            array_push($userEmployeesIDs, $userEmployee->EmployeeID);
+        }
+        foreach ($userEmployees2 as $userEmployee2) {
+            array_push($userEmployeesIDs, $userEmployee2->EmployeeID);
+        }
+        $overtimeQ = self::where(['Active' => 1, 'StatusID' => $status])->where(function ($query) use ($EmployeeID, $userEmployeesIDs, $status) {
+            if ($status == 8 || $status == 9 || $status == 10){
+                //İsteğin İK yetkilisinden mi yoksa normal yöneticiden mi geldiğini anlıyoruz buradan
+                $hrRegion = ProcessesSettingsModel::where(["object_type" => 4, "PropertyCode" => "HRManager", "PropertyValue" => $EmployeeID])->groupBy("RegionID")->pluck("RegionID");
+                if (count($hrRegion) > 0)
+                {
+                    $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
+                    $query->whereIn('AssignedID', $usersApprove);
+                }
+                else{
+                    $query->whereIn('AssignedID', $userEmployeesIDs);
+                    $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
+                }
+
+
+            }
+            else{
+                $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
+            }
+
+        })->orderBy('BeginDate', 'desc');
+
+        $overtimeCountQ = $overtimeQ;
+
+        $data = [
+            'singleStatusCount' => $overtimeCountQ->count(),
+            'overtimes' => $overtimeQ->offset($paginationPage)->take($recordPerPage)->get()
+        ];
+
+        return $data;
+
+    }
+
     public static function getEmployeesOvertimeByStatus($status, $EmployeeID)
     {
         return self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $EmployeeID])->orderBy('BeginDate', 'desc')->get();
+    }
+
+    public static function getEmployeesOvertimeByStatus2($status, $EmployeeID,$paginationPage, $recordPerPage)
+    {
+        $overtimeQ = self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $EmployeeID])->orderBy('BeginDate', 'desc');
+
+        $overtimeCountQ = $overtimeQ;
+
+        $data = [
+            'singleStatusCount' => $overtimeCountQ->count(),
+            'overtimes' => $overtimeQ->offset($paginationPage)->take($recordPerPage)->get()
+        ];
+
+        return $data;
     }
 
     public static function getOvertimeFields($managerId)
@@ -851,10 +955,10 @@ class OvertimeModel extends Model
 
             if (isset($overtimeRequest->OvertimeId)) {
                 $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-                $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 21, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı personel tarafından düzenlendi.', '', '', '', '', '');
+                $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 21, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı personel tarafından düzenlendi.', '', '', '', '', '');
             } else {
                 $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-                $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 22, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından oluşturuldu.', '', '', '', '', '');
+                $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 22, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından oluşturuldu.', '', '', '', '', '');
             }
 
 
@@ -1025,7 +1129,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 26, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından reddedildi.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 26, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından reddedildi.', '', '', '', '', '');
             NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından reddedildi","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -1064,12 +1168,12 @@ class OvertimeModel extends Model
             'usingCar' => $usingCar, 'overtime' => $overtimeRecord,'overtimeLink' => $overtimeLink];
         $mailTable = view('mails.overtime', $mailData);
 
-        Asay::sendMail($mailToArray, "", "Yapılması planlanan fazla çalışma", $mailTable, "aSAY Group");
+        //Asay::sendMail($mailToArray, "", "Yapılması planlanan fazla çalışma", $mailTable, "aSAY Group");
 
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 24, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından onaylandı.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 24, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından onaylandı.', '', '', '', '', '');
             NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından onaylandı","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -1107,7 +1211,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 25, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından iptal edildi.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 25, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından iptal edildi.', '', '', '', '', '');
             NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma yöneticiniz tarafından iptal edildi","overtime/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -1180,7 +1284,7 @@ class OvertimeModel extends Model
         if ($result) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
 
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 27, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından tamamlandı.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 27, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı çalışan tarafından tamamlandı.', '', '', '', '', '');
             NotificationsModel::saveNotification($overtimeRecord->ManagerID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma çalışan tarafından tamamlandı","overtime-manager/".$overtimeRecord->id);
             return ['status' => true, 'message' => 'İşlem Başarılı'];
         } else
@@ -1269,7 +1373,7 @@ class OvertimeModel extends Model
         $overtimeRecord = OvertimeModel::where(['id' => $overtimeRequest->OvertimeId, 'Active' => 1])->first();
         $assignedEmployee = EmployeeModel::find($overtimeRecord->AssignedID);
         $assignedEmployeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $assignedEmployee->Id])->first();
-        $assignedEmployeesManager = EmployeeModel::find(EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $overtimeRecord->AssignedID])->first()->ManagerID);
+        $assignedEmployeesManager = EmployeeModel::find($assignedEmployeePosition->ManagerID);
 
 
         if ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID) {
@@ -1282,7 +1386,7 @@ class OvertimeModel extends Model
 
             Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma yöneticiniz tarafından onaylandı.", $mailTable, "aSAY Group");
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
 
 
             $hrSpecialist = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->first();
@@ -1332,7 +1436,7 @@ class OvertimeModel extends Model
                 Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable2, "aSAY Group", "", "", "");
 
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı birim sorumlusu tarafından onaylandı.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı birim sorumlusu tarafından onaylandı.', '', '', '', '', '');
 
             $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
             NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, birim sorumlusu tarafından onaylandı","overtime/".$overtimeRecord->id);
@@ -1495,7 +1599,7 @@ class OvertimeModel extends Model
 
         if ($overtimeRecord->save()) {
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
-            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 3, 29, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
+            $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 29, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
             NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, insan kaynakları birimi tarafından onaylandı","overtime/".$overtimeRecord->id);
             //Fazla Çalışma tüm onay süreçlerinden geçerse kişi her saat başına yarım saat dinlenme izni kullanmak için hak kazanır. Bu izin YILDA 105 SAAT olarak sınırlandırılmıştır.
 

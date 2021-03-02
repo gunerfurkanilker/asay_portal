@@ -4,17 +4,21 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Controller;
+use App\Library\Asay;
 use App\Model\AdvancePaymentModel;
 use App\Model\CompanyModel;
 use App\Model\EmployeeHasGroupModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\LogsModel;
+use App\Model\NotificationsModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserHasGroupModel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdvancePaymentController extends ApiController
 {
@@ -63,6 +67,16 @@ class AdvancePaymentController extends ApiController
         $AdvancePayment->TravelNight            = $post['TravelNight'];
         $AdvancePayment->TravelAccommodation    = $post['TravelAccommodation'];
 
+        if ($post['ToApproval'] != null)
+        {
+            $AdvancePayment->Status = 1;
+            $mailData = ['allowance' => $AdvancePayment];
+            $mailTable = view('mails.allowance', $mailData);
+            $manager = DB::table("Employee")->where(['Active' => 1, 'Id' => $AdvancePayment->CreatedBy->EmployeePosition->ManagerID])->first();
+            Asay::sendMail($manager->JobEmail, "", "Avans talebi için onayınız bekleniyor", $mailTable, "aSAY Group");
+            NotificationsModel::saveNotification($manager->Id,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans talebi için onayınız bekleniyor.","");
+
+        }
         $post['ToApproval'] != null ? $AdvancePayment->Status = 1 : '';
         $post['TakeBack'] != null ? $AdvancePayment->Status = 0 : '';
 
@@ -102,14 +116,43 @@ class AdvancePaymentController extends ApiController
     public function list2(Request $request)
     {
         $status = $request->status != null ? $request->status : 0;
-        $employee = EmployeeModel::find($request->Employee);
+        $approveStatus = $request->approveStatus != null ? $request->approveStatus : '';
 
-        $list = AdvancePaymentModel::where(['status' => $status,'Active' => 1])->get();
+        $allowanceQ = AdvancePaymentModel::where(['EmployeeID' => $request->Employee,'Active' => 1]);
+
+        $queryColumn = '';
+
+        switch ($status)
+        {
+            case 1:
+                $queryColumn = 'ManagerStatus';
+                break;
+            case 2:
+                $queryColumn = 'PmStatus';
+                break;
+            case 3:
+                $queryColumn = 'AccountingStatus';
+                break;
+        }
+
+        if ($approveStatus == 1)
+        {
+            $status++;
+        }
+
+        $allowanceQ->where(['Status' => $status]);
+
+        if ($queryColumn != '')
+            $allowanceQ->where([$queryColumn => $approveStatus]);
+
+        $list = $allowanceQ->get();
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $list
+            'data' => $list,
+            'status' => $status,
+            'column' => $queryColumn
         ],200);
 
     }
@@ -150,22 +193,63 @@ class AdvancePaymentController extends ApiController
         {
             //TODO İk Özlük Bilgilerindeki Erişim Türüne Bağlı Gelecektir.
             $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID" => $request->Employee, "group_id" => 12, 'active' => 1])->count();
-            if($userGroupCount>0 && ($status==3 || $status==4))
-                $statusArray = [3,4];
+            $processSettingAllowanceAccounter = ProcessesSettingsModel::where(['object_type' => 2,'PropertyValue' => $request->Employee,'PropertyCode' => 'Accounter'])->count();
+            if(($userGroupCount>0 || $processSettingAllowanceAccounter > 0) && ($status==3 || $status==4))
+            {
+                if ($status == 3)
+                {
+                    $statusArray = [3];
+                    if ($request->rejectedStatus == 1)
+                    {
+                        $advanceQ->where(['AccountingStatus' => 2]);
+                    }
+                    else
+                    {
+                        $advanceQ->where(['AccountingStatus' => 0]);
+                    }
+                }
+                else
+                {
+                    $statusArray = [4];
+                    $advanceQ->where(['AccountingStatus' => 1]);
+                }
+            }
             else{
                 $error = true;
             }
         }
-        else if($status == 2)
+        else if($status==2 && $request->rejectedStatus == 1)
         {
-            $statusArray = [2,3];
+            $statusArray = [2];
+            $advanceQ->where(['PmStatus' => 2]);
         }
-        else if($status==1)
+        else if($status==2 && $request->singleStatus == 1)
         {
-            $statusArray = [1,2];
+            $advanceQ->where(['PmStatus' => 0]);
+            $statusArray = [2];
         }
-        else
-            $statusArray[] = $status;
+        else if($status==2 && $request->singleStatus == 0)
+        {
+            $statusArray = [3,4];
+            $advanceQ->where(['PmStatus' => 1]);
+        }
+        else if($status==1 && $request->rejectedStatus == 1)
+        {
+            $statusArray = [1];
+            $advanceQ->where(['ManagerStatus' => 2]);
+        }
+        else if($status==1 && $request->singleStatus == 1)
+        {
+            $advanceQ->where(['ManagerStatus' => 0]);
+            $statusArray = [1];
+        }
+        else if($status==1 && $request->singleStatus == 0)
+        {
+            $statusArray = [2,3,4];
+            $advanceQ->where(['ManagerStatus' => 1]);
+        }
+
+
 
         if($error==true){
             return response([
@@ -262,6 +346,9 @@ class AdvancePaymentController extends ApiController
             $AdvancePayment->AccountingStatus  = 0;
             $AdvancePayment->Netsis=0;
         }
+        else{
+            $AdvancePayment->AccountingStatus  = 0;
+        }
         $AdvancePayment->Status = $AdvancePayment->Status - 1;
         $AdvancePaymentResult = $AdvancePayment->save();
 
@@ -307,25 +394,72 @@ class AdvancePaymentController extends ApiController
             $AdvancePayment->Netsis = 2;
         }
 
+        $mailData = ['allowance' => $AdvancePayment];
+        $mailTable = view('mails.allowance', $mailData);
+
         if($AdvancePayment->Status==1)
         {
+
+            if($AdvancePayment->CategoryId != null)
+            {
+                $projectManagerID = ProjectCategoriesModel::find($AdvancePayment->CategoryId)->manager_id;
+                $projectManager = DB::table("Employee")->where(['Active' => 1,'Id' => $projectManagerID])->first();
+            }
+            else{
+                $projectManagerID = ProjectsModel::find($AdvancePayment->ProjectId)->manager_id;
+                $projectManager = DB::table("Employee")->where(['Active' => 1,'Id' => $projectManagerID])->first();
+            }
             $AdvancePayment->ManagerStatus = $confirm;
             if($confirm==2){
                 $AdvancePayment->AccountingStatus = 2;
                 $AdvancePayment->PmStatus = 2;
+
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, yöneticiniz tarafından reddedildi", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, yöneticiniz tarafından reddedildi.","");
+            }
+            else{
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, yöneticiniz tarafından onaylandı", $mailTable, "aSAY Group");
+                Asay::sendMail($projectManager->JobEmail, "", "Avans talebi için onayınız bekleniyor", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, yöneticiniz tarafından onaylandı.","");
+                NotificationsModel::saveNotification($projectManager->Id,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans talebi için onayınız bekleniyor.","");
             }
         }
         else if($AdvancePayment->Status==2){
             $AdvancePayment->PmStatus = $confirm;
             if($confirm==2){
                 $AdvancePayment->AccountingStatus = 2;
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, proje yöneticisi tarafından reddedildi", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, proje yöneticisi tarafından reddedildi.","");
+            }
+            else{
+                $accounters = ProcessesSettingsModel::where(['object_type' => 2, 'PropertyCode' => 'Accounter'])->groupBy("PropertyValue")->pluck('PropertyValue');
+                $accounterEmployees = DB::table("Employee")->whereIn("Id",$accounters)->get();
+                foreach ($accounterEmployees as $accounterEmployee)
+                {
+                    Asay::sendMail($accounterEmployee->JobEmail, "", "Avans talebi için onayınız bekleniyor", $mailTable, "aSAY Group");
+                    NotificationsModel::saveNotification($accounterEmployee->Id,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans talebi için onayınız bekleniyor.","");
+                }
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, proje yöneticisi tarafından onaylandı", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, proje yöneticisi tarafından onaylandı.","");
             }
         }
         else if($AdvancePayment->Status==3)
+        {
             $AdvancePayment->AccountingStatus = $confirm;
+            if($confirm != 2)
+            {
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, muhasebe birimi tarafından onaylandı", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, muhasebe birimi tarafından onaylandı.","");
+            }
+            else{
+                Asay::sendMail($AdvancePayment->CreatedBy->JobEmail, "", "Avans, muhasebe birimi tarafından reddedildi", $mailTable, "aSAY Group");
+                NotificationsModel::saveNotification($AdvancePayment->EmployeeID,2,$AdvancePayment->id,$AdvancePayment->Name,"Avans, muhasebe birimi tarafından reddedildi.","");
+            }
+        }
+
         //TODO Netsise aktardıktan sonra status 4 mü olacak ?
         //TODO Netsise Aktarım eklenecek
-        $AdvancePayment->Status = $AdvancePayment->Status + 1;
+        $AdvancePayment->Status = $confirm == 2 ? $AdvancePayment->Status :$AdvancePayment->Status + 1;
         $AdvancePaymentResult = $AdvancePayment->save();
         if($AdvancePaymentResult){
             switch ($AdvancePayment->Status - 1)
@@ -454,10 +588,12 @@ class AdvancePaymentController extends ApiController
             }
 
         }
-        else if( ($advancePayment->Status==3 && $authType == "confirm") || ($advancePayment->Status==4 && $authType == "takeBack") ) {
-            //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
+        else if( ($advancePayment->Status==3 && $authType == "confirm") || ($advancePayment->Status==4 && $authType == "takeBack") || ($advancePayment->Status==4 && $authType == "netsis")  ) {
             $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$EmployeeID, "group_id"=>12, 'active' => 1])->count();
-            if($userGroupCount>0)
+            $processSettingAllowanceAccounter = ProcessesSettingsModel::where(['object_type' => 2,'PropertyValue' => $EmployeeID,'PropertyCode' => 'Accounter'])->count();
+            if($userGroupCount>0 || $processSettingAllowanceAccounter > 0)
+                $status = true;
+            if ($authType == "takeBack")
                 $status = true;
         }
         return $status;
@@ -476,7 +612,7 @@ class AdvancePaymentController extends ApiController
                 'message' => "Aktarımı Tamamlanmış Yada Onaylanmamış Kayıtlar Gönderilemez"
             ], 200);
         }
-        $status = self::advanceAuthority($advancePayment,$request->Employee);
+        $status = self::advanceAuthority($advancePayment,$request->Employee,"netsis");
         if($status==false)
         {
             return response([
@@ -486,8 +622,10 @@ class AdvancePaymentController extends ApiController
         }
 
         //Personel bilgileri kontrol ediliyor.
-        $employee = EmployeeModel::find($request->Employee);
-        $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
+        $employee = EmployeeModel::find($advancePayment->EmployeeID);
+        $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $advancePayment->EmployeeID])->first();
+        //$employee = EmployeeModel::find($request->Employee);
+        //$employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
         $company = CompanyModel::find($employeePosition->CompanyID);
         $companyCode = $company->NetsisName;
 
@@ -549,6 +687,7 @@ class AdvancePaymentController extends ApiController
             $dbA = date("Y", strtotime($tarih));
             $soap = new \SoapClient($wsdl, $options);
             $data = $soap->AvansOdemeKaydet(array( "_IsletmeKodu" => $companyCode, "_AvansOdeme" => $AvansOdeme, "SirketAdi" => "ASAYGROUP" . $dbA));
+            exit;
             if ($data->AvansOdemeKaydetResult->Sonuc == 1) {
                 $advancePayment->Netsis = 1;
                 $advancePayment->save();

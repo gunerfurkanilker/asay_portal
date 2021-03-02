@@ -14,7 +14,8 @@ class ExpenseModel extends Model
         'Project',
         'Category',
         'EmployeeManager',
-        'Employee'
+        'Employee',
+        'Document'
     ];
 
     public $timestamps = false;
@@ -544,6 +545,11 @@ table, th, td {
         {
             return null;
         }
+    }
+
+    public function getDocumentAttribute()
+    {
+        return DB::table("ExpenseDocument")->where(['Id' => $this->attributes['id']])->get();
     }
 
 }

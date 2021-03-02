@@ -15,6 +15,7 @@ class AdvancePaymentModel extends Model
     protected $hidden = [];
     protected $casts = [];
     protected $appends = [
+        'CreatedBy',
         'Category',
         'Project'
     ];
@@ -40,6 +41,19 @@ class AdvancePaymentModel extends Model
         if ($project)
         {
             return $project->where("active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+    public function getCreatedByAttribute()
+    {
+
+        $employee = $this->hasOne(EmployeeModel::class,"Id","EmployeeID");
+        if ($employee)
+        {
+            return $employee->where("Active",1)->first();
         }
         else
         {

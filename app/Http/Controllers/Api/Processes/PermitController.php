@@ -791,5 +791,26 @@ class PermitController extends ApiController
 
     }
 
+    public function getRemainingYearlyPermit(Request $request)
+    {
+
+        if (is_null($request->EmployeeID))
+            return response([
+                'status' => false,
+                'message' => 'EmployeeID Boş olamaz'
+            ],200);
+
+        $remainingYearlyPermit = PermitModel::netsisRemainingPermit($request->EmployeeID);
+
+        return response([
+            'status' => true,
+            'message' => 'İşlem Başarılı',
+            'data' => $remainingYearlyPermit
+        ],200);
+
+
+
+    }
+
 
 }

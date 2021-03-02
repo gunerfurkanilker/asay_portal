@@ -90,7 +90,74 @@ class ExpenseController extends ApiController
             ->where(["Expense.active" => 1, "Expense.EmployeeID" => $request->Employee])
             ->groupBy("Expense.id")->orderBy("Expense.created_date", "DESC");
 
-        $expenseQ->where(["Expense.status" => $status]);
+
+
+        switch ($status) {
+
+            case 0:
+                $expenseQ->where(["Expense.status" => $status]);
+                break;
+            case 1:
+                if ($request->approveStatus == 2)
+                {
+                    $expenseQ->where(["Expense.reject_status" => 1]);
+                    $expenseQ->where(["Expense.status" => $status]);
+                }
+                elseif ($request->approveStatus == 1)
+                {
+                    $expenseQ->where(["Expense.status" => $status + 1]);
+                    $expenseQ->where(["ExpenseDocument.manager_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                else{
+                    $expenseQ->where(["Expense.status" => $status]);
+                    $expenseQ->where(["ExpenseDocument.manager_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                break;
+            case 2:
+                if ($request->approveStatus == 2)
+                {
+                    $expenseQ->where(["Expense.reject_status" => 1]);
+                    $expenseQ->where(["Expense.status" => $status]);
+                }
+                elseif ($request->approveStatus == 1)
+                {
+                    $expenseQ->where(["Expense.status" => $status + 1]);
+                    $expenseQ->where(["ExpenseDocument.pm_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                else{
+                    $expenseQ->where(["Expense.status" => $status]);
+                    $expenseQ->where(["ExpenseDocument.pm_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                break;
+            case 3:
+                if ($request->approveStatus == 2)
+                {
+                    $expenseQ->where(["Expense.reject_status" => 1]);
+                    $expenseQ->where(["Expense.status" => $status]);
+                }
+                elseif ($request->approveStatus == 1)
+                {
+                    $expenseQ->where(["Expense.status" => $status + 1]);
+                    $expenseQ->where(["ExpenseDocument.accounting_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                else{
+                    $expenseQ->where(["Expense.status" => $status]);
+                    $expenseQ->where(["ExpenseDocument.accounting_status" => $request->approveStatus]);
+                    $expenseQ->where(["Expense.reject_status" => 0]);
+                }
+                break;
+             case 4:
+                 $expenseQ->where(["Expense.status" => $status]);
+                 break;
+
+        }
+
+
 
         //$data["manager"] = $user->user_property->manager;
         $data["expenses"] = $expenseQ->get();
@@ -261,8 +328,10 @@ class ExpenseController extends ApiController
     public function documentSave(Request $request)
     {
         $documentId = $request->document_id !== null ? $request->document_id : "";
+        $expense = null;
         if ($documentId != "") {
             $expenseDocument = ExpenseDocumentModel::find($documentId);
+            $expense = ExpenseModel::find($expenseDocument->expense_id);
             if ($expenseDocument === null)
                 $expenseDocument = new ExpenseDocumentModel();
         } else {
@@ -282,6 +351,20 @@ class ExpenseController extends ApiController
         $expenseDocument->currency = "00";//TRY Varsayılan olarak belirlendi
         $expenseDocument->netsis_carikod = $request->netsis_carikod;
         $expenseDocument->active = 1;
+
+        $isAccounter = ProcessesSettingsModel::where(['PropertyCode' => 'Accounter', 'PropertyValue' => $request->Employee, 'object_type' => 1])->get();
+        if ($expense != null && ($expense->Project->Manager->Id == $request->Employee || count($isAccounter) > 0 ))
+        {
+            $dirtyFields = $expenseDocument->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $expenseDocument->getOriginal($field);
+                if ($olddata != $newdata) {
+                    $expenseDocument->{$field.'_old'} = $olddata;
+                    $expenseDocument->{$field} = $newdata;
+                }
+            }
+        }
+
         $result = $expenseDocument->save();
 
         if ($result && $request->hasFile('expense_document_file')) {
@@ -340,16 +423,28 @@ class ExpenseController extends ApiController
 
     public function documentElementSave(Request $request)
     {
+        $expense = null;
         if (!isset($request->documentId) || $request->documentId == '' || $request->documentId == null)
             return response([
                 'status' => false,
                 'message' => 'Kalemin hangi belgeye ekleneceği belli değil'
             ], 200);
+        else{
+            $expenseID = ExpenseDocumentModel::find($request->documentId)->expense_id;
+            $expense = ExpenseModel::find($expenseID);
+        }
+
+
 
         if (!isset($request->elementId) || $request->elementId == '' || $request->elementId == null)
             $documentElement = new ExpenseDocumentElementModel();
         else
+        {
             $documentElement = ExpenseDocumentElementModel::find($request->elementId);
+        }
+
+
+
 
         $requestArray = $request->all();
         $documentElement->document_id = $request->documentId;
@@ -359,10 +454,23 @@ class ExpenseController extends ApiController
         $documentElement->quantity = $requestArray['quantity'];
         $documentElement->kdv = $requestArray['kdv'];
         $documentElement->price = $requestArray['price'];
-        $documentElement->amount = number_format(($requestArray['quantity'] * $requestArray['price']) -
-            (($requestArray['quantity'] * $requestArray['price']) * ($requestArray['kdv'] / 100))
-            , 2, '.', '');
+        $documentElement->amount = number_format($requestArray['amount'] , 2, '.', '');
         $documentElement->active = 1;
+
+        $isAccounter = ProcessesSettingsModel::where(['PropertyCode' => 'Accounter', 'PropertyValue' => $request->Employee, 'object_type' => 1])->get();
+        if ($expense != null && ($expense->Project->Manager->Id == $request->Employee || count($isAccounter) > 0 ))
+        {
+            $dirtyFields = $documentElement->getDirty();
+            foreach ($dirtyFields as $field => $newdata) {
+                $olddata = $documentElement->getOriginal($field);
+                if ($olddata != $newdata) {
+                    $documentElement->{$field.'_old'} = $olddata;
+                    $documentElement->{$field} = $newdata;
+                }
+            }
+        }
+
+
         $result = $documentElement->save();
 
         if ($result)
@@ -400,7 +508,8 @@ class ExpenseController extends ApiController
         } else if ($asayExpense->status == 3 || $asayExpense->status == 4) {
             //TODO arge userları yapıldı şimdilik sonrasında muhasebe onaylatıcı grup id ile değiştirilecek
             $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID" => $EmployeeID, 'active' => 1])->whereIn("group_id",[11,12])->count();
-            if ($userGroupCount > 0)
+            $processSettingExpenseAccounter = ProcessesSettingsModel::where(['object_type' => 1,'PropertyValue' => $EmployeeID,'PropertyCode' => 'Accounter'])->count();
+            if ($userGroupCount > 0 || $processSettingExpenseAccounter > 0)
                 $status = true;
         }
         return $status;
@@ -465,7 +574,8 @@ class ExpenseController extends ApiController
                         ]
                 ], 200);
             } else {
-                $status = self::expenseAuthority($asayExpense, $request->Employee);
+                //$status = self::expenseAuthority($asayExpense, $request->Employee);
+                $status = true;
                 if ($status == false) {
                     return response([
                         'status' => false,
@@ -493,11 +603,11 @@ class ExpenseController extends ApiController
             ->leftJoin("ExpenseDocumentElement", "ExpenseDocumentElement.document_id", "=", "ExpenseDocument.id")
             ->leftJoin("Expense", "ExpenseDocument.expense_id", "=", "Expense.id")
             ->groupBy("ExpenseDocument.id");
-
         $SumTutar = 0;
         if ($expenseDocumentsQ->count() > 0) {
             $expenseDocuments = $expenseDocumentsQ->get();
             foreach ($expenseDocuments as $expenseDocument) {
+                $SumTutar = 0;
                 if ($expenseDocument->cari_tip == 1) {
                     $Cari = AsayCariModel::find($expenseDocument->netsis_carikod);
                     $expenseDocument->CARI_ISIM = $Cari->CariIsim;
@@ -511,7 +621,19 @@ class ExpenseController extends ApiController
                 } else {
                     $expenseDocument->CARI_ISIM = "";
                 }
+
+                $expenseDocumentElements = ExpenseDocumentElementModel::where(['document_id' => $expenseDocument->id,'active' => 1])->count();
+                $expenseDocument->elementsCount = $expenseDocumentElements;
+
+                $nonActiveElements = ExpenseDocumentElementModel::where(['document_id' => $expenseDocument->id,'active' => 0])->get();
+                $substractTutar = 0;
+                foreach ($nonActiveElements as $nonActiveElement)
+                {
+                    $substractTutar+=$nonActiveElement->amount;
+                }
+                $expenseDocument->TTUTAR -=$substractTutar;
                 $SumTutar += $expenseDocument->TTUTAR;
+                $expenseDocument->TTUTAR = ($expenseDocument->TTUTAR .' TL');
             }
         } else {
             $expenseDocuments = [];
@@ -754,26 +876,64 @@ class ExpenseController extends ApiController
         });
         $expenseQ->groupBy("Expense.id")->orderBy("Expense.created_date", "DESC");
         if ($status == 3)
-            $statusArray = [3, 4];
+            $statusArray = [3];
         else if ($status == 4) {
             $statusArray = [4];
             $expenseQ->where(['netsis' => 1]);
         } else if ($status == 1 && $singleStatus == 1)
             $statusArray = [1];
         else if ($status == 1 && $singleStatus == 0)
-            $statusArray = [2, 3];
+            $statusArray = [2, 3, 4];
         else if ($status == 2 && $singleStatus == 1)
-            $statusArray = [2, 3];
-        else if ($status == 2 && $singleStatus == 0)
             $statusArray = [2];
+        else if ($status == 2 && $singleStatus == 0)
+            $statusArray = [3, 4];
 
         $expenseQ->whereIn("Expense.status", $statusArray);
+        $data = $expenseQ->get();
 
-        $data["expenses"] = $expenseQ->get();
+        $data2 = [];
+
+        foreach ($data as $item)
+            array_push($data2,$item);
+
+        foreach ($data2 as $key => $item)
+        {
+            $expenseDocuments = ExpenseDocumentModel::where(['active' => 1,'expense_id'=>$item->id])->get();
+            $rejectedCount = 0;
+            foreach ($expenseDocuments as $expenseDocument)
+            {
+                if($expenseDocument->manager_status == 2 || $expenseDocument->pm_status == 2 || $expenseDocument->accounting_status == 2)
+                {
+                    $rejectedCount++;
+                }
+            }
+
+            if($request->rejectedStatus == 1)//Tüm Belgeleri Reddedilen harcamaları çekiyoruz
+            {
+                if (count($expenseDocuments) != $rejectedCount)//Bu Belgede reddedilmeyen kayıtlar var demek bunları çıkarıyoruz
+                {
+                    array_splice($data2,array_search($item,$data2),1);
+                }
+                else{
+                    $item->rejected = true;
+                }
+
+            }
+            else{//Tüm Belgeleri Reddedilmemiş harcamaları çekiyoruz
+                if (count($expenseDocuments) == $rejectedCount)
+                {
+                    array_splice($data2,array_search($item,$data2),1);
+                }
+            }
+
+        }
+
+
         return response([
             'status' => true,
-            'data' => $data,
-            'statusVal' => $request->singleStatus
+            'data' => $data2,
+            'employee_managers' => $employeeManagers
         ], 200);
     }
 
@@ -955,16 +1115,68 @@ class ExpenseController extends ApiController
         if ($expense->status == 1) {
             $document->manager_status = $confirm;
             if ($confirm == 2) {
+                $document->reject_reason = $request->rejectReason;
+                $expenseDocumentsQ = ExpenseDocumentModel::where(['active' => 1, 'expense_id' => $expense->id])->whereNotIn("id",[$documentId]);
+                $expenseDocuments = $expenseDocumentsQ->get();
+                $rejectedCount = 0;
+                foreach ($expenseDocuments as $expenseDocument)
+                {
+                    if ($expenseDocument->manager_status == 2)
+                        $rejectedCount++;
+                }
+                if ($rejectedCount == $expenseDocumentsQ->count())
+                {
+                    $expense->reject_status = 1;
+                    $expense->save();
+                }
+
                 $document->accounting_status = 2;
                 $document->pm_status = 2;
             }
         } else if ($expense->status == 2) {
             $document->pm_status = $confirm;
             if ($confirm == 2) {
+                $document->reject_reason = $request->rejectReason;
+                $expenseDocumentsQ = ExpenseDocumentModel::where(['active' => 1, 'expense_id' => $expense->id])->whereNotIn("id",[$documentId]);
+                $expenseDocuments = $expenseDocumentsQ->get();
+                $rejectedCount = 0;
+                foreach ($expenseDocuments as $expenseDocument)
+                {
+                    if ($expenseDocument->pm_status == 2)
+                        $rejectedCount++;
+                }
+                if ($rejectedCount == $expenseDocumentsQ->count())
+                {
+                    $expense->reject_status = 1;
+                    $expense->save();
+                }
+
+
                 $document->accounting_status = 2;
             }
         } else if ($expense->status == 3)
+        {
             $document->accounting_status = $confirm;
+            if ($confirm == 2)
+            {
+                $document->reject_reason = $request->rejectReason;
+                $expenseDocumentsQ = ExpenseDocumentModel::where(['active' => 1, 'expense_id' => $expense->id])->whereNotIn("id",[$documentId]);
+                $expenseDocuments = $expenseDocumentsQ->get();
+                $rejectedCount = 0;
+                foreach ($expenseDocuments as $expenseDocument)
+                {
+                    if ($expenseDocument->accounting_status == 2)
+                        $rejectedCount++;
+                }
+                if ($rejectedCount == $expenseDocumentsQ->count())
+                {
+                    $expense->reject_status = 1;
+                    $expense->save();
+                }
+            }
+
+        }
+
 
         $documentResult = $document->save();
         if ($documentResult) {
@@ -1073,21 +1285,11 @@ class ExpenseController extends ApiController
         if ($column == "pm_status") {
             $expenseResult = $expenseQ->update(["status" => 3]);
             ExpenseModel::sendMailToAccounters($request);
-            $employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $expense->EmployeeID])->first();
-            $accounterPositions = EmployeePositionModel::where(['Active' => 2,'RegionID' => $employeePosition->RegionID])->get();
-            $accounters = [];
-            foreach ($accounterPositions as $accounterPosition)
+            $accounters = ProcessesSettingsModel::where(['PropertyCode' => 'Accounter', 'object_type' => 1])->groupBy('PropertyValue')->pluck("PropertyValue");
+            $accounterEmployees = DB::table("Employee")->whereIn("Id",$accounters)->get();
+            foreach ($accounterEmployees as $accounterEmployee)
             {
-                $hasGroup = EmployeeHasGroupModel::where(["EmployeeID" => $accounterPosition->EmployeeID, 'active' => 1])->whereIn("group_id",[11,12])->count();
-                if ($hasGroup > 0)
-                {
-                    array_push($accounters,$accounterPosition->EmployeeID);
-                }
-            }
-
-            foreach ($accounters as $accounter)
-            {
-                NotificationsModel::saveNotification($accounter,1,$expense->id,$expense->name,"Harcama talebi için onayınız bekleniyor","expense/edit/".$expense->id);
+                NotificationsModel::saveNotification($accounterEmployee->JobEmail,1,$expense->id,$expense->name,"Harcama talebi için onayınız bekleniyor","expense/edit/".$expense->id);
             }
             LogsModel::setLog($loggedUserEmployee->Id, $expenseId, 1, 5, '', '', $expense->name . ' başlıklı harcama ' . $loggedUserEmployee->UsageName . '' . $loggedUserEmployee->LastName . ' tarafından onaylandı.', '', '', '', '', '');
         }
@@ -1191,8 +1393,10 @@ class ExpenseController extends ApiController
         }
 
         //Personel bilgileri kontrol ediliyor.
-        $employee = EmployeeModel::find($request->Employee);
-        $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
+        $employee = EmployeeModel::find($expense->EmployeeID);
+        $employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $expense->EmployeeID])->first();
+        //$employee = EmployeeModel::find($request->Employee);
+        //$employeePosition = EmployeePositionModel::where(["Active" => 2, "EmployeeID" => $request->Employee])->first();
         $company = CompanyModel::find($employeePosition->CompanyID);
         $companyCode = $company->NetsisName;
 
@@ -1460,10 +1664,13 @@ class ExpenseController extends ApiController
 
     public function isManagerApprovedAllDocuments(Request $request)
     {
-
-        $loggedEmployee = EmployeeModel::find($request->Employee);
         $expense = ExpenseModel::find($request->expenseId);
         $expenseOwnersManager = EmployeePositionModel::where('EmployeeID', $expense->EmployeeID)->where('Active', 2)->first();
+        if ($request->Employee !== $expenseOwnersManager->ManagerID)
+            return response([
+                'status' => false,
+                'message' => 'Yetkisiz işlem'
+            ], 200);
 
         $expenseDocumentsQ = ExpenseDocumentModel::select("ExpenseDocument.*", DB::raw("SUM(ExpenseDocumentElement.amount) TTUTAR"))
             ->where(["ExpenseDocument.active" => 1, "ExpenseDocument.expense_id" => $expense->id])
@@ -1472,23 +1679,33 @@ class ExpenseController extends ApiController
             ->groupBy("ExpenseDocument.id");
 
         if ($expenseDocumentsQ->count() > 0) {
+            $approvedCount = 0;
+            $rejectedCount = 0;
+            $waitingCount = 0;
             $expenseDocuments = $expenseDocumentsQ->get();
             foreach ($expenseDocuments as $expenseDocument) {
-                if ($expenseDocument->manager_status == 0)
-                    return response([
-                        'status' => false,
-                        'message' => 'Onaylanmamış Belgeler Bulunuyor.'
-                    ], 200);
+                if ($expenseDocument->manager_status == 1)
+                    $approvedCount++;
+                elseif ($expenseDocument->manager_status == 2)
+                    $rejectedCount++;
+                else
+                    $waitingCount++;
             }
-            if ($loggedEmployee->Id == $expenseOwnersManager->ManagerID)
+            if ($waitingCount > 0)
                 return response([
-                    'status' => true,
-                    'message' => 'Tüm Belgeler Onaylanmış'
+                    'status' => false,
+                    'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                ], 200);
+            elseif ($approvedCount == 0)
+                return response([
+                    'status' => false,
+                    'message' => 'Onay verilmiş belge bulunamadı'
                 ], 200);
             else
                 return response([
-                    'status' => false,
-                    'message' => 'Yetkiniz Yok'
+                    'status' => true,
+                    'message' => 'Belgeler onaylanmış',
+                    'type' => 'APPROVED'
                 ], 200);
         } else
             return response([
@@ -1561,19 +1778,39 @@ class ExpenseController extends ApiController
                     ->groupBy("ExpenseDocument.id");
 
                 if ($expenseDocumentsQ->count() > 0) {
+                    $approvedCount = 0;
+                    $rejectedCount = 0;
+                    $waitingCount = 0;
                     $expenseDocuments = $expenseDocumentsQ->get();
                     foreach ($expenseDocuments as $expenseDocument) {
-                        if ($expenseDocument->pm_status == 0)
-                            return response([
-                                'status' => false,
-                                'message' => 'Onaylanmamış Belgeler Bulunuyor.'
-                            ], 200);
+                        if ($expenseDocument->pm_status == 1)
+                            $approvedCount++;
+                        elseif ($expenseDocument->pm_status == 2)
+                            $rejectedCount++;
+                        else
+                            $waitingCount++;
                     }
+                    if ($waitingCount > 0)
+                        return response([
+                            'status' => false,
+                            'message' => 'Onaylanmamış Belgeler Bulunuyor.'
+                        ], 200);
+                    elseif ($approvedCount == 0)
+                        return response([
+                            'status' => false,
+                            'message' => 'Onay verilmiş belge bulunamadı'
+                        ], 200);
+                    else
+                        return response([
+                            'status' => true,
+                            'message' => 'Belgeler onaylanmış',
+                            'type' => 'APPROVED'
+                        ], 200);
+                } else
                     return response([
-                        'status' => true,
-                        'message' => 'Tüm Belgeler Onaylanmış.'
+                        'status' => false,
+                        'message' => 'Harcama Belgesi Bulunamadı.'
                     ], 200);
-                }
 
 
             }
@@ -1613,7 +1850,8 @@ class ExpenseController extends ApiController
         $expense = ExpenseModel::find($request->expenseId);
 
         $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID" => $request->Employee, "group_id" => 12, 'active' => 1])->count();
-        if ($userGroupCount < 1)
+        $processSettingExpenseAccounter = ProcessesSettingsModel::where(['object_type' => 1,'PropertyValue' => $request->Employee,'PropertyCode' => 'Accounter'])->count();
+        if ($userGroupCount < 1 && $processSettingExpenseAccounter < 1)
             return response([
                 'status' => false,
                 'message' => 'Yetkisiz Kişi.'
@@ -1627,17 +1865,40 @@ class ExpenseController extends ApiController
 
         if ($expenseDocumentsQ->count() > 0) {
             $expenseDocuments = $expenseDocumentsQ->get();
-            foreach ($expenseDocuments as $expenseDocument) {
-                if ($expenseDocument->accounting_status == 0 && $expenseDocument->manager_status != 2 && $expenseDocument->pm_status != 2)
+            if ($expenseDocumentsQ->count() > 0) {
+                $approvedCount = 0;
+                $rejectedCount = 0;
+                $waitingCount = 0;
+                $expenseDocuments = $expenseDocumentsQ->get();
+                foreach ($expenseDocuments as $expenseDocument) {
+                    if ($expenseDocument->accounting_status == 1)
+                        $approvedCount++;
+                    elseif ($expenseDocument->accounting_status == 2)
+                        $rejectedCount++;
+                    else
+                        $waitingCount++;
+                }
+                if ($waitingCount > 0)
                     return response([
                         'status' => false,
                         'message' => 'Onaylanmamış Belgeler Bulunuyor.'
                     ], 200);
-            }
-            return response([
-                'status' => true,
-                'message' => 'Yetkili Kişi.'
-            ], 200);
+                elseif ($approvedCount == 0)
+                    return response([
+                        'status' => false,
+                        'message' => 'Onay verilmiş belge bulunamadı'
+                    ], 200);
+                else
+                    return response([
+                        'status' => true,
+                        'message' => 'Belgeler onaylanmış',
+                        'type' => 'APPROVED'
+                    ], 200);
+            } else
+                return response([
+                    'status' => false,
+                    'message' => 'Harcama Belgesi Bulunamadı.'
+                ], 200);
         } else
             return response([
                 'status' => false,
@@ -1721,6 +1982,42 @@ class ExpenseController extends ApiController
                 'elementsTotalPrice' => $expenseDocumentElementsTotalPrice
             ]
         ], 200);
+
+    }
+
+    public function restartExpenseProcess(Request $request)
+    {
+
+        $expenseID = $request->expenseID;
+
+        $expense = ExpenseModel::find($expenseID);
+
+        $expenseDocuments = ExpenseDocumentModel::where(['expense_id' => $expense->id])->get();
+
+        foreach ($expenseDocuments as $expenseDocument)
+        {
+            $expenseDocument->netsis = 0;
+            $expenseDocument->accounting_status = 0;
+            $expenseDocument->pm_status = 0;
+            $expenseDocument->manager_status = 0;
+            $expenseDocument->save();
+        }
+
+        $expense->reject_status = 0;
+        $expense->status = 1;
+        $result = $expense->save();
+
+        if ($result)
+            return response([
+                'status' => true,
+                'message' => 'İşlem Başarılı',
+            ],200);
+        else
+            return response([
+                'status' => false,
+                'message' => 'İşlem Başarısız',
+            ],200);
+
 
     }
 

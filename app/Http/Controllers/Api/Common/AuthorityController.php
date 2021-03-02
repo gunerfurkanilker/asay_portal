@@ -22,6 +22,8 @@ class AuthorityController extends ApiController
         $isEmployeeManager          = false;
         $isProjectManager           = false;
         $isAccounter                = false;
+        $isExpenseAccounter         = false;
+        $isAllowanceAccounter       = false;
         $isHRPersonel               = false;
         $isPermitPersonnelManager   = false;
         $isUnitSupervisor           = false;
@@ -41,9 +43,19 @@ class AuthorityController extends ApiController
             $isUnitSupervisor = true;
 
         $userGroupCount = EmployeeHasGroupModel::where(["EmployeeID"=>$request->Employee,"group_id"=>12, 'active' => 1])->count();
+        $processSettingExpenseAccounter = ProcessesSettingsModel::where(['object_type' => 1,'PropertyValue' => $request->Employee,'PropertyCode' => 'Accounter'])->count();
+        $processSettingAllowanceAccounter = ProcessesSettingsModel::where(['object_type' => 2,'PropertyValue' => $request->Employee,'PropertyCode' => 'Accounter'])->count();
         if ($userGroupCount > 0)
         {
             $isAccounter = true;
+        }
+        if ($processSettingExpenseAccounter > 0)
+        {
+            $isExpenseAccounter = true;
+        }
+        if ($processSettingAllowanceAccounter > 0)
+        {
+            $isAllowanceAccounter = true;
         }
 
 
@@ -68,6 +80,8 @@ class AuthorityController extends ApiController
         $data['isProjectManager']           = $isProjectManager;
         $data['isAccounter']                = $isAccounter;
         $data['isHRPersonel']               = $isHRPersonel;
+        $data['isExpenseAccounter']         = $isExpenseAccounter;
+        $data['isAllowanceAccounter']       = $isAllowanceAccounter;
         $data['isPermitPersonnelManager']   = $isPermitPersonnelManager;
         $data['isUnitSupervisor']           = $isUnitSupervisor;
 

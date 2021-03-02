@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Model\CarModel;
+use App\Model\EmployeePositionModel;
 use App\Model\ProjectCategoriesModel;
 use App\Model\ProjectsModel;
 use App\Model\UserProjectsModel;
@@ -33,29 +34,19 @@ class ProjectController extends ApiController
 
     public function projectListOfUser(Request $request)
     {
-        $requestArray = $request->all();
-
         $data = [];
 
-        $projectsRelationsOfUser = UserProjectsModel::where('EmployeeID', $request->Employee)->get();
+        $employeeOrganizationID = EmployeePositionModel::where(['EmployeeID' => $request->Employee, 'Active' => 2])->first()->OrganizationID;
+
         $projectList = [];
-
-        if (count($projectsRelationsOfUser) < 1) {
-            return response([
-                'status' => false,
-                'message' => 'Kullanıcı herhangi bir projede görev almıyor.'
-            ], 200);
+        if ($employeeOrganizationID == 4)//MSMARMARA
+        {
+            $project = ProjectsModel::find(1);//MS_PROJESİ
+            array_push($projectList,$project);//MSPROJESİ
         }
-
-        foreach ($projectsRelationsOfUser as $project) {
-
-            $prj = ProjectsModel::find($project->project_id);
-
-            if ($prj) {
-                array_push($projectList, $prj);
-            }
-
-
+        else
+        {
+            $projectList = ProjectsModel::whereNotIn("id",[1,3,4])->get();
         }
 
         $data['userProjectList'] = $projectList;
@@ -76,9 +67,9 @@ class ProjectController extends ApiController
         $expenseType = $request->input('expense_type') ? $request->input('expense_type') : null;
 
         if (!$expenseType)
-            $categories = ProjectCategoriesModel::where('project_id', $project_id)->get();
+            $categories = ProjectCategoriesModel::where(['project_id' => $project_id,'active' => 1])->get();
         else
-            $categories = ProjectCategoriesModel::where('project_id', $project_id)->where('expense_type',$expenseType)->get();
+            $categories = ProjectCategoriesModel::where('project_id', $project_id)->where('expense_type',$expenseType)->where("active" , 1)->get();
         // Expense Type geldi ise ilgili expense Type'ın alt kategorilerini seçiyorum.
         $data['categories'] = $categories;
 
@@ -98,7 +89,7 @@ class ProjectController extends ApiController
                 'message' => 'Proje Id boş olamaz'
             ],200);
 
-        $carList = CarModel::where(['Active' => 1, 'ProjectID' => $request->projectId])->get();
+        $carList = CarModel::where(['Active' => 1])->get();
 
         return response([
             'status' => true,
