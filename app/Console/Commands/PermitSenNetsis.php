@@ -62,21 +62,16 @@ class PermitSenNetsis extends Command
             'exceptions'        =>true,
             "location" => "http://netsis.asay.corp/CrmNetsisEntegrasyonServis/Service.svc?singleWsdl",
         );
-
-        $puantaj["_Isyeri"] = "YASAYVAD"; // İş Yeri ne olacak ?
-        $puantaj["_SicilNo"] = "10802";
-        $puantaj["Yil"] = "2020";
-        $puantaj["Ay"] = "11";
-        $puantaj["GunSayisi"] = "1";
-        $puantaj["PuantajTuru"] = "IZIN";
         $soap = new \SoapClient($wsdl, $options);
-        $dataPuantaj = $soap->PersonelPuantajKayit($puantaj);
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $dataPuantaj
-        ],200);
-        exit;
+        $izin["_Isyeri"]                = "YASAYVAD"; // İş Yeri ne olacak ?
+        $izin["_SicilNo"]               = "10802";
+        $izin["_BasTarih"]              = new Carbon("2020-11-29");
+        $izin["_BitTarih"]              = new Carbon("2020-11-31");
+        $izin["_IsGunuSayisi"]          = 1;
+        $izin["_HaftaSonuTatilSayisi"]  = 0;
+        $izin["_IzinTuru"]              = "I";
+        $izin["_NedenKodu"]             = "";
+        //$izinResponse = $soap->PersonelIzinGirisi($izin);
 
         foreach ($permits as $permit) {
             $employee = EmployeeModel::where(["Id"=>$permit->EmployeeID,"Active"=>1])->first();
