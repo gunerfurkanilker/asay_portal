@@ -53,7 +53,7 @@ class AuthController extends Controller
 
         try {
             $provider = $ad->connect("ldap", $data["username"]."@".$ldap->domain, $data["password"]);
-            $search = $provider->search();
+            /*$search = $provider->search();
             //$user = UserModel::LdapUserCreate($search,$data["username"]);
             $userLogin = EmployeeModel::LdapUserLogin($search,$employee->JobEmail,$ldap);
             if(!$userLogin)
@@ -62,7 +62,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => "Yetkisiz İşlem"
                 ], 200);
-            }
+            }*/
 
 
             $Menus = UserMenuModel::UserMenus($employee->EmployeeGroup);
