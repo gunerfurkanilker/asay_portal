@@ -127,6 +127,7 @@ Route::namespace("Api")->group(function(){
             Route::get('overtimeLimits','OvertimeController@getOvertimeLimits')->name('overtime_limits');
             Route::get('managersProjectList','OvertimeController@managersProjectList')->name('overtime_managers_project_list');
             Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');
+            Route::post('overtimeReportsToExcel','OvertimeController@overtimeReportsToExcel')->name('overtime_reports_to_excel');
         });
 
         Route::prefix('processes/CarNotify/')->group(function () {
@@ -166,6 +167,7 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
+            Route::post("employee/toExcel", "EmployeeController@toExcel")->name("employee_to_excel");
             Route::post('employee/verifySMSCode', "EmployeeController@verifySMSCode")->name("verifySMSCode");
             Route::get('employee/sendSMSCode', "EmployeeController@sendSMSCode")->name("sendSMSCode");
             Route::get('employee/searchEmployee', "EmployeeController@searchEmployees")->name("search_employees");

@@ -232,6 +232,12 @@ class SocialSecurityInformationModel extends Model
         return $disabledDegree->where("Active",1)->first();
     }
 
+    public function getJobCodeAttribute()
+    {
+        $jobCode = $this->hasOne(JobModel::class,"Id","JobCodeID");
+        return $jobCode->where("Active",1)->first();
+    }
+
     public function getObjectFileAttribute()
     {
         $file = $this->hasOne(ObjectFileModel::class,"ObjectId","Id");

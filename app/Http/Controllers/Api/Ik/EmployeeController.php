@@ -14,15 +14,77 @@ use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\EmployeesChildModel;
 use App\Model\GenderModel;
+use App\Model\IdCardModel;
 use App\Model\PaymentModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\RelationshipDegreeModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 
 class EmployeeController extends ApiController
 {
+
+    public function toExcel(Request $request)
+    {
+
+        $employees = EmployeeModel::where("Active",1)->get();
+        $spreadsheet = new Spreadsheet();
+
+        $generalInformationsSheet = EmployeeModel::toExcelGeneralInformations($spreadsheet,$employees);
+        $positionInformationsSheet = EmployeeModel::toExcelPositionInformations($spreadsheet,$employees);
+        $contractInformationsSheet = EmployeeModel::toExcelContractInformations($spreadsheet,$employees);
+        $paymentInformationsSheet = EmployeeModel::toExcelPaymentInformations($spreadsheet,$employees);
+        $additionalPaymentInformationsSheet = EmployeeModel::toExcelAdditionalPaymentInformations($spreadsheet,$employees);
+        $educationInformationSheet = EmployeeModel::toExcelEducationInformations($spreadsheet,$employees);
+        $contactInformationSheet = EmployeeModel::toExcelContactInformations($spreadsheet,$employees);
+        $addressInformationSheet = EmployeeModel::toExcelAddressInformations($spreadsheet,$employees);
+        $agiInformationSheet = EmployeeModel::toExcelAGIInformations($spreadsheet,$employees);
+        $childrenInformationSheet = EmployeeModel::toExcelChildrenInformations($spreadsheet,$employees);
+        $drivingLicenseInformationSheet = EmployeeModel::toExcelDrivingLicenseInformations($spreadsheet,$employees);
+        $psychotechnicInformationSheet = EmployeeModel::toExcelPsychoTechnicInformations($spreadsheet,$employees);
+        $srcInformationSheet = EmployeeModel::toExcelSRCInformations($spreadsheet,$employees);
+        $emergencyInformationSheet = EmployeeModel::toExcelEmergencyInformations($spreadsheet, $employees);
+        $bodyMeasurementsInformationSheet = EmployeeModel::toExcelBodyMeasurementsInformations($spreadsheet, $employees);
+        $IDCardInformationSheet = EmployeeModel::toExcelIDCardInformations($spreadsheet, $employees);
+        $socialSecurityInformationSheet = EmployeeModel::toExcelSocialSecurityInformations($spreadsheet, $employees);
+        $bankInformationSheet = EmployeeModel::toExcelBankInformations($spreadsheet, $employees);
+
+        $spreadsheet->removeSheetByIndex(0); // İlk Sheet'i siliyorum.
+
+        $spreadsheet->addSheet($generalInformationsSheet,0);
+        $spreadsheet->addSheet($positionInformationsSheet,1);
+        $spreadsheet->addSheet($contractInformationsSheet,2);
+        $spreadsheet->addSheet($paymentInformationsSheet,3);
+        $spreadsheet->addSheet($additionalPaymentInformationsSheet,4);
+        $spreadsheet->addSheet($educationInformationSheet,5);
+        $spreadsheet->addSheet($contactInformationSheet,6);
+        $spreadsheet->addSheet($addressInformationSheet,7);
+        $spreadsheet->addSheet($agiInformationSheet,8);
+        $spreadsheet->addSheet($childrenInformationSheet,9);
+        $spreadsheet->addSheet($drivingLicenseInformationSheet,10);
+        $spreadsheet->addSheet($psychotechnicInformationSheet,11);
+        $spreadsheet->addSheet($srcInformationSheet,12);
+        $spreadsheet->addSheet($emergencyInformationSheet,13);
+        $spreadsheet->addSheet($bodyMeasurementsInformationSheet,14);
+        $spreadsheet->addSheet($IDCardInformationSheet,15);
+        $spreadsheet->addSheet($socialSecurityInformationSheet,16);
+        $spreadsheet->addSheet($bankInformationSheet,17);
+
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_contents();
+        ob_end_clean();
+
+        Storage::disk('')->put("Employees.xlsx", $content);
+        return response()->download(storage_path('app/' . "Employees.xlsx"));
+    }
 
     public function searchEmployees(Request $request)
     {
@@ -151,7 +213,6 @@ class EmployeeController extends ApiController
 
 
     }
-
 
     public function getEmployeeById($id)
     {

@@ -16,10 +16,227 @@ use App\Model\UserProjectsModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 
 class OvertimeController extends ApiController
 {
+
+    public function overtimeReportsToExcel(Request $request){
+
+        $spreadsheet = new Spreadsheet();
+
+        $spreadsheet->removeSheetByIndex(0); // İlk Sheet'i siliyorum.
+
+        $workSheet = new Worksheet();
+
+        $columns = [
+            'Atayan Kişi',
+            'Atanan Kişi',
+            'Hizmet Kodu',
+            'Departman',
+            'Proje',
+            'Şehir',
+            'Çalışma Türü',
+            'Çalışma Tarihi',
+            'Çalışma Başlangıç Saati',
+            'Çalışma Bitiş Saati',
+            'Çalışma Yapılacak Saha ID',
+            'Çalışma Yapılacak Saha Adı',
+            'Çalışma No',
+            'İş Emri No',
+            'Araç Kullanacak Mı ?',
+            'Araç Plakası',
+            'Açıklama',
+            'Durumu'
+        ];
+
+        //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+        $asciiCapitalA = 65;
+        foreach ($columns as $key => $column)
+        {
+            $columnLetter = chr($asciiCapitalA);
+            $workSheet->setCellValue($columnLetter."1",$column);
+            $workSheet->getColumnDimension($columnLetter)->setAutoSize(false)->setWidth(40);
+            $asciiCapitalA++;
+        }
+
+        $overtimes = [];
+
+        if ($request->OvertimeStatus == 1 || $request->OvertimeStatus == 4) {
+            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
+                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ1->where(['KindID' => $request->KindID]);
+            if ($request->OvertimeStatus)
+                $overtimeQ1->where(['StatusID' => $request->OvertimeStatus]);
+
+
+            $overtimes = $overtimeQ1->orderBy("BeginDate","desc")->get();
+
+
+
+        }
+        else if ($request->OvertimeStatus == 6 || $request->OvertimeStatus == 8 || $request->OvertimeStatus == 9 || $request->OvertimeStatus == 10) {
+            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
+                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ2->where(['KindID' => $request->KindID]);
+            if ($request->OvertimeStatus)
+                $overtimeQ2->where(['StatusID' => $request->OvertimeStatus]);
+
+            $overtimeCountQ = $overtimeQ2;
+
+            $overtimes = $overtimeQ2->orderBy("WorkBeginDate","desc")->get();
+
+
+        }
+        else
+        {
+            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
+                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ1->where(['KindID' => $request->KindID]);
+
+            $overtimeQ1->whereIn("StatusID", [1, 4]);
+
+            $dataQ1 = $overtimeQ1->orderBy("BeginDate","desc")->get();
+
+            foreach ($dataQ1 as $item)
+                array_push($overtimes,$item);
+
+            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
+                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
+                ->where(['Active' => 1]);
+            if ($request->EmployeeID)
+                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
+            if ($request->KindID)
+                $overtimeQ2->where(['KindID' => $request->KindID]);
+
+            $overtimeQ2->whereIn("StatusID", [6, 8, 9, 10]);
+
+            $dataQ2 = $overtimeQ2->orderBy("WorkBeginDate","desc")->get();
+
+            foreach ($dataQ2 as $item)
+                array_push($overtimes,$item);
+
+        }
+
+        foreach ($overtimes as $key => $overtime)
+        {
+            //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+            $asciiCapitalA = 65;
+            $values = [];
+            $createdBy = $overtime->CreatedByEmployee->UsageName . ' ' . $overtime->CreatedByEmployee->LastName;
+            $assignedTo = $overtime->AssignedEmployee->UsageName . ' ' . $overtime->AssignedEmployee->LastName;
+            $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
+            $department = $overtime->AssignedEmployee->EmployeePosition->Department->Sym;
+            $project = $overtime->Project->name;
+            $city = $overtime->City->Sym;
+            $overtimeKind = $overtime->Kind->Name;
+            $overtimeDate = $overtime->WorkBeginDate ? $overtime->WorkBeginDate : $overtime->BeginDate;
+            $overtimeStartTime = $overtime->WorkBeginTime ? $overtime->WorkBeginTime : $overtime->BeginTime;
+            $overtimeEndTime = $overtime->WorkEndTime ? $overtime->WorkEndTime : $overtime->EndTime;
+            $fieldID = $overtime->FieldID;
+            $fieldName = $overtime->FieldName;
+            $workNo = $overtime->WorkNo;
+            $jobOrderNo = $overtime->JobOrderNo;
+            $usingCar = $overtime->UsingCar == 1 ? 'Evet' : 'Hayır';
+            $carPlate = $overtime->PlateNumber;
+            $description = $overtime->Description;
+            $status = "";
+            switch ($overtime->StatusID)
+            {
+                case 0:
+                    $status = "Kaydedildi";
+                    break;
+                case 1:
+                    $status = "Çalışan Onayı Bekleniyor";
+                    break;
+                case 2:
+                    $status = "Çalışan Düzenleme Talebi";
+                    break;
+                case 3:
+                    $status = "Çalışan Tarafından Reddedildi";
+                    break;
+                case 4:
+                    $status = "Çalışan Tarafından Onaylandı";
+                    break;
+                case 5:
+                    $status = "Yönetici Tarafından İptal Edildi";
+                    break;
+                case 6:
+                    $status = "Yönetici Onayı Bekleniyor";
+                    break;
+                case 7:
+                    $status = "Yönetici Düzenleme Talebi";
+                    break;
+                case 8:
+                    $status = "Yönetici Tarafından Onaylandı";
+                    break;
+                case 9:
+                    $status = "IK Düzenleme Talebi";
+                    break;
+                case 10:
+                    $status = "IK Tarafından Onaylandı";
+                    break;
+            }
+
+            //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+            array_push($values,$createdBy);
+            array_push($values,$assignedTo);
+            array_push($values,$serviceCode);
+            array_push($values,$department);
+            array_push($values,$project);
+            array_push($values,$city);
+            array_push($values,$overtimeKind);
+            array_push($values,$overtimeDate);
+            array_push($values,$overtimeStartTime);
+            array_push($values,$overtimeEndTime);
+            array_push($values,$fieldID);
+            array_push($values,$fieldName);
+            array_push($values,$workNo);
+            array_push($values,$jobOrderNo);
+            array_push($values,$usingCar);
+            array_push($values,$carPlate);
+            array_push($values,$description);
+            array_push($values,$status);
+
+
+            foreach ($columns as $keyColumns => $column)
+            {
+                $columnLetter = chr($asciiCapitalA);
+                $workSheet->setCellValue($columnLetter.($key+2),$values[$keyColumns]);
+                $asciiCapitalA++;
+            }
+
+        }
+
+        $spreadsheet->addSheet($workSheet,0);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_contents();
+        ob_end_clean();
+
+        Storage::disk('')->put("Employees.xlsx", $content);
+        return response()->download(storage_path('app/' . "Employees.xlsx"));
+
+
+    }
 
     public function getOvertimeById(Request $request)
     {
@@ -81,44 +298,10 @@ class OvertimeController extends ApiController
         }
 
 
-        $overtimes = OvertimeModel::getEmployeesOvertimeByStatus($status, $request->Employee);
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1, 'AssignedID' => $request->Employee])->groupBy("StatusID")->get();
-
-        $amount = [];
-
-        foreach ($counts as $count) {
-            $amount['Status_' . $count->statusVal] = $count->count;
-        }
-
-
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $overtimes,
-            'amounts' => $amount
-        ], 200);
-
-    }
-
-    public function getEmployeesOvertimeRequests2(Request $request)
-    {
-        $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
-
-        if ($status == null) {
-            $overtimes = OvertimeModel::where(['Active' => 1, 'AssignedID' => $request->Employee])->get();
-
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $overtimes
-            ], 200);
-        }
-
-
         $paginationPage = ($request->PaginationPage - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
 
-        $overtimeData = OvertimeModel::getEmployeesOvertimeByStatus2($status, $request->Employee,$paginationPage,$recordPerPage);
+        $overtimeData = OvertimeModel::getEmployeesOvertimeByStatus($status, $request->Employee,$paginationPage,$recordPerPage);
         $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1, 'AssignedID' => $request->Employee])->groupBy("StatusID")->get();
 
         $amount = [];
@@ -139,82 +322,6 @@ class OvertimeController extends ApiController
     }
 
     public function getOvertimeHRReports(Request $request)
-    {
-
-        $overtimes = [];
-
-        if ($request->OvertimeStatus == 1 || $request->OvertimeStatus == 4) {
-            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
-                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
-                ->where(['Active' => 1]);
-            if ($request->EmployeeID)
-                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
-            if ($request->KindID)
-                $overtimeQ1->where(['KindID' => $request->KindID]);
-            if ($request->OvertimeStatus)
-                $overtimeQ1->where(['StatusID' => $request->OvertimeStatus]);
-
-            $overtimes = $overtimeQ1->get();
-
-        }
-        else if ($request->OvertimeStatus == 6 || $request->OvertimeStatus == 8 || $request->OvertimeStatus == 9 || $request->OvertimeStatus == 10) {
-            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
-                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
-                ->where(['Active' => 1]);
-            if ($request->EmployeeID)
-                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
-            if ($request->KindID)
-                $overtimeQ2->where(['KindID' => $request->KindID]);
-            if ($request->OvertimeStatus)
-                $overtimeQ2->where(['StatusID' => $request->OvertimeStatus]);
-
-            $overtimes = $overtimeQ2->get();
-
-        }
-        else
-        {
-            $overtimeQ1 = OvertimeModel::whereYear("BeginDate", date("Y", strtotime($request->BeginDate)))
-                ->whereMonth("BeginDate", date("m", strtotime($request->BeginDate)))
-                ->where(['Active' => 1]);
-            if ($request->EmployeeID)
-                $overtimeQ1->where(['AssignedID' => $request->EmployeeID]);
-            if ($request->KindID)
-                $overtimeQ1->where(['KindID' => $request->KindID]);
-
-            $overtimeQ1->whereIn("StatusID", [1, 4]);
-
-            $dataQ1 = $overtimeQ1->get();
-
-            foreach ($dataQ1 as $item)
-                array_push($overtimes,$item);
-
-            $overtimeQ2 = OvertimeModel::whereYear("WorkBeginDate", date("Y", strtotime($request->WorkBeginDate)))
-                ->whereMonth("WorkBeginDate", date("m", strtotime($request->WorkBeginDate)))
-                ->where(['Active' => 1]);
-            if ($request->EmployeeID)
-                $overtimeQ2->where(['AssignedID' => $request->EmployeeID]);
-            if ($request->KindID)
-                $overtimeQ2->where(['KindID' => $request->KindID]);
-
-            $overtimeQ2->whereIn("StatusID", [6, 8, 9, 10]);
-
-            $dataQ2 = $overtimeQ2->get();
-
-            foreach ($dataQ2 as $item)
-                array_push($overtimes,$item);
-
-        }
-
-
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $overtimes
-        ], 200);
-
-    }
-
-    public function getOvertimeHRReports2(Request $request)
     {
 
         $overtimeData = [];
@@ -328,54 +435,10 @@ class OvertimeController extends ApiController
             ], 200);
         }
 
-
-        $overtimes = OvertimeModel::getOvertimeByStatus($status, $request->Employee);
-
-        $userEmployees = EmployeePositionModel::where(['Active' => 2])->orWhere(['UnitSupervisorID' => $request->Employee, 'ManagerID' => $request->Employee])->get();
-        $userEmployeesIDs = [];
-        foreach ($userEmployees as $userEmployee) {
-            array_push($userEmployeesIDs, $userEmployee->EmployeeID);
-        }
-
-        $employee = $request->Employee;
-
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->where(function ($query) use ($employee) {
-            $query->orWhere(['CreatedBy' => $employee]);
-            $query->orWhere(['ManagerID' => $employee]);
-        })->groupBy("StatusID")->get();
-
-        $amount = [];
-
-        foreach ($counts as $count) {
-            $amount['Status_' . $count->statusVal] = $count->count;
-        }
-
-        return response([
-            'status' => true,
-            'message' => 'İşlem Başarılı',
-            'data' => $overtimes,
-            'dataCounts' => $amount
-        ], 200);
-
-    }
-    public function getManagersOvertimeRequests2(Request $request)
-    {
-        $status = isset($request->Status) || $request->Status != null ? $request->Status : null;
-
-        if ($status == null) {
-            $overtimes = OvertimeModel::where(['Active' => 1, 'ManagerID' => $request->Employee])->get();
-
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı',
-                'data' => $overtimes
-            ], 200);
-        }
-
         $paginationPage = ($request->PaginationPage - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
 
-        $overtimeData = OvertimeModel::getOvertimeByStatus2($status, $request->Employee,$paginationPage,$recordPerPage);
+        $overtimeData = OvertimeModel::getOvertimeByStatus($status, $request->Employee,$paginationPage,$recordPerPage);
 
 
 

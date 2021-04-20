@@ -622,44 +622,8 @@ class OvertimeModel extends Model
 
     }
 
-    public static function getOvertimeByStatus($status, $EmployeeID)
-    {
-        $userEmployees = EmployeePositionModel::where(['Active' => 2])->where(['UnitSupervisorID' => $EmployeeID])->get();
-        $userEmployees2 = EmployeePositionModel::where(['Active' => 2])->where(['ManagerID' => $EmployeeID])->get();
-        $userEmployeesIDs = [];
-        foreach ($userEmployees as $userEmployee) {
-            array_push($userEmployeesIDs, $userEmployee->EmployeeID);
-        }
-        foreach ($userEmployees2 as $userEmployee2) {
-            array_push($userEmployeesIDs, $userEmployee2->EmployeeID);
-        }
-        $overtimeQ = self::where(['Active' => 1, 'StatusID' => $status])->where(function ($query) use ($EmployeeID, $userEmployeesIDs, $status) {
-            if ($status == 8 || $status == 9 || $status == 10){
-                //İsteğin İK yetkilisinden mi yoksa normal yöneticiden mi geldiğini anlıyoruz buradan
-                $hrRegion = ProcessesSettingsModel::where(["object_type" => 4, "PropertyCode" => "HRManager", "PropertyValue" => $EmployeeID])->groupBy("RegionID")->pluck("RegionID");
-                if (count($hrRegion) > 0)
-                {
-                    $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $hrRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
-                    $query->whereIn('AssignedID', $usersApprove);
-                }
-                else{
-                    $query->whereIn('AssignedID', $userEmployeesIDs);
-                    $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
-                }
 
-
-            }
-            else{
-                $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
-            }
-
-        });
-
-        return $overtimeQ->orderBy('BeginDate', 'desc')->get();
-
-    }
-
-    public static function getOvertimeByStatus2($status, $EmployeeID, $paginationPage, $recordPerPage)
+    public static function getOvertimeByStatus($status, $EmployeeID, $paginationPage, $recordPerPage)
     {
         $userEmployees = EmployeePositionModel::where(['Active' => 2])->where(['UnitSupervisorID' => $EmployeeID])->get();
         $userEmployees2 = EmployeePositionModel::where(['Active' => 2])->where(['ManagerID' => $EmployeeID])->get();
@@ -703,12 +667,7 @@ class OvertimeModel extends Model
 
     }
 
-    public static function getEmployeesOvertimeByStatus($status, $EmployeeID)
-    {
-        return self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $EmployeeID])->orderBy('BeginDate', 'desc')->get();
-    }
-
-    public static function getEmployeesOvertimeByStatus2($status, $EmployeeID,$paginationPage, $recordPerPage)
+    public static function getEmployeesOvertimeByStatus($status, $EmployeeID,$paginationPage, $recordPerPage)
     {
         $overtimeQ = self::where(['Active' => 1, 'StatusID' => $status, 'AssignedID' => $EmployeeID])->orderBy('BeginDate', 'desc');
 
@@ -742,14 +701,14 @@ class OvertimeModel extends Model
         foreach ($employeePositions as $employeePosition) {
             $tempPositions = EmployeePositionModel::where('Active', 2)->where('ManagerID', $employeePosition->EmployeeID)->get();
             foreach ($tempPositions as $tempPosition) {
-                $tempEmployee = DB::table("Employee")->where('Id', $tempPosition->EmployeeID)->where('Active', 1)->first();
+                $tempEmployee = EmployeeModel::where('Id', $tempPosition->EmployeeID)->where('Active', 1)->first();
                 $tempEmployee ? array_push($employeeList, $tempEmployee) : '';
             }
         }
 
 
         foreach ($employeePositions as $employeePosition) {
-            $tempEmployee = DB::table("Employee")->where('Id', $employeePosition->EmployeeID)->where('Active', 1)->first();
+            $tempEmployee = EmployeeModel::where('Id', $employeePosition->EmployeeID)->where('Active', 1)->first();
             $tempEmployee ? array_push($employeeList, $tempEmployee) : '';
         }
         return $employeeList;

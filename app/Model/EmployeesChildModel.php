@@ -11,6 +11,11 @@ class EmployeesChildModel extends Model
     protected $primaryKey = "id";
     public $timestamps = false;
     protected $table = "EmployeesChild";
+    protected $appends = [
+        'Gender',
+        'RelationshipDegree',
+        'EducationLevel'
+    ];
 
 
     public static function saveEmployeesChild($request)
@@ -62,5 +67,46 @@ class EmployeesChildModel extends Model
     }
 
 
+    public function getGenderAttribute()
+    {
+
+        $gender = $this->hasOne(GenderModel::class,"Id","GenderID");
+        if ($gender)
+        {
+            return $gender->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getRelationshipDegreeAttribute()
+    {
+
+        $relationship = $this->hasOne(RelationshipDegreeModel::class,"id","RelationshipID");
+        if ($relationship)
+        {
+            return $relationship->where("active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getEducationLevelAttribute()
+    {
+
+        $educationLevel = $this->hasOne(EducationLevelModel::class,"Id","EducationLevelID");
+        if ($educationLevel)
+        {
+            return $educationLevel->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
 
 }

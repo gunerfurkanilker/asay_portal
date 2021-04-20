@@ -28,6 +28,7 @@ class IdCardModel extends Model
         'MotherName',
         'BirthPlace',
         'CityID',
+        'City',
         'DistrictID',
         'Neighborhood',
         'Village',
@@ -138,7 +139,7 @@ class IdCardModel extends Model
 
     public function getDistrictAttribute()
     {
-        $district = $this->hasOne(DistrictModel::class, "Id", "GenderID");
+        $district = $this->hasOne(DistrictModel::class, "Id", "DistrictID");
         return $district->where("Active", 1)->first();
     }
 
@@ -146,6 +147,12 @@ class IdCardModel extends Model
     {
         $nationality = $this->hasOne(NationalityModel::class, "Id", "NationalityID");
         return $nationality->where("Active", 1)->first();
+    }
+
+    public function getCityAttribute()
+    {
+        $city = $this->hasOne(CityModel::class, "Id", "CityID");
+        return $city->where("Active", 1)->first();
     }
 
     public function getObjectFileAttribute()
