@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Model\DomainModel;
+use App\Model\EmployeeLogsModel;
 use App\Model\EmployeeModel;
 use App\Model\LdapModel;
 use App\Model\LogsModel;
+use App\Model\ParametersModel;
 use App\Model\UserMenuModel;
+use PHPUnit\Framework\MockObject\Rule\Parameters;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -66,6 +69,7 @@ class AuthController extends Controller
 
 
             $Menus = UserMenuModel::UserMenus($employee->EmployeeGroup);
+
             $userdata = [
                 'EmployeeID' => $employee->Id,
                 'email' => $employee->JobEmail,
@@ -77,6 +81,9 @@ class AuthController extends Controller
                 "user_menus" => json_encode($Menus),
             ];
             $userdata["token"] = EmployeeModel::createToken($userdata);
+            $firstLogin = EmployeeLogsModel::where(["LogType"=>"LOGIN","EmployeeID"=>$employee->Id,["LogDate",">=",date("Y-m-d")." ".ParametersModel::where(["metaKey"=>"userFirstLoginTime"])->first()->metaValue]])->count();
+            $userdata["firstLogin"] = $firstLogin==0 ? true : false;
+
         } catch (\Adldap\Auth\BindException $e) {
             $error = "Kullanıcı adı ve şifre hatası ".$e->getMessage();
         }
@@ -86,7 +93,7 @@ class AuthController extends Controller
                 'message' => $error
             ], 200);
         } else {
-            LogsModel::setLog($employee->Id,$employee->Id,13,32,"","",$employee->UsageName.' ' .$employee->LastName." adlı kullanıcı sisteme giriş yaptı","","","","","");
+            EmployeeLogsModel::setLog($employee->Id,"LOGIN");
             return response([
                 'status' => true,
                 'data' => [
@@ -99,7 +106,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $employee = EmployeeModel::find($request->EmployeeID);
-        $res = LogsModel::setLog($employee->Id,$employee->Id,14,33,"","",$employee->UsageName.' ' .$employee->LastName." adlı kullanıcı sistemden çıkış yaptı","","","","","");
+        $res = EmployeeLogsModel::setLog($employee->Id,"LOGOUT");
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',

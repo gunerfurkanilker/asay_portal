@@ -10,8 +10,10 @@ use App\Model\ContractTypeModel;
 use App\Model\EducationLevelModel;
 use App\Model\Employee;
 use App\Model\EmployeeHasGroupModel;
+use App\Model\EmployeeLogsModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\EmployeePropertyValuesModel;
 use App\Model\EmployeesChildModel;
 use App\Model\GenderModel;
 use App\Model\IdCardModel;
@@ -551,6 +553,38 @@ class EmployeeController extends ApiController
                 'message' => 'Kod yanlış'
             ]);
 
+    }
+
+    public function setPropertyValues(Request $request)
+    {
+        $isPropertyValueSave = EmployeePropertyValuesModel::setPropertyValues($request->Employee,$request->propertyCode,$request->propertyValue);
+        if($isPropertyValueSave){
+            return response([
+                'status' => true,
+                'message' => "Başarılı"
+            ],200);
+        } else {
+            return response([
+                'status' => false,
+                'message' => "Hata Oluştu"
+            ]);
+        }
+    }
+
+    public function createLog(Request $request)
+    {
+        $isLogSave = EmployeeLogsModel::setLog($request->Employee,$request->logType,$request->logValue,$request->logText);
+        if($isLogSave){
+            return response([
+                'status' => true,
+                'message' => "Başarılı"
+            ],200);
+        } else {
+            return response([
+                'status' => false,
+                'message' => "Hata Oluştu"
+            ]);
+        }
     }
 
 }
