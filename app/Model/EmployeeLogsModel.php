@@ -18,7 +18,7 @@ class EmployeeLogsModel extends Model
 
     public static function setLog($EmployeeID, $logType, $newValue = null, $logText = null)
     {
-        $newLog = new LogsModel();
+        $newLog = new self();
         $newLog->EmployeeID = $EmployeeID;
         $newLog->LogType = $logType;
         $newLog->NewValue = $newValue;
