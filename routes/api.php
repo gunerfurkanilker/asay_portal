@@ -252,6 +252,9 @@ Route::namespace("Api")->group(function(){
 
             Route::get('employee/position-informations/serviceCodes', "PositionController@getServiceCodes")->name('get_service_codes');
 
+            Route::get('employee/setPropertyValues', "EmployeeController@setPropertyValues");
+            Route::get('employee/createLog', "EmployeeController@createLog");
+
 
         });
 
