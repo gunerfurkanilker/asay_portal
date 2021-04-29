@@ -16,20 +16,260 @@ use App\Model\EmployeePositionModel;
 use App\Model\EmployeePropertyValuesModel;
 use App\Model\EmployeesChildModel;
 use App\Model\GenderModel;
+use App\Model\HealthReportModel;
 use App\Model\IdCardModel;
 use App\Model\PaymentModel;
+use App\Model\PermitModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\RelationshipDegreeModel;
+use App\Model\UserGroupModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 
 class EmployeeController extends ApiController
 {
+
+    public function dailyEmployeeStatusReportExcel(Request $request){
+
+        $healthReportEmployeeIDs = HealthReportModel::where(['Active' => 1])
+            ->pluck("EmployeeID")
+            ->toArray();
+        $havePermitEmployeeIDs = PermitModel::where(['active' => 1])
+            ->whereDate('start_date', '<=', date("Y-m-d"))
+            ->whereDate('end_date', '>=', date("Y-m-d"))
+            ->where("status",">=",3)
+            ->where("manager_status", "!=", 2)
+            ->where("hr_status", "!=", 2)
+            ->where("ps_status", "!=", 2)
+            ->pluck("EmployeeID")
+            ->toArray();
+
+        //Test Userları listeden çıkarılacak.
+        $healthReportEmployees = EmployeeModel::where("Active",1)->where("Id",">","999")->whereIn("Id", $healthReportEmployeeIDs)->get();
+        $havePermitEmployees = EmployeeModel::where("Active",1)->where("Id",">","999")->whereIn("Id", $havePermitEmployeeIDs)->get();
+        $activeEmployees = EmployeeModel::where("Active",1)->where("Id",">","999")->whereNotIn("Id", array_merge($healthReportEmployeeIDs,$havePermitEmployeeIDs))->get();
+
+        $spreadsheet = new Spreadsheet();
+        $workSheet = new Worksheet($spreadsheet, 'Rapor');
+
+        $columns = [
+            'Departman',
+            'Hizmet Kodu',
+            'Bölge',
+            'Çalıştığı İl',
+            'Çalışma Alanı',
+            'Personel ID',
+            'Tam Adı',
+            'Soyadı',
+            'Unvan',
+            'Yöneticisi',
+            'Durumu',
+            'Check-In'
+        ];
+
+        //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+        $asciiCapitalA = 65;
+        foreach ($columns as $key => $column)
+        {
+            $columnLetter = chr($asciiCapitalA);
+            $workSheet->setCellValue($columnLetter."4",$column);
+            $workSheet->getColumnDimension($columnLetter)->setAutoSize(false)->setWidth(30);
+            $asciiCapitalA++;
+        }
+
+
+
+        $rowNum = 5;
+        while (true) {
+            foreach ($healthReportEmployees as $keyEmployee => $employee) {
+                //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+                $asciiCapitalA = 65;
+                $values = [];
+                $employeeDepartment = $employee->EmployeePosition ? $employee->EmployeePosition->Department ?  $employee->EmployeePosition->Department->Sym : '' :'';
+                $employeeServiceCode = $employee->EmployeePosition ? $employee->EmployeePosition->ServiceCode  :'';
+                $employeeRegion = $employee->EmployeePosition ? $employee->EmployeePosition->Region ? $employee->EmployeePosition->Region->Name : '' :'';
+                $employeeCity = $employee->EmployeePosition ? $employee->EmployeePosition->City ? $employee->EmployeePosition->City->Sym : '' :'';
+                $employeeWorkingField = $employee->EmployeePosition ? $employee->EmployeePosition->WorkingField ? $employee->EmployeePosition->WorkingField->Name : '' :'';
+                $employeeStaffID = $employee->StaffID;
+                $employeeFullName = $employee->FirstName ;
+                $employeeLastName = $employee->LastName;
+                $employeeTitle = $employee->EmployeePosition ? $employee->EmployeePosition->Title ? $employee->EmployeePosition->Title->Sym : '' :'';
+                $employeeManager = $employee->EmployeePosition ? $employee->EmployeePosition->Manager ? $employee->EmployeePosition->Manager->FirstName . ' ' . $employee->EmployeePosition->Manager->LastName  : '' :'';
+
+                //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+                array_push($values, $employeeDepartment);
+                array_push($values, $employeeServiceCode);
+                array_push($values, $employeeRegion);
+                array_push($values, $employeeCity);
+                array_push($values, $employeeWorkingField);
+                array_push($values, $employeeStaffID);
+                array_push($values, $employeeFullName);
+                array_push($values, $employeeLastName);
+                array_push($values, $employeeTitle);
+                array_push($values, $employeeManager);
+                array_push($values, "Sağlık İstirahati Raporu");
+                array_push($values, "");//Check-In
+
+
+                foreach ($columns as $keyColumns => $column) {
+                    $columnLetter = chr($asciiCapitalA);
+                    $workSheet->setCellValue($columnLetter . ($rowNum), $values[$keyColumns]);
+                    $asciiCapitalA++;
+                }
+                $rowNum++;
+            }
+
+            foreach ($havePermitEmployees as $keyEmployee => $employee) {
+                //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+                $asciiCapitalA = 65;
+                $values = [];
+                $employeeDepartment = $employee->EmployeePosition ? $employee->EmployeePosition->Department ?  $employee->EmployeePosition->Department->Sym : '' :'';
+                $employeeServiceCode = $employee->EmployeePosition ? $employee->EmployeePosition->ServiceCode  :'';
+                $employeeRegion = $employee->EmployeePosition ? $employee->EmployeePosition->Region ? $employee->EmployeePosition->Region->Name : '' :'';
+                $employeeCity = $employee->EmployeePosition ? $employee->EmployeePosition->City ? $employee->EmployeePosition->City->Sym : '' :'';
+                $employeeWorkingField = $employee->EmployeePosition ? $employee->EmployeePosition->WorkingField ? $employee->EmployeePosition->WorkingField->Name : '' :'';
+                $employeeStaffID = $employee->StaffID;
+                $employeeFullName = $employee->FirstName ;
+                $employeeLastName = $employee->LastName;
+                $employeeTitle = $employee->EmployeePosition ? $employee->EmployeePosition->Title ? $employee->EmployeePosition->Title->Sym : '' :'';
+                $employeeManager = $employee->EmployeePosition ? $employee->EmployeePosition->Manager ? $employee->EmployeePosition->Manager->FirstName . ' ' . $employee->EmployeePosition->Manager->LastName  : '' :'';
+
+                $permit = PermitModel::where(['EmployeeID' => $employee->Id, 'active' => 1])
+                    ->whereDate('start_date', '<=', date("Y-m-d"))
+                    ->whereDate('end_date', '>=', date("Y-m-d"))
+                    ->where("status",">=",3)
+                    ->where("manager_status", "!=", 2)
+                    ->where("hr_status", "!=", 2)
+                    ->where("ps_status", "!=", 2)
+                    ->first();
+
+                //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+                array_push($values, $employeeDepartment);
+                array_push($values, $employeeServiceCode);
+                array_push($values, $employeeRegion);
+                array_push($values, $employeeCity);
+                array_push($values, $employeeWorkingField);
+                array_push($values, $employeeStaffID);
+                array_push($values, $employeeFullName);
+                array_push($values, $employeeLastName);
+                array_push($values, $employeeTitle);
+                array_push($values, $employeeManager);
+                array_push($values, $permit->PermitKind['name']);
+                array_push($values, "");//Check-In
+
+
+                foreach ($columns as $keyColumns => $column) {
+                    $columnLetter = chr($asciiCapitalA);
+                    $workSheet->setCellValue($columnLetter . ($rowNum), $values[$keyColumns]);
+                    $asciiCapitalA++;
+                }
+                $rowNum++;
+            }
+
+            foreach ($activeEmployees as $keyEmployee => $employee) {
+                //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+                $asciiCapitalA = 65;
+                $values = [];
+                $employeeDepartment = $employee->EmployeePosition ? $employee->EmployeePosition->Department ?  $employee->EmployeePosition->Department->Sym : '' :'';
+                $employeeServiceCode = $employee->EmployeePosition ? $employee->EmployeePosition->ServiceCode  :'';
+                $employeeRegion = $employee->EmployeePosition ? $employee->EmployeePosition->Region ? $employee->EmployeePosition->Region->Name : '' :'';
+                $employeeCity = $employee->EmployeePosition ? $employee->EmployeePosition->City ? $employee->EmployeePosition->City->Sym : '' :'';
+                $employeeWorkingField = $employee->EmployeePosition ? $employee->EmployeePosition->WorkingField ? $employee->EmployeePosition->WorkingField->Name : '' :'';
+                $employeeStaffID = $employee->StaffID;
+                $employeeFullName = $employee->FirstName ;
+                $employeeLastName = $employee->LastName;
+                $employeeTitle = $employee->EmployeePosition ? $employee->EmployeePosition->Title ? $employee->EmployeePosition->Title->Sym : '' :'';
+                $employeeManager = $employee->EmployeePosition ? $employee->EmployeePosition->Manager ? $employee->EmployeePosition->Manager->FirstName . ' ' . $employee->EmployeePosition->Manager->LastName  : '' :'';
+
+                //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+                array_push($values, $employeeDepartment);
+                array_push($values, $employeeServiceCode);
+                array_push($values, $employeeRegion);
+                array_push($values, $employeeCity);
+                array_push($values, $employeeWorkingField);
+                array_push($values, $employeeStaffID);
+                array_push($values, $employeeFullName);
+                array_push($values, $employeeLastName);
+                array_push($values, $employeeTitle);
+                array_push($values, $employeeManager);
+                array_push($values, "Aktif");
+                array_push($values, "");//Check-In
+
+
+                foreach ($columns as $keyColumns => $column) {
+                    $columnLetter = chr($asciiCapitalA);
+                    $workSheet->setCellValue($columnLetter . ($rowNum), $values[$keyColumns]);
+                    $asciiCapitalA++;
+                }
+                $rowNum++;
+            }
+
+            break;
+
+
+        }
+
+        $workSheet->setCellValue("A1","MS Projesi Kaynak Mevcudiyet Raporu");
+        $workSheet->setCellValue("A2",date("d.m.Y - H:i:s"));
+
+
+
+
+
+        $spreadsheet->removeSheetByIndex(0); // İlk Sheet'i siliyorum.
+
+        $spreadsheet->addSheet($workSheet,0);
+
+        $styleArray = [
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+                'color' => [
+                    'rgb' => 'FFFFFF',
+                ]
+            ],
+        ];
+
+        $workSheet->getStyle('A1:L3')->applyFromArray($styleArray);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+
+        $styleArray = [
+            'font' => [
+                'color' => [
+                    'rgb' => 'FFFFFF',
+                ]
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+                'color' => [
+                    'rgb' => '0b5885',
+                ]
+            ],
+        ];
+
+        $spreadsheet->getActiveSheet()->getStyle('A4:L4')->applyFromArray($styleArray);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_contents();
+        ob_end_clean();
+
+        Storage::disk('')->put("DailyEmployeeStatusReport.xlsx", $content);
+        return response()->download(storage_path('app/' . "DailyEmployeeStatusReport.xlsx"));
+
+    }
 
     public function toExcel(Request $request)
     {
@@ -119,6 +359,23 @@ class EmployeeController extends ApiController
 
             $employee->StatusVal = $statusVal;
 
+            $isHavePermit = PermitModel::where(['EmployeeID' => $employee->Id, 'active' => 1])
+                ->whereDate('start_date', '<=', date("Y-m-d"))
+                ->whereDate('end_date', '>=', date("Y-m-d"))
+                ->where("status",">=",3)
+                ->where("manager_status", "!=", 2)
+                ->where("hr_status", "!=", 2)
+                ->where("ps_status", "!=", 2)
+                ->first();
+
+            $isHaveReport = DB::table("HealthReports")->where(['Active' => 1, 'EmployeeID' => $employee->Id])
+                ->whereDate('start_date', '<=', date("Y-m-d"))
+                ->whereDate('end_date', '>=', date("Y-m-d"))
+                ->first();
+
+            $employee->Permit = $isHavePermit;
+            $employee->HealthReport = $isHaveReport;
+
         }
 
 
@@ -195,6 +452,26 @@ class EmployeeController extends ApiController
                 $statusVal = "Aktif Çalışan";
 
             $employee->StatusVal = $statusVal;
+
+            //TODO Sağlık Raporu kısmı eklenecek
+
+            $isHavePermit = PermitModel::where(['EmployeeID' => $employee->Id])
+                ->whereDate('start_date', '<=', date("Y-m-d"))
+                ->whereDate('end_date', '>=', date("Y-m-d"))
+                ->where("status",">=",3)
+                ->where("manager_status", "!=", 2)
+                ->where("hr_status", "!=", 2)
+                ->where("ps_status", "!=", 2)
+                ->first();
+
+            $isHaveReport = DB::table("HealthReports")->where(['Active' => 1, 'EmployeeID' => $employee->Id])
+                ->whereDate('start_date', '<=', date("Y-m-d"))
+                ->whereDate('end_date', '>=', date("Y-m-d"))
+                ->first();
+
+            $employee->Permit = $isHavePermit;
+            $employee->HealthReport = $isHaveReport;
+
 
             if ($countsOfPositions > 0 && $countsOfPayments > 0 && $countsOfContractType > 0)
                 array_push($employeesRegularIDList,$employee->Id);

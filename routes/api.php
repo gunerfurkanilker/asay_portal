@@ -130,6 +130,13 @@ Route::namespace("Api")->group(function(){
             Route::post('overtimeReportsToExcel','OvertimeController@overtimeReportsToExcel')->name('overtime_reports_to_excel');
         });
 
+        Route::prefix('processes/HealthReport/')->group(function () {
+            Route::get('getEmployeesWithTCKN','HealthReportController@getEmployeesWithTCKN')->name('getEmployeesWithTCKN');
+            Route::get('getHealthReports','HealthReportController@getHealthReports')->name('getHealthReports');
+            Route::post('saveHealthReport','HealthReportController@saveHealthReport')->name('saveHealthReport');
+            Route::post('deleteReport','HealthReportController@deleteReport')->name('deleteReport');
+        });
+
         Route::prefix('processes/CarNotify/')->group(function () {
             Route::get('employees','CarNotifyController@getEmployeeList')->name('carnotify_employee_all');
             Route::get('notifyKinds','CarNotifyController@getNotifyKinds')->name('carnotify_notify_kinds');
@@ -158,6 +165,15 @@ Route::namespace("Api")->group(function(){
             Route::get('contactUsTypes','ContactUsController@getContactUsTypes');
         });
 
+        Route::prefix('processes/Ticket/')->group(function () {
+            Route::post('createTicket','TicketController@createTicket');
+            Route::post('updateTicket','TicketController@updateTicket');
+            Route::post('setTicketProperty','TicketController@setTicketProperty');
+            Route::post('updateTicketStatus','TicketController@updateTicketStatus');
+            Route::get('listTicket','TicketController@listTicket');
+            Route::get('ticketStatusList','TicketController@ticketStatusList');
+        });
+
     });
 
 
@@ -167,7 +183,9 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
+            Route::post("employee/setEmployeeProperty", "EmployeeController@setEmployeeProperty")->name("setEmployeeProperty");
             Route::post("employee/toExcel", "EmployeeController@toExcel")->name("employee_to_excel");
+            Route::get("employee/dailyEmployeeStatusReportExcel", "EmployeeController@dailyEmployeeStatusReportExcel")->name("dailyEmployeeStatusReportExcel");
             Route::post('employee/verifySMSCode', "EmployeeController@verifySMSCode")->name("verifySMSCode");
             Route::get('employee/sendSMSCode', "EmployeeController@sendSMSCode")->name("sendSMSCode");
             Route::get('employee/searchEmployee', "EmployeeController@searchEmployees")->name("search_employees");

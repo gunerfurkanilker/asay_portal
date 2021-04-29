@@ -415,6 +415,7 @@ class PermitController extends ApiController
             return response([
                 'status' => true,
                 'message' => "Kayıt Başarılı",
+                'data' => $permit
             ], 200);
         } else
             return response([
@@ -763,13 +764,20 @@ class PermitController extends ApiController
             if ($employeePosition->ManagerID == $EmployeeID)
                 $status = true;
         } else if (($permit->status == 3 && $authType == "takeBack") || ($permit->status == 2 && $authType == "confirm")) {
-            $hrManager = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "RegionId" => $employeePosition->RegionID])->first();
-            if ($hrManager->PropertyValue == $EmployeeID && $hrManager->RegionID == $employeePosition->RegionID)
-                $status = true;
+            $hrManagers = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "HRManager", "RegionID" => $employeePosition->RegionID])->get();
+            foreach ($hrManagers as $hrManager)
+            {
+                if ($hrManager->PropertyValue == $EmployeeID && $hrManager->RegionID == $employeePosition->RegionID)
+                    $status = true;
+            }
         } else if (($permit->status == 4 && $authType == "takeBack") || ($permit->status == 3 && $authType == "confirm")) {
-            $personnelSpecialist = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "RegionId" => $employeePosition->RegionID])->first();
-            if ($personnelSpecialist->PropertyValue == $EmployeeID && $personnelSpecialist->RegionID == $employeePosition->RegionID)
-                $status = true;
+            $personnelSpecialists = ProcessesSettingsModel::where(["object_type" => 3, "PropertyCode" => "PersonnelSpecialist", "RegionID" => $employeePosition->RegionID])->get();
+            foreach ($personnelSpecialists as $personnelSpecialist)
+            {
+                if ($personnelSpecialist->PropertyValue == $EmployeeID && $personnelSpecialist->RegionID == $employeePosition->RegionID)
+                    $status = true;
+            }
+
         }
 
         return $status;

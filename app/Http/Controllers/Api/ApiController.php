@@ -22,7 +22,8 @@ class ApiController extends Controller
                 return response([
                     'status' => false,
                     'message' => "Yetkisiz işlem",
-                    'error' => "unauthorized"
+                    'error' => "unauthorized",
+                    'token' => $token
                 ], 200);
             }
 

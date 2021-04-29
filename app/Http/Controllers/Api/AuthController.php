@@ -12,6 +12,7 @@ use App\Model\ParametersModel;
 use App\Model\UserMenuModel;
 use PHPUnit\Framework\MockObject\Rule\Parameters;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -39,7 +40,8 @@ class AuthController extends Controller
         {
             return response([
                 'status' => false,
-                'message' => "Yetkisiz İşlem"
+                'message' => "Yetkisiz İşlem",
+                'data' => $email
             ], 200);
         }
 
