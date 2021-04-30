@@ -1335,7 +1335,7 @@ class OvertimeModel extends Model
         $assignedEmployeesManager = EmployeeModel::find($assignedEmployeePosition->ManagerID);
 
 
-        if ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID) {
+        if ($assignedEmployeePosition->ManagerID != null && ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID)) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
             $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
@@ -1348,21 +1348,24 @@ class OvertimeModel extends Model
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
 
 
-            $hrSpecialist = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->first();
-            $hrEmployee = EmployeeModel::find($hrSpecialist->PropertyValue);
+            $hrSpecialists = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->get();
+
 
             $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;
             $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                 'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
             $mailTable = view('mails.overtime', $mailData);
 
-            if ($overtimeRecord->File) {
-                $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
-            } else
-                Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
+            foreach ($hrSpecialists as $hrSpecialist){
+                $hrEmployee = EmployeeModel::find($hrSpecialist->PropertyValue);
+                if ($overtimeRecord->File) {
+                    $returnVal = self::getFileOfOvertime($overtimeRequest);
+                    Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                } else
+                    Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın yöneticisi tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
+                $overtimeRecord->ManagerID = $hrEmployee->Id;
+            }
 
-            $overtimeRecord->ManagerID = $hrEmployee->Id;
             $overtimeRecord->StatusID = 8;
             $overtimeRecord->save();
 
@@ -1370,41 +1373,81 @@ class OvertimeModel extends Model
             NotificationsModel::saveNotification($hrEmployee->Id,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime-hr/".$overtimeRecord->id);
 
         } else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
-            $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
-            $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
-            $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
-            $mailData1 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink1];
-            $mailData2 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
-                'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink2];
-            $mailTable1 = view('mails.overtime', $mailData1);
-            $mailTable2 = view('mails.overtime', $mailData2);
 
-            //Yöneticiye mail
-            if ($overtimeRecord->File) {
-                $returnVal = self::getFileOfOvertime($overtimeRequest);
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
-            } else
-                Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", "", "", "");
+
+            //Varsa-Yöneticiye mail
+            if ($assignedEmployeesManager != null)
+            {
+
+                $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
+                $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
+
+                $mailData1 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                    'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink1];
+                $mailTable1 = view('mails.overtime', $mailData1);
+
+
+                if ($overtimeRecord->File) {
+                    $returnVal = self::getFileOfOvertime($overtimeRequest);
+                    Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                } else
+                    Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", "", "", "");
+                $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
+            }
+            //Yönetici Yoksa İK'ya mail ve ik onayına geçiş
+            else
+            {
+                $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;
+                $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                    'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];
+                $mailTable = view('mails.overtime', $mailData);
+
+                $hrSpecialists = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->get();
+                //Tüm Bölge İK Sorumlularına
+                foreach ($hrSpecialists as $hrSpecialist)
+                {
+                    $hrEmployee = EmployeeModel::find($hrSpecialist->PropertyValue);
+                    if ($overtimeRecord->File) {
+                        $returnVal = self::getFileOfOvertime($overtimeRequest);
+                        Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+                    } else
+                        Asay::sendMail($hrEmployee->JobEmail, "", "Fazla çalışma çalışanın birim sorumlusu tarafından onaylandı", view("mails.overtime", $mailData), "aSAY Group", "", "", "");
+
+                    $overtimeRecord->ManagerID = $hrEmployee->Id;
+                }
+
+                $overtimeRecord->StatusID = 8;
+            }
 
             //Çalışana Mail
             if ($overtimeRecord->File) {
+                $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
+                $mailData2 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                    'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink2];
+                $mailTable2 = view('mails.overtime', $mailData2);
                 $returnVal = self::getFileOfOvertime($overtimeRequest);
                 Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable2, "aSAY Group", $returnVal->FilePath, $returnVal->FileName, $returnVal->MimeType);
+
             } else
+            {
+                $overtimeLink2 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
+                $mailData2 = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
+                    'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true, 'overtimeLink' => $overtimeLink2];
+                $mailTable2 = view('mails.overtime', $mailData2);
                 Asay::sendMail($assignedEmployee->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable2, "aSAY Group", "", "", "");
+            }
+
 
             $userEmployee = EmployeeModel::find($overtimeRequest->Employee);
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı birim sorumlusu tarafından onaylandı.', '', '', '', '', '');
 
-            $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
             NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, birim sorumlusu tarafından onaylandı","overtime/".$overtimeRecord->id);
             $overtimeRecord->save();
 
 
         }
 
-        $overtimeRecord->AssignedID = $overtimeRequest->AssignedID;
+        //$overtimeRecord->AssignedID = $overtimeRequest->AssignedID;
         $overtimeRecord->KindID = $overtimeRequest->KindID;
         $overtimeRecord->BeginDate = $overtimeRequest->BeginDate;
         $overtimeRecord->BeginTime = $overtimeRequest->BeginTime;

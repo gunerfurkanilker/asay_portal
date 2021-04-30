@@ -131,6 +131,7 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/HealthReport/')->group(function () {
+            Route::get('getHealthReportTypes','HealthReportController@getHealthReportTypes')->name('getHealthReportTypes');
             Route::get('getEmployeesWithTCKN','HealthReportController@getEmployeesWithTCKN')->name('getEmployeesWithTCKN');
             Route::get('getHealthReports','HealthReportController@getHealthReports')->name('getHealthReports');
             Route::post('saveHealthReport','HealthReportController@saveHealthReport')->name('saveHealthReport');
@@ -183,6 +184,7 @@ Route::namespace("Api")->group(function(){
 
         Route::prefix('ik')->group(function () {
 
+            Route::get("employee/employeeHasCar", "EmployeeController@employeeHasCar")->name("employeeHasCar");
             Route::post("employee/setEmployeeProperty", "EmployeeController@setEmployeeProperty")->name("setEmployeeProperty");
             Route::post("employee/toExcel", "EmployeeController@toExcel")->name("employee_to_excel");
             Route::get("employee/dailyEmployeeStatusReportExcel", "EmployeeController@dailyEmployeeStatusReportExcel")->name("dailyEmployeeStatusReportExcel");

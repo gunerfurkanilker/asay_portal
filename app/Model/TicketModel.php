@@ -14,18 +14,22 @@ class TicketModel extends Model
 
         $newTicket = new self();
 
+        $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $req->Employee])->first();
+
+        $newTicket->Flag1 = $req->Flag1;
+        $newTicket->Flag2 = $req->Flag2;
         $newTicket->TicketTypeID = $req->TicketTypeID;
-        $newTicket->Category = $req->Category;
+        $newTicket->Category = $req->Flag1;
         $newTicket->Name = $req->Name;
         $newTicket->Description = $req->Description;
         $newTicket->Creator = $req->Employee;
         $newTicket->User = $req->Employee;
-        $newTicket->Status = 57; // Yeni statüsü
+        $newTicket->Status = 1; // Yeni statüsü
         $newTicket->Location = $req->Location;
         $newTicket->Project = $req->Project;
         $newTicket->ExternalTicketId = $req->ExternalTicketId;
-        $newTicket->Area = $req->Area;
-        $newTicket->Priority = $req->Priority;
+        $newTicket->Area = $employeePosition ? $employeePosition->RegionID : null;
+        $newTicket->Priority = $req->Priority;//TODO null kalacak
         $newTicket->LastAssigneeUpdate = date("Y-m-d H:i:s");
 
         $newTicket->save();
@@ -45,8 +49,10 @@ class TicketModel extends Model
                 'message' => $req->TicketID. ' id nolu Ticket bulunamadı'
             ],200);
 
+        $ticket->Flag1 = $req->Flag1;
+        $ticket->Flag2 = $req->Flag2;
         $ticket->TicketTypeID = $req->TicketTypeID;
-        $ticket->Category = $req->Category;
+        $ticket->Category = $req->Flag1;
         $ticket->Name = $req->Name;
         $ticket->Description = $req->Description;
         $ticket->LastUpdateBy = $req->Employee;
@@ -67,7 +73,7 @@ class TicketModel extends Model
     public static function updateTicketStatus($ticket,$employee,$status){
 
         $ticket->Status = $status->id;
-        $ticket->LastStatusUpdate = $status->id;
+        $ticket->LastStatusUpdate = date("Y-m-d H:i:s");
         $result = $ticket->save();
         $setLog = TicketLogModel::setLog($ticket->id,"ST",$employee,$status->Code);
 

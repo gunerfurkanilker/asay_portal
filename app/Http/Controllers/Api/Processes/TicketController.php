@@ -36,7 +36,7 @@ class TicketController extends ApiController
 
             return response([
                 'status' => true,
-                'message' => 'Kayıt Başarılı'
+                'message' => 'Kayıt Başarılı',
             ],200);
         }
 
@@ -82,7 +82,7 @@ class TicketController extends ApiController
         $name = $request->Name;
         $creator = $request->Creator;
         $user = $request->User;
-        $area = $request->Area;
+        $status = $request->Status;
 
         $ticketListQ = TicketModel::where(['Active' => 1]);
 
@@ -98,14 +98,15 @@ class TicketController extends ApiController
             $ticketListQ->where("User", $user);
         else
             $ticketListQ->where("User", $request->Employee);
-        if ($area !== null)
-            $ticketListQ->whereIn("Area", explode(",",$area));
+        if ($status !== null)
+            $ticketListQ->whereIn("Status", explode(",",$status));
 
         $ticketList = $ticketListQ->get();
 
         return response([
             'status' => true,
-            'data' => $ticketList
+            'data' => $ticketList,
+            'dataCount' => count($ticketList)
         ],200);
 
 

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\HealthReportModel;
+use App\Model\HealthReportTypeModel;
 use App\Model\UserTokensModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -21,10 +22,11 @@ class HealthReportController extends ApiController
         else
             $report = new HealthReportModel();
 
-        $report->EmployeeID = $request->EmployeeID;
+        $report->DocumentTypeID = $request->DocumentTypeID;
+        $report->EmployeeID     = $request->EmployeeID;
         $report->DocumentNumber = $request->DocumentNumber;
-        $report->start_date = $request->start_date;
-        $report->end_date = $request->end_date;
+        $report->start_date     = $request->start_date;
+        $report->end_date       = $request->end_date;
 
         $result = $report->save();
 
@@ -99,6 +101,17 @@ class HealthReportController extends ApiController
                 'status' => true,
                 'message' => 'İşlem Başarılı'
             ],200);
+
+    }
+
+    public function getHealthReportTypes(){
+
+        $reportTypes = HealthReportTypeModel::where(['Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'data' => $reportTypes
+        ],200);
 
     }
 

@@ -39,6 +39,8 @@ class EmployeeController extends ApiController
     public function dailyEmployeeStatusReportExcel(Request $request){
 
         $healthReportEmployeeIDs = HealthReportModel::where(['Active' => 1])
+            ->whereDate('start_date', '<=', date("Y-m-d"))
+            ->whereDate('end_date', '>=', date("Y-m-d"))
             ->pluck("EmployeeID")
             ->toArray();
         $havePermitEmployeeIDs = PermitModel::where(['active' => 1])
@@ -102,6 +104,17 @@ class EmployeeController extends ApiController
                 $employeeLastName = $employee->LastName;
                 $employeeTitle = $employee->EmployeePosition ? $employee->EmployeePosition->Title ? $employee->EmployeePosition->Title->Sym : '' :'';
                 $employeeManager = $employee->EmployeePosition ? $employee->EmployeePosition->Manager ? $employee->EmployeePosition->Manager->FirstName . ' ' . $employee->EmployeePosition->Manager->LastName  : '' :'';
+                $healthReportTypes = HealthReportModel::where(['Active' => 1])
+                    ->whereDate('start_date', '<=', date("Y-m-d"))
+                    ->whereDate('end_date', '>=', date("Y-m-d"))
+                    ->get();
+
+                $healthReportTypeString = "";
+                foreach ($healthReportTypes as $healthReportType)
+                {
+                    $healthReportTypeString = $healthReportTypeString . " " . $healthReportType->DocumentType->Name;
+                }
+
 
                 //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
                 array_push($values, $employeeDepartment);
@@ -114,7 +127,7 @@ class EmployeeController extends ApiController
                 array_push($values, $employeeLastName);
                 array_push($values, $employeeTitle);
                 array_push($values, $employeeManager);
-                array_push($values, "Sağlık İstirahati Raporu");
+                array_push($values, $healthReportTypeString);
                 array_push($values, "");//Check-In
 
 
@@ -368,7 +381,7 @@ class EmployeeController extends ApiController
                 ->where("ps_status", "!=", 2)
                 ->first();
 
-            $isHaveReport = DB::table("HealthReports")->where(['Active' => 1, 'EmployeeID' => $employee->Id])
+            $isHaveReport = HealthReportModel::where(['Active' => 1, 'EmployeeID' => $employee->Id])
                 ->whereDate('start_date', '<=', date("Y-m-d"))
                 ->whereDate('end_date', '>=', date("Y-m-d"))
                 ->first();
@@ -464,7 +477,7 @@ class EmployeeController extends ApiController
                 ->where("ps_status", "!=", 2)
                 ->first();
 
-            $isHaveReport = DB::table("HealthReports")->where(['Active' => 1, 'EmployeeID' => $employee->Id])
+            $isHaveReport = HealthReportModel::where(['Active' => 1, 'EmployeeID' => $employee->Id])
                 ->whereDate('start_date', '<=', date("Y-m-d"))
                 ->whereDate('end_date', '>=', date("Y-m-d"))
                 ->first();
@@ -838,7 +851,8 @@ class EmployeeController extends ApiController
         if($isPropertyValueSave){
             return response([
                 'status' => true,
-                'message' => "Başarılı"
+                'message' => "Başarılı",
+                'data' => $request->all()
             ],200);
         } else {
             return response([
@@ -862,6 +876,38 @@ class EmployeeController extends ApiController
                 'message' => "Hata Oluştu"
             ]);
         }
+    }
+
+    public function employeeHasCar(Request $request){
+
+        $employeeProperty = EmployeePropertyValuesModel::where(['EmployeeID' =>$request->Employee, 'PropertyCode' => 'CarPlate', 'Active' => 1])
+            ->whereDate("CreateDate",date("Y-m-d"))->first();
+
+        if (!$employeeProperty)
+        {
+            return response([
+                'status' => true,
+                'message' => 'Araç bilgisi bulunamadı',
+                'data' => false
+            ],200);
+        }
+
+        if ($employeeProperty->PropertyValue == null)
+        {
+            return response([
+                'status' => true,
+                'data' => false
+            ],200);
+        }
+        else
+        {
+            return response([
+                'status' => true,
+                'data' => true
+            ],200);
+        }
+
+
     }
 
 }

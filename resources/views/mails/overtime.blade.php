@@ -40,8 +40,8 @@
             <td  >
                 {{ $overtime->Status->Name }}
             </td>
-            <td  >
-                {{ $assignedEmployeesManager->UsageName . ' ' . $assignedEmployeesManager->LastName  }}
+            <td>
+                {{ $assignedEmployeesManager ? $assignedEmployeesManager->UsageName . ' ' . $assignedEmployeesManager->LastName : '' }}
             </td>
         </tr>
         <tr style="background-color: rgb(0,32,92);color:white">
@@ -53,7 +53,7 @@
             </td>
         </tr>
         <tr>
-            <td  >
+            <td>
                 {{ $overtime->Project->name }}
             </td>
             <td  >

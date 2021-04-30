@@ -6,19 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class EmployeePropertyValuesModel extends Model
 {
-    protected $table = "logs";
+    protected $table = "EmployeePropertyValues";
 
     public $timestamps = false;
-    protected $fillable = ['EmployeeID','PropertyCode','PropertyType'];
+    protected $fillable = ['EmployeeID','PropertyCode','PropertyType','PropertyValue'];
 
     protected $hidden = [];
     protected $casts = [];
     protected $appends = [];
 
-    public function setPropertyValues($employeeId,$propertyCode,$propertyValue,$PropertyType="Text")
+    public static function setPropertyValues($employeeId,$propertyCode,$propertyValue,$PropertyType="Text")
     {
-        $FlowPropertValues = self::firstOrNew(["FlowId"=>$employeeId,"PropertyCode"=>$propertyCode,"PropertyType"=>$PropertyType]);
-        $FlowPropertValues->ValueString = $propertyValue;
+        $FlowPropertValues = self::firstOrNew(["EmployeeID"=>$employeeId,"PropertyCode"=>$propertyCode,"PropertyType"=>$PropertyType]);
+        $FlowPropertValues->PropertyValue = $propertyValue;
 
         if($FlowPropertValues->save())
             return true;
