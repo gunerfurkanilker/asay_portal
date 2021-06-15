@@ -14,6 +14,32 @@ use Illuminate\Http\Request;
 
 class TicketController extends ApiController
 {
+
+    public function getTicket(Request $request){
+
+        if (!$request->TicketID)
+        {
+            return response([
+                'status' => false,
+                'message' => 'Ticket ID boş olamaz'
+            ],200);
+        }
+        $ticket = TicketModel::find($request->TicketID);
+
+        if (!$ticket)
+        {
+            return response([
+                'status' => false,
+                'message' => 'Ticket bulunamadı'
+            ],200);
+        }
+
+        return response([
+            'status' => true,
+            'data' => $ticket
+        ],200);
+    }
+
     public function createTicket(Request $request)
     {
 
@@ -31,13 +57,15 @@ class TicketController extends ApiController
             if (!$setLog)
                 return response([
                     'status' => true,
-                    'message' => 'Kayıt başarılı, fakat loglama sırasında hata oluştu'
+                    'message' => 'Kayıt başarılı, fakat loglama sırasında hata oluştu',
+                    'data' => $newTicket
                 ],200);
 
             return response([
-                'status' => true,
-                'message' => 'Kayıt Başarılı',
-            ],200);
+                    'status' => true,
+                    'message' => 'Kayıt Başarılı',
+                    'data' => $newTicket
+                ],200);
         }
 
 
@@ -181,7 +209,7 @@ class TicketController extends ApiController
             ],200);
 
 
-        $updateStatus = TicketModel::updateTicketStatus($ticket,$request->Employee,$status);
+        $updateStatus = TicketModel::updateTicketStatus($ticket,$request->Employee,$status,$request->LogText);
 
         if (!$updateStatus)
             return response([
@@ -203,6 +231,22 @@ class TicketController extends ApiController
             'data' => $list
         ],200);
 
+    }
+
+    public function createLog(Request $request)
+    {
+        $isLogSave = TicketLogModel::setLog($request->Employee,$request->logType,$request->logValue,$request->logText);
+        if($isLogSave){
+            return response([
+                'status' => true,
+                'message' => "Başarılı"
+            ],200);
+        } else {
+            return response([
+                'status' => false,
+                'message' => "Hata Oluştu"
+            ]);
+        }
     }
 
 }

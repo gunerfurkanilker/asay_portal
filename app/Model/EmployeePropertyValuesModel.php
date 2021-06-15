@@ -8,8 +8,11 @@ class EmployeePropertyValuesModel extends Model
 {
     protected $table = "EmployeePropertyValues";
 
-    public $timestamps = false;
+    const CREATED_AT = "CreateDate";
+    const UPDATED_AT = "LastUpdateDate";
+
     protected $fillable = ['EmployeeID','PropertyCode','PropertyType','PropertyValue'];
+
 
     protected $hidden = [];
     protected $casts = [];

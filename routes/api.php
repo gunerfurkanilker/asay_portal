@@ -167,12 +167,22 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/Ticket/')->group(function () {
+            Route::get('getTicket','TicketController@getTicket');
             Route::post('createTicket','TicketController@createTicket');
+            Route::post('createLog','TicketController@createLog');
             Route::post('updateTicket','TicketController@updateTicket');
             Route::post('setTicketProperty','TicketController@setTicketProperty');
             Route::post('updateTicketStatus','TicketController@updateTicketStatus');
             Route::get('listTicket','TicketController@listTicket');
             Route::get('ticketStatusList','TicketController@ticketStatusList');
+        });
+
+        Route::prefix('processes/HESCode/')->group(function () {
+            Route::post('toExcel','HESCodeController@toExcel');
+            Route::post('saveHesCode','HESCodeController@saveHesCode');
+            Route::post('deleteHesCode','HESCodeController@deleteHesCode');
+            Route::get('listHesCodes','HESCodeController@listHesCodes');
+            Route::get('getHesCode','HESCodeController@ticketStatusList');
         });
 
     });

@@ -291,14 +291,56 @@ class OvertimeModel extends Model
 
         foreach ($publicHolidays as $publicHoliday)
         {
-            $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
-            array_push($publicHolidaysArray,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+            $tempStartDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
+            $tempEndDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->end_date)[0]);
+            $dayCount = $tempEndDate->diffInDays($tempStartDate);
+
+            if ($dayCount > 1)
+            {
+                for ($i = 0; $i < $dayCount; $i++)
+                {
+                    if ($i==0)
+                        $tempStartDate->addDays(0);
+                    else
+                        $tempStartDate->addDays(1);
+                    $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$tempStartDate)[0]);
+                    array_push($publicHolidaysArray,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+                }
+            }
+            else
+            {
+                $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
+                array_push($publicHolidaysArray,$tempDate->year . '-' . $tempStartDate->month . '-' . $tempStartDate->day);
+            }
+
+
         }
 
-        foreach ($publicHolidays2 as $item)
+        foreach ($publicHolidays2 as $publicHoliday)
         {
-            $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$item->start_date)[0]);
-            array_push($publicHolidaysArray2,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+
+            $tempStartDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
+            $tempEndDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->end_date)[0]);
+            $dayCount = $tempEndDate->diffInDays($tempStartDate);
+
+            if ($dayCount > 1)
+            {
+                for ($i = 0; $i < $dayCount; $i++)
+                {
+                    if ($i==0)
+                        $tempStartDate->addDays(0);
+                    else
+                        $tempStartDate->addDays(1);
+                    $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$tempStartDate)[0]);
+                    array_push($publicHolidaysArray2,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+                }
+            }
+            else
+            {
+                $tempDate = Carbon::createFromFormat("Y-m-d", explode(" ",$publicHoliday->start_date)[0]);
+                array_push($publicHolidaysArray2,$tempDate->year . '-' . $tempDate->month . '-' . $tempDate->day);
+            }
+
         }
 
 
@@ -387,7 +429,8 @@ class OvertimeModel extends Model
             if ($totalMinutes1 > $dailyLimitMinute || $totalMinutes2 > $dailyLimitMinute)
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
 
-        } else {
+        }
+        else {
 
             $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
             $timeDiff1_Hour = explode(":",$timeDiff1)[0];
@@ -398,8 +441,6 @@ class OvertimeModel extends Model
             if ($totalMinutes1 > $dailyLimitMinute )
                 return ['status' => false, 'message' => 'Girilen fazla çalışma süresi, günlük yasal fazla çalışma limitini aşıyor.'];
         }
-
-
 
         $monthlyTimesQ = OvertimeModel::selectRaw('id,TIMEDIFF(EndTime,BeginTime) as timediff,TIMEDIFF(WorkEndTime,WorkBeginTime) as timediff2,StatusID')->whereIn("StatusID", [0, 1, 2, 4])->where(['Active' => 1, 'AssignedID' => $request->AssignedID])->where(function ($query) use ($beginDate, $beginDate2,$publicHolidaysArray) {
             if ($beginDate2)
@@ -718,14 +759,11 @@ class OvertimeModel extends Model
     {
         $hrSpecialistRegions = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'PropertyValue' => $request->Employee])->pluck("RegionID");
 
-        $employeePositions = EmployeePositionModel::where(['Active' => 2])->where("EmployeeID",">",999)->whereIn("RegionID",$hrSpecialistRegions)->get();
+        $employeePositionIDs = EmployeePositionModel::where(['Active' => 2])->where("EmployeeID",">",999)->whereIn("RegionID",$hrSpecialistRegions)->pluck("EmployeeID");
 
         $employeeList = [];
 
-        foreach ($employeePositions as $employeePosition) {
-            $tempEmployee = EmployeeModel::find($employeePosition->EmployeeID);
-            array_push($employeeList, $tempEmployee);
-        }
+        $employeeList = DB::table("Employee")->where("Id",">","999")->where("Active",1)->whereIn("Id",$employeePositionIDs)->get();
 
         return $employeeList;
 
@@ -1372,7 +1410,8 @@ class OvertimeModel extends Model
             NotificationsModel::saveNotification($overtimeRecord->AssignedID,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma, yöneticiniz tarafından onaylandı","overtime/".$overtimeRecord->id);
             NotificationsModel::saveNotification($hrEmployee->Id,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime-hr/".$overtimeRecord->id);
 
-        } else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
+        }
+        else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
 
 
             //Varsa-Yöneticiye mail
@@ -1397,6 +1436,7 @@ class OvertimeModel extends Model
             //Yönetici Yoksa İK'ya mail ve ik onayına geçiş
             else
             {
+                $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
                 $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;
                 $mailData = ['employee' => $employee, 'assignedEmployee' => $assignedEmployee, 'assignedEmployeesManager' => $assignedEmployeesManager,
                     'usingCar' => $usingCar, 'overtime' => $overtimeRecord, 'extraFields' => true,'overtimeLink' => $overtimeLink];

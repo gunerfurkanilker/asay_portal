@@ -34,6 +34,7 @@ class OvertimeController extends ApiController
         $workSheet = new Worksheet();
 
         $columns = [
+            'TC Kimlik No',
             'Atayan Kişi',
             'Atanan Kişi',
             'Hizmet Kodu',
@@ -139,6 +140,7 @@ class OvertimeController extends ApiController
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
             $asciiCapitalA = 65;
             $values = [];
+            $tcKimlikNo = $overtime->AssignedEmployee->IDCard ? $overtime->AssignedEmployee->IDCard->TCNo : '' ;
             $createdBy = $overtime->CreatedByEmployee->UsageName . ' ' . $overtime->CreatedByEmployee->LastName;
             $assignedTo = $overtime->AssignedEmployee->UsageName . ' ' . $overtime->AssignedEmployee->LastName;
             $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
@@ -195,6 +197,7 @@ class OvertimeController extends ApiController
             }
 
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+            array_push($values,$tcKimlikNo);
             array_push($values,$createdBy);
             array_push($values,$assignedTo);
             array_push($values,$serviceCode);
@@ -323,7 +326,6 @@ class OvertimeController extends ApiController
 
     public function getOvertimeHRReports(Request $request)
     {
-
         $overtimeData = [];
         $paginationPage = ($request->PaginationPage - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
@@ -383,7 +385,10 @@ class OvertimeController extends ApiController
 
             $overtimeQ1->whereIn("StatusID", [1, 4]);
 
-            $dataQ1 = $overtimeQ1->orderBy("BeginDate","desc")->get();
+            $overtimeCountQ1 = $overtimeQ1->count();
+
+
+            $dataQ1 = $overtimeQ1->orderBy("BeginDate","desc")->offset($paginationPage)->take($recordPerPage/2)->get();
 
             foreach ($dataQ1 as $item)
                 array_push($overtimes,$item);
@@ -398,15 +403,16 @@ class OvertimeController extends ApiController
 
             $overtimeQ2->whereIn("StatusID", [6, 8, 9, 10]);
 
-            $dataQ2 = $overtimeQ2->orderBy("WorkBeginDate","desc")->get();
+            $overtimeCountQ2 = $overtimeQ2->count();
+
+            $dataQ2 = $overtimeQ2->orderBy("WorkBeginDate","desc")->offset($paginationPage)->take($recordPerPage/2)->get();
 
             foreach ($dataQ2 as $item)
                 array_push($overtimes,$item);
 
             $overtimeData = [
-                'singleStatusCount' => count($overtimes),
+                'singleStatusCount' => $overtimeCountQ1 + $overtimeCountQ2,
                 'overtimes' => $overtimes,
-
             ];
 
         }

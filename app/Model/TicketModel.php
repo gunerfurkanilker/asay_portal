@@ -9,6 +9,11 @@ class TicketModel extends Model
     protected $table = "Ticket";
     CONST CREATED_AT = "CreateDate";
     CONST UPDATED_AT = "LastUpdateDate";
+    protected $appends = [
+        "AreaValue",
+        "StatusValue",
+        "CarPlateValue"
+    ];
 
     public static function newTicket($req){
 
@@ -16,10 +21,12 @@ class TicketModel extends Model
 
         $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $req->Employee])->first();
 
-        $newTicket->Flag1 = $req->Flag1;
-        $newTicket->Flag2 = $req->Flag2;
+        $propertyValues = $req->PropertyValues;
+
+        $newTicket->Flag1 = $req->Flag1;// MOBİL 1 SABİT 0 GELECEK
+        $newTicket->Flag2 = $req->Flag2;// İŞ EMRİ ZORUNLULUK KOLONU (Araç var zorunlu, araç yok zorunlu değil)
         $newTicket->TicketTypeID = $req->TicketTypeID;
-        $newTicket->Category = $req->Flag1;
+        $newTicket->Category = $req->Category;
         $newTicket->Name = $req->Name;
         $newTicket->Description = $req->Description;
         $newTicket->Creator = $req->Employee;
@@ -33,6 +40,15 @@ class TicketModel extends Model
         $newTicket->LastAssigneeUpdate = date("Y-m-d H:i:s");
 
         $newTicket->save();
+
+        if ($propertyValues)
+        {
+            foreach ($propertyValues as $key => $propertyValue)
+            {
+                TicketPropertyValuesModel::setPropertyValue($newTicket->id,$key,$propertyValue);
+            }
+        }
+
 
         return $newTicket;
 
@@ -49,20 +65,16 @@ class TicketModel extends Model
                 'message' => $req->TicketID. ' id nolu Ticket bulunamadı'
             ],200);
 
-        $ticket->Flag1 = $req->Flag1;
-        $ticket->Flag2 = $req->Flag2;
+        $ticket->Flag1 = $req->Flag1;// MOBİL 1 SABİT 0 GELECEK
+        $ticket->Flag2 = $req->Flag2;// İŞ EMRİ ZORUNLULUK KOLONU (Araç var zorunlu, araç yok zorunlu değil)
         $ticket->TicketTypeID = $req->TicketTypeID;
-        $ticket->Category = $req->Flag1;
+        $ticket->Category = $req->Category;
         $ticket->Name = $req->Name;
         $ticket->Description = $req->Description;
-        $ticket->LastUpdateBy = $req->Employee;
         $ticket->Location = $req->Location;
         $ticket->Project = $req->Project;
         $ticket->ExternalTicketId = $req->ExternalTicketId;
-        $ticket->Area = $req->Area;
-        $ticket->Priority = $req->Priority;
-        $ticket->LastUpdateBy = $req->Employee;
-
+        $ticket->LastAssigneeUpdate = date("Y-m-d H:i:s");
 
         $ticket->save();
 
@@ -70,17 +82,55 @@ class TicketModel extends Model
 
     }
 
-    public static function updateTicketStatus($ticket,$employee,$status){
+    public static function updateTicketStatus($ticket,$employee,$status,$logText = ""){
 
         $ticket->Status = $status->id;
         $ticket->LastStatusUpdate = date("Y-m-d H:i:s");
         $result = $ticket->save();
-        $setLog = TicketLogModel::setLog($ticket->id,"ST",$employee,$status->Code);
+        $setLog = TicketLogModel::setLog($ticket->id,"ST",$employee,$status->Code,$logText);
 
         return $setLog && $result;
 
 
     }
+
+    public function getAreaValueAttribute(){
+
+        $areaValue = $this->hasOne(RegionModel::class,"id","Area");
+        if ($areaValue)
+        {
+            $areaValue = $areaValue->where(['Active' => 1])->first();
+            return $areaValue ? $areaValue->Name : 'Bölge aktif değil';
+        }
+        else
+            return "Bölge tanımı bulunamadı";
+    }
+
+    public function getStatusValueAttribute(){
+
+        $statusValue = $this->hasOne(StatusModel::class,"id","Status");
+        if ($statusValue)
+        {
+            $statusValue = $statusValue->where(['Active' => 1])->first();
+            return $statusValue ? $statusValue->Name : 'Statü tanımlı değil';
+        }
+        else
+            return 'Statü tanımlı değil';
+    }
+
+    public function getCarPlateValueAttribute(){
+
+        $ticketProperty = $this->hasOne(TicketPropertyValuesModel::class,"TicketID","id");
+        if ($ticketProperty)
+        {
+            $ticketProperty = $ticketProperty->where(['Active' => 1, 'PropertyCode' => 'CarPlate'])->first();
+            return $ticketProperty ? $ticketProperty->PropertyValue : '';
+        }
+        else
+            return '';
+    }
+
+
 
 
 }

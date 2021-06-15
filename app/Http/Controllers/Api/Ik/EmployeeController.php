@@ -847,6 +847,15 @@ class EmployeeController extends ApiController
 
     public function setPropertyValues(Request $request)
     {
+        if ($request->propertyCode == "SelfiePhoto")
+        {
+            if (!$request->propertyValue || is_null($request->propertyValue) || !isset($request->propertyValue))
+                return response([
+                    'status' => false,
+                    'message' => 'SelfiePhoto değeri boş olamaz',
+                    'data' => $request->all()
+                ],200);
+        }
         $isPropertyValueSave = EmployeePropertyValuesModel::setPropertyValues($request->Employee,$request->propertyCode,$request->propertyValue);
         if($isPropertyValueSave){
             return response([
@@ -881,7 +890,7 @@ class EmployeeController extends ApiController
     public function employeeHasCar(Request $request){
 
         $employeeProperty = EmployeePropertyValuesModel::where(['EmployeeID' =>$request->Employee, 'PropertyCode' => 'CarPlate', 'Active' => 1])
-            ->whereDate("CreateDate",date("Y-m-d"))->first();
+            ->whereDate("LastUpdateDate",date("Y-m-d"))->first();
 
         if (!$employeeProperty)
         {
