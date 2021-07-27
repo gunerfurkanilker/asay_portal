@@ -10,12 +10,27 @@ class CarNotifyModel extends Model
 {
     protected $table = "CarNotify";
     protected $appends = [
+        'RequestedFromName',
         'NotifyKind',
         'Region',
         'City',
         'IssueKind',
         'Car'
     ];
+
+
+    public function getRequestedFromNameAttribute()
+    {
+        $RequestedFromName = $this->hasOne(EmployeeModel::class,"Id","RequestedFrom");
+        if ($RequestedFromName)
+        {
+            $requestType = $RequestedFromName->first();
+            return $requestType->UsageName . " " . $requestType->LastName;
+        }
+        else
+            return null;
+    }
+
 
     public static function saveCarNotify($request)
     {

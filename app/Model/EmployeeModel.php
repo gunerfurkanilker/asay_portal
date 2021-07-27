@@ -1415,7 +1415,7 @@ class EmployeeModel extends Model
         $employee->UsageName            = $request->UsageName;
         $employee->LastName             = $request->LastName;
         $employee->DomainID             = $request->DomainID;
-        $employee->JobEmail             = isset($request->JobEmail) ? $request->JobEmail : null;
+        $employee->JobEmail             = isset($request->JobEmail) ? trim($request->JobEmail) : null;
         $employee->JobMobilePhone       = isset($request->JobMobilePhone)  ? $request->JobMobilePhone : null;
         $employee->InterPhone           = isset($request->InterPhone)  ? $request->InterPhone : null;
 

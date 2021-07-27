@@ -14,7 +14,6 @@ class OvertimeModel extends Model
 {
     protected $primaryKey = 'id';
     protected $table = 'Overtime';
-    public $timestamps = false;
 
     protected $appends = [
         'AssignedEmployee',
@@ -29,6 +28,49 @@ class OvertimeModel extends Model
         'CreatedByEmployee'
     ];
     protected $guarded = [];
+
+
+    public static function dateCheck($request){
+        if ($request->OvertimeId != null)
+        {
+            $overtimeRecord = OvertimeModel::find($request->OvertimeId);
+            if (in_array($overtimeRecord->StatusID,[0,1,2,3,4,5]))
+            {
+                $month      = date("m",strtotime($request->BeginDate));
+                $todayMonth = date("m");
+
+                if ($month != $todayMonth)
+                    return false;
+                else
+                    return true;
+
+            }
+            else if (in_array($overtimeRecord->StatusID,[6,7]))
+            {
+                $month      = date("m",strtotime($request->WorkBeginDate));
+                $todayMonth = date("m");
+
+                if ($month != $todayMonth)
+                    return false;
+                else
+                    return true;
+            }
+            else
+                return true;
+
+        }
+        else
+        {
+            $month      = date("m",strtotime($request->BeginDate));
+            $todayMonth = date("m");
+
+            if ($month != $todayMonth)
+                return false;
+            else
+                return true;
+        }
+
+    }
 
     public static function columnNameToTurkish($columnName)
     {
@@ -414,13 +456,25 @@ class OvertimeModel extends Model
 
         if (isset($beginDate2) && !is_null($beginDate2)) {
 
-            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
-            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
-            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
 
             $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
             $timeDiff2_Hour = explode(":",$timeDiff2)[0];
             $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+            if (!is_null($neglectRecord) && in_array($neglectRecord->StatusID,[6, 7, 8, 9, 10]))
+            {
+                $timeDiff1 = $timeDiff2;
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
+            else
+            {
+                $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
+
+
 
 
             $totalMinutes1 = (($timeDiff1_Hour)*60) + ($dailyHours *60) + abs($timeDiff1_Minute) + $dailyMinutes;
@@ -490,7 +544,6 @@ class OvertimeModel extends Model
         $monthlyHours = 0;
         $monthlyMinutesLimit = 30;
         $monthlyHoursLimit = 22;//22.5 Saat Aylık Limit
-
         foreach ($monthlyTimes as $monthlyTime) {
             if (!is_null($neglectRecord))
                 if ($monthlyTime->id == $neglectRecord->id)
@@ -512,13 +565,23 @@ class OvertimeModel extends Model
 
         if ($beginDate2 && !is_null($beginDate2)) {
 
-            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
-            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
-            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
 
             $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
             $timeDiff2_Hour = explode(":",$timeDiff2)[0];
             $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+            if (!is_null($neglectRecord) && in_array($neglectRecord->StatusID,[6, 7, 8, 9, 10]))
+            {
+                $timeDiff1 = $timeDiff2;
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
+            else
+            {
+                $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
 
             $totalMinutes1 = (($timeDiff1_Hour)*60) + ($monthlyHours *60) + $monthlyMinutes + abs($timeDiff1_Minute);
             $totalMinutes2 = (($timeDiff2_Hour)*60) + ($monthlyHours*60) + $monthlyMinutes + abs($timeDiff2_Minute);
@@ -607,13 +670,22 @@ class OvertimeModel extends Model
 
         if (isset($beginDate2) && !is_null($beginDate2)) {
 
-            $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
-            $timeDiff1_Hour = explode(":",$timeDiff1)[0];
-            $timeDiff1_Minute = explode(":",$timeDiff1)[1];
-
             $timeDiff2 = $endTime2->diff($beginTime2)->format('%H:%I:%S');
             $timeDiff2_Hour = explode(":",$timeDiff2)[0];
             $timeDiff2_Minute = explode(":",$timeDiff2)[1];
+
+            if (!is_null($neglectRecord) && in_array($neglectRecord->StatusID,[6, 7, 8, 9, 10]))
+            {
+                $timeDiff1 = $timeDiff2;
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
+            else
+            {
+                $timeDiff1 = $endTime->diff($beginTime)->format('%H:%I:%S');
+                $timeDiff1_Hour = explode(":",$timeDiff1)[0];
+                $timeDiff1_Minute = explode(":",$timeDiff1)[1];
+            }
 
             $totalMinutes1 = (($timeDiff1_Hour)*60) + ($yearlyHours *60) + abs($timeDiff1_Minute) + $yearlyMinutes;
             $totalMinutes2 = (($timeDiff2_Hour)*60) + ($yearlyHours*60) + abs($timeDiff2_Minute) + $yearlyMinutes;
@@ -664,7 +736,7 @@ class OvertimeModel extends Model
     }
 
 
-    public static function getOvertimeByStatus($status, $EmployeeID, $paginationPage, $recordPerPage)
+    public static function getOvertimeByStatus($year=null,$month = null,$employee=null,$status, $EmployeeID, $paginationPage, $recordPerPage)
     {
         $userEmployees = EmployeePositionModel::where(['Active' => 2])->where(['UnitSupervisorID' => $EmployeeID])->get();
         $userEmployees2 = EmployeePositionModel::where(['Active' => 2])->where(['ManagerID' => $EmployeeID])->get();
@@ -690,14 +762,35 @@ class OvertimeModel extends Model
                 }
 
 
+
             }
             else{
-                $query->orWhere(['ManagerID' => $EmployeeID, 'CreatedBy' => $EmployeeID]);
+                $query->whereIn('AssignedID', $userEmployeesIDs);
+                $query->where("ManagerID", $EmployeeID);
             }
 
-        })->orderBy('BeginDate', 'desc');
+        });
+
+
+        if(in_array($status,[0,1,2,3,4]))
+        {
+            if ($year != null)
+                $overtimeQ->whereYear("BeginDate",$year);
+            if ($month != null)
+                $overtimeQ->whereMonth("BeginDate",$month);
+
+        }
+        else{
+            if ($year != null)
+                $overtimeQ->whereYear("WorkBeginDate",$year);
+            if ($month != null)
+                $overtimeQ->whereMonth("WorkBeginDate",$month);
+        }
+
+        $overtimeQ->orderBy('BeginDate', 'desc');
 
         $overtimeCountQ = $overtimeQ;
+
 
         $data = [
             'singleStatusCount' => $overtimeCountQ->count(),
@@ -1373,7 +1466,7 @@ class OvertimeModel extends Model
         $assignedEmployeesManager = EmployeeModel::find($assignedEmployeePosition->ManagerID);
 
 
-        if ($assignedEmployeePosition->ManagerID != null && ($assignedEmployeePosition->ManagerID == $overtimeRecord->ManagerID)) {
+        if ($assignedEmployeePosition->ManagerID != null && ($assignedEmployeePosition->ManagerID == $employee->Id)) {
             $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
 
             $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime/'.$overtimeRecord->id ;
@@ -1411,13 +1504,13 @@ class OvertimeModel extends Model
             NotificationsModel::saveNotification($hrEmployee->Id,4,$overtimeRecord->id,"Fazla Çalışma",date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->BeginTime))." - ".date("d.m.Y H:i:s",strtotime($overtimeRecord->BeginDate . ' ' .$overtimeRecord->EndTime))." tarihleri arasındaki fazla çalışma için onayınız bekleniyor","overtime-hr/".$overtimeRecord->id);
 
         }
-        else if ($assignedEmployeePosition->UnitSupervisorID == $overtimeRecord->ManagerID) {
+        else if ($assignedEmployeePosition->UnitSupervisorID == $employee->Id) {
 
-
+            $test = "Romulus";
             //Varsa-Yöneticiye mail
             if ($assignedEmployeesManager != null)
             {
-
+                $test = "Augustus";
                 $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
                 $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
 
@@ -1432,6 +1525,7 @@ class OvertimeModel extends Model
                 } else
                     Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", "", "", "");
                 $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
+                $test = $overtimeRecord->ManagerID;
             }
             //Yönetici Yoksa İK'ya mail ve ik onayına geçiş
             else

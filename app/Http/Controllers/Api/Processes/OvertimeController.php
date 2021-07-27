@@ -140,11 +140,16 @@ class OvertimeController extends ApiController
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
             $asciiCapitalA = 65;
             $values = [];
-            $tcKimlikNo = $overtime->AssignedEmployee->IDCard ? $overtime->AssignedEmployee->IDCard->TCNo : '' ;
-            $createdBy = $overtime->CreatedByEmployee->UsageName . ' ' . $overtime->CreatedByEmployee->LastName;
-            $assignedTo = $overtime->AssignedEmployee->UsageName . ' ' . $overtime->AssignedEmployee->LastName;
-            $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
-            $department = $overtime->AssignedEmployee->EmployeePosition->Department->Sym;
+
+            if($overtime->AssignedEmployee)
+            {
+                $tcKimlikNo = $overtime->AssignedEmployee->IDCard ? $overtime->AssignedEmployee->IDCard->TCNo : '' ;
+                $createdBy = $overtime->CreatedByEmployee->UsageName . ' ' . $overtime->CreatedByEmployee->LastName;
+                $assignedTo = $overtime->AssignedEmployee->UsageName . ' ' . $overtime->AssignedEmployee->LastName;
+                $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
+                $department = $overtime->AssignedEmployee->EmployeePosition->Department->Sym;
+            }
+
             $project = $overtime->Project->name;
             $city = $overtime->City->Sym;
             $overtimeKind = $overtime->Kind->Name;
@@ -197,11 +202,11 @@ class OvertimeController extends ApiController
             }
 
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
-            array_push($values,$tcKimlikNo);
-            array_push($values,$createdBy);
-            array_push($values,$assignedTo);
-            array_push($values,$serviceCode);
-            array_push($values,$department);
+            array_push($values,isset($tcKimlikNo) ? $tcKimlikNo : '');
+            array_push($values,isset($createdBy) ? $createdBy : '');
+            array_push($values,isset($assignedTo) ? $assignedTo : '');
+            array_push($values,isset($serviceCode) ? $serviceCode : '');
+            array_push($values,isset($department) ? $department : '');
             array_push($values,$project);
             array_push($values,$city);
             array_push($values,$overtimeKind);
@@ -444,7 +449,11 @@ class OvertimeController extends ApiController
         $paginationPage = ($request->PaginationPage - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
 
-        $overtimeData = OvertimeModel::getOvertimeByStatus($status, $request->Employee,$paginationPage,$recordPerPage);
+        $year = $request->Year;
+        $month = $request->Month;
+        $employee = $request->AssignedID;
+
+        $overtimeData = OvertimeModel::getOvertimeByStatus($year,$month,$employee,$status, $request->Employee,$paginationPage,$recordPerPage);
 
 
 
@@ -472,7 +481,8 @@ class OvertimeController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $overtimeData['overtimes'],
             'dataCounts' => $amount,
-            'dataCount' => $overtimeData['singleStatusCount']
+            'dataCount' => $overtimeData['singleStatusCount'],
+            'test' => $employee
         ], 200);
 
     }
@@ -628,6 +638,18 @@ class OvertimeController extends ApiController
                     'message' => 'İş Başlangıç saati, bitiş saatinden büyük olamaz.'
                 ], 200);
 
+        if ($request->Employee !== 1642 || $request->ManagerID !== 1642)
+            $dateCheck = OvertimeModel::dateCheck($request);
+        else
+            $dateCheck =true;
+
+
+        if(!$dateCheck)
+            return response([
+                'status' => false,
+                'message' => 'Bu kayıt geçmiş döneme ait bir kayıttır, işlem yapılamaz',
+            ], 200);
+
 
         $status = OvertimeModel::saveOvertimeByProcessType($request->processType, $request);
 
@@ -635,11 +657,12 @@ class OvertimeController extends ApiController
             return response([
                 'status' => true,
                 'message' => $status['message'],
+                'test' => $status['test']
             ], 200);
 
         return response([
             'status' => false,
-            'message' => $status['message'],
+            'message' => $status['message']
         ], 200);
 
 

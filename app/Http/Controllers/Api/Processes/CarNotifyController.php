@@ -11,8 +11,10 @@ use App\Model\CarNotifyIssueKindModel;
 use App\Model\CarNotifyKindModel;
 use App\Model\CarNotifyModel;
 use App\Model\CityModel;
+use App\Model\DiskFileModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\ITSupportModel;
 use App\Model\RegionModel;
 use App\Model\UserProjectsModel;
 use Illuminate\Http\Request;
@@ -21,6 +23,56 @@ use Illuminate\Http\Request;
 class CarNotifyController extends ApiController
 {
 
+    public function getFileLink(Request $request)
+    {
+
+        $diskId = $request->fileId;
+
+        if ($diskId == null || $diskId == "")
+            return response([
+                'status' => false,
+                'data' => null
+            ],200);
+
+        $file = DiskFileModel::find($diskId);
+
+
+        $link = "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/" . $file->id . "/?token=" . $request->token . "&filename=" . $file->original_name;
+
+        return response([
+            'status' => false,
+            'data' => $link
+        ],200);
+    }
+
+    public function vehicleNotifyList(Request $request){
+
+        $filters = $request->all();
+        $carNotifyListQ = CarNotifyModel::where(["Active" => 1]);
+
+        foreach ($filters as $key => $filter)
+        {
+            if($key == "token")
+                continue;
+            else{
+                $carNotifyListQ->where($key, $filter);
+            }
+        }
+        try{
+            $carNotifyList = $carNotifyListQ->orderBy("created_at","desc")->get();
+            return response([
+                'status' => true,
+                'data' => $carNotifyList
+            ],200);
+        }
+        catch (\Exception $ex)
+        {
+            return response([
+                'status' => false,
+                'data' => $ex->getMessage()
+            ],200);
+        }
+    }
 
     public function saveCarNotify(Request $request){
 

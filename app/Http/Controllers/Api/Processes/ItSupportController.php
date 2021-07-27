@@ -21,10 +21,42 @@ use Illuminate\Support\Facades\Storage;
 class ItSupportController extends ApiController
 {
 
+    public function itSupportList(Request $request){
+
+        $filters = $request->all();
+        $itSupportListQ = ITSupportModel::where(["Status" => 1]);
+
+        foreach ($filters as $key => $filter)
+        {
+            if($key == "token")
+                continue;
+            else{
+                $itSupportListQ->where($key, $filter);
+            }
+        }
+        try{
+            $itSupportList = $itSupportListQ->orderBy("CreatedDate","desc")->get();
+            return response([
+                'status' => true,
+                'data' => $itSupportList
+            ],200);
+        }
+        catch (\Exception $ex)
+        {
+            return response([
+                'status' => false,
+                'data' => $ex->getMessage()
+            ],200);
+        }
+    }
+
     public function getEmployeeList(Request $request)
     {
 
-        $employees =DB::table("Employee")->where(['Active' => 1])->where("Id",">",999)->get();
+        $employees =DB::table("Employee")
+            ->where(['Active' => 1])
+            //->where("Id",">",999)
+            ->get();
 
         /*$employeePosition = EmployeePositionModel::where(['Active' => 2,'EmployeeID' => $request->Employee])->first();
 
@@ -76,6 +108,28 @@ class ItSupportController extends ApiController
             "message"   => "Success",
             "data"      => $priority,
         ], 200);
+    }
+
+    public function getFileLink(Request $request)
+    {
+
+        $diskId = $request->fileId;
+
+        if ($diskId == null || $diskId == "")
+            return response([
+                'status' => false,
+                'data' => null
+            ],200);
+
+        $file = DiskFileModel::find($diskId);
+
+
+        $link = "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/" . $file->id . "/?token=" . $request->token . "&filename=" . $file->original_name;
+
+        return response([
+            'status' => false,
+            'data' => $link
+        ],200);
     }
 
     public function supportSave(Request $request)

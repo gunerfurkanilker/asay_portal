@@ -20,7 +20,10 @@ Route::namespace("Api")->group(function(){
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
     Route::get('user/getUser/{user_id?}', "UserController@getUser")->name("apigetUser")->where(['user_id' => '[0-9]+']);
     Route::post('file/connectUpload', "FileController@connectUpload");
-
+    Route::get('test/educationInfo','TestController@educationGet')->name("testGetEducation");
+    Route::post('test/educationInfo','TestController@educationPost')->name("testSetEducation");
+    Route::delete('test/educationInfo','TestController@educationDelete')->name("testDeleteEducation");
+    Route::put('test/educationInfo','TestController@educationPut')->name("testPutEducation");
 
     Route::namespace('Processes')->group(function (){
 
@@ -77,6 +80,7 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/permit/')->group(function () {
+            Route::post('permitToExcel','PermitController@permitsToExcel')->name('permit_to_excel');
             Route::get('getPermitById','PermitController@getPermitById')->name('permit_getById');
             Route::post('savePermit', 'PermitController@savePermit')->name('permit_savePermit');
             Route::get('getPermitTypes', 'PermitController@permitTypes')->name('permit_getPermitTypes');
@@ -139,6 +143,8 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/CarNotify/')->group(function () {
+            Route::get('getFileLink','CarNotifyController@getFileLink');
+            Route::get('vehicleNotifyList','CarNotifyController@vehicleNotifyList')->name('vehicleNotifyList');
             Route::get('employees','CarNotifyController@getEmployeeList')->name('carnotify_employee_all');
             Route::get('notifyKinds','CarNotifyController@getNotifyKinds')->name('carnotify_notify_kinds');
             Route::get('carPlates','CarNotifyController@getCarPlates')->name('carnotify_notify_kinds');
@@ -152,6 +158,8 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/itsupport/')->group(function () {
+            Route::get('getFileLink','ItSupportController@getFileLink');
+            Route::get('itSupportList','ItSupportController@itSupportList');
             Route::get('employees','ItSupportController@getEmployeeList');
             Route::get('supportCategories','ItSupportController@supportCategories');
             Route::get('requestTypes','ItSupportController@requestTypes');

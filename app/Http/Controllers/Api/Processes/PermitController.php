@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\IdCardModel;
 use App\Model\LogsModel;
 use App\Model\NotificationsModel;
 use App\Model\OvertimeRestModel;
@@ -15,17 +16,155 @@ use App\Model\PermitLeftOverHoursModel;
 use App\Model\PermitModel;
 use App\Model\ProcessesSettingsModel;
 use App\Model\PublicHolidayModel;
+use App\Model\RegionModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SoapClient;
 use Whoops\Util\TemplateHelper;
 
 class PermitController extends ApiController
 {
+
+    public function permitsToExcel(Request $request){
+
+        $spreadsheet = new Spreadsheet();
+
+        $spreadsheet->removeSheetByIndex(0); // İlk Sheet'i siliyorum.
+
+        $workSheet = new Worksheet();
+
+        $columns = [
+            'İzin Türü',
+            'Bölge',
+            'T.C Kimlik No',
+            'Personel Ad Soyad',
+            'Yerine Geçecek Kişi',
+            'Yöneticisi',
+            'Açıklama',
+            'İzin Başlangıç Tarihi',
+            'İşe Başlangıç Tarihi',
+            'Gün Sayısı',
+            'Saat',
+            'Dakika',
+            'Durumu',
+
+        ];
+
+        //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+        $asciiCapitalA = 65;
+        foreach ($columns as $key => $column)
+        {
+            $columnLetter = chr($asciiCapitalA);
+            $workSheet->setCellValue($columnLetter."1",$column);
+            $workSheet->getColumnDimension($columnLetter)->setAutoSize(false)->setWidth(40);
+            $asciiCapitalA++;
+        }
+
+        $permits = [];
+
+        $regions = $request->Regions;
+        $permits = PermitModel::join("EmployeePosition","EmployeePosition.EmployeeID","=","Permits.EmployeeID")
+            ->where(['Permits.active' => 1,'EmployeePosition.Active' => 2])
+            ->whereIn("EmployeePosition.RegionID",$regions)
+            ->get();
+
+        foreach ($permits as $key => $permit)
+        {
+            $asciiCapitalA = 65;
+            $values = [];
+
+            $employeePosition = EmployeePositionModel::where(['EmployeeID' => $permit->EmployeeID, 'Active' => 2])->first();
+            $employeeRegion = $employeePosition ? RegionModel::find($employeePosition->RegionID) : null;
+            $idCard = IdCardModel::find($permit->Employee->IDCardID);
+
+            $permitKind = PermitKindModel::find($permit->kind)->name;
+            $region = $employeeRegion ? $employeeRegion->Name : '';
+            $TCKN = $idCard ? $idCard->TCNo : 'Kimlik bilgisi bulunamadı';
+            $personelName = $permit->Employee->UsageName . ' ' . $permit->Employee->LastName;
+            $transferEmployee = $permit->TransferEmployee ? $permit->TransferEmployee->UsageName . ' ' . $permit->TransferEmployee->LastName : '';
+            $manager= $employeePosition ? $employeePosition->Manager ? $employeePosition->Manager->UsageName . ' ' . $employeePosition->Manager->LastName  : '' : '';
+            $description = $permit->description;
+            $permitStartDate = date("d.m.Y H:i:s",strtotime($permit->start_date));
+            $permitEndDate = date("d.m.Y H:i:s",strtotime($permit->end_date));
+            $permitDayCount = $permit->user_day;
+            $oermitHourCount = $permit->over_hour;
+            $permitMinuteCount = $permit->over_minute;
+            $permitStatus = "";
+            switch ($permit->status)
+            {
+                case 0:
+                    $permitStatus = "Kaydedildi";
+                    break;
+                case 1:
+                    $permitStatus = "Yönetici Onayı Bekleniyor";
+                case 2:
+                    if ($permit->manager_status == 2)
+                        $permitStatus = "Yönetici Tarafından Reddedildi";
+                    else if($permit->hr_status == 0)
+                        $permitStatus = "İnsan Kaynakları Onayı Bekleniyor";
+                    break;
+                case 3:
+                    if ($permit->hr_status == 2)
+                        $permitStatus = "İnsan Kaynakları Tarafından Reddedildi";
+                    else if($permit->ps_status == 0)
+                        $permitStatus = "Evrak Onayı Bekleniyor";
+                    break;
+                case 4:
+                    if ($permit->ps_status == 2)
+                        $permitStatus = "Evrak Onayında Reddedildi";
+                    else if($permit->ps_status == 1)
+                        $permitStatus = "Süreç Tamamlandı";
+                    break;
+                default:
+                    $permitStatus = "";
+            }
+
+            //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
+            array_push($values,$permitKind);
+            array_push($values,$region);
+            array_push($values,$TCKN);
+            array_push($values,$personelName);
+            array_push($values,$transferEmployee);
+            array_push($values,$manager);
+            array_push($values,$description);
+            array_push($values,$permitStartDate);
+            array_push($values,$permitEndDate);
+            array_push($values,$permitDayCount);
+            array_push($values,$oermitHourCount);
+            array_push($values,$permitMinuteCount);
+            array_push($values,$permitStatus);
+
+            foreach ($columns as $keyColumns => $column)
+            {
+                $columnLetter = chr($asciiCapitalA);
+                $workSheet->setCellValue($columnLetter.($key+2),$values[$keyColumns]);
+                $asciiCapitalA++;
+            }
+
+        }
+
+
+        $spreadsheet->addSheet($workSheet,0);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_contents();
+        ob_end_clean();
+
+        Storage::disk('')->put("Employees.xlsx", $content);
+        return response()->download(storage_path('app/' . "Employees.xlsx"));
+
+
+    }
 
     public function getPermitById(Request $request)
     {
@@ -474,6 +613,7 @@ class PermitController extends ApiController
     {
         $status = ($request->status !== null) ? $request->status : null;
         $status = $status == "2" || $status == "3" || $status == "4" ? intval($status) : 1;
+        $employee = $request->EmployeeID ? $request->EmployeeID : null ;
 
         $correction = $request->Correction;
 
@@ -504,6 +644,10 @@ class PermitController extends ApiController
             $usersApprove = EmployeePositionModel::where(["Active" => 2])->whereIn("RegionID", $psRegion)->groupBy("EmployeeID")->pluck("EmployeeID");
 
             $permitQ->whereIn("EmployeeID", $usersApprove)->where(["status" => $QueryStatus, "ps_status" => $ApprovalStatus]);
+        }
+        if ($employee)
+        {
+            $permitQ->where("EmployeeID",$employee);
         }
         $permitQ->orderBy("created_date", "DESC");
         $permits = $permitQ->get();

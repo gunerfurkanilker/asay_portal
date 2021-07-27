@@ -14,39 +14,91 @@ class ITSupportModel extends Model
     protected $hidden = [];
     protected $casts = [];
     protected $appends = [
+        "RequestedFromName",
         "RequestTypeName",
         "PriorityName",
         "CategoryName",
         "SubCategoryName",
-        "SubCategoryContentName"
+        "SubCategoryContentName",
+        "FileLink"
     ];
+
+    public function getRequestedFromNameAttribute()
+    {
+        $RequestedFromName = $this->hasOne(EmployeeModel::class,"Id","RequestedFrom");
+        if ($RequestedFromName)
+        {
+            $requestType = $RequestedFromName->first();
+            return $requestType->UsageName . " " . $requestType->LastName;
+        }
+        else
+            return null;
+    }
 
     public function getRequestTypeNameAttribute()
     {
-        return $this->hasMany(ITSupportRequestTypeModel::class,"id","RequestType")->first()->Name;
+        $requestType = $this->hasOne(ITSupportRequestTypeModel::class,"id","RequestType");
+        if ($requestType)
+        {
+            $requestType = $requestType->first();
+            return $requestType->Name;
+        }
+        else
+            return null;
     }
 
     public function getPriorityNameAttribute()
     {
-        return $this->hasMany(PriorityModel::class,"id","Priority")->first()->Name;
+        $priorityName = $this->hasOne(PriorityModel::class,"id","Priority");
+        if ($priorityName)
+        {
+            $priorityName = $priorityName->first();
+            return $priorityName->Name;
+        }
+        else
+            return null;
     }
 
     public function getCategoryNameAttribute()
     {
-        return $this->hasMany(ITSupportCategoryModel::class,"id","Category")->first()->Name;
+        $categoryName = $this->hasOne(ITSupportCategoryModel::class,"id","Category");
+        if ($categoryName)
+        {
+            $categoryName = $categoryName->first();
+            return $categoryName->Name;
+        }
+        else
+            return null;
     }
+
     public function getSubCategoryNameAttribute()
     {
         if($this->attributes["SubCategory"]!==null)
-            return $this->hasMany(ITSupportCategoryModel::class,"id","SubCategory")->first()->Name;
+            return $this->hasOne(ITSupportCategoryModel::class,"id","SubCategory")->first()->Name;
         else
             return null;
     }
+
     public function getSubCategoryContentNameAttribute()
     {
         if($this->attributes["SubCategoryContent"]!==null)
-            return $this->hasMany(ITSupportCategoryModel::class,"id","SubCategoryContent")->first()->Name;
+            return $this->hasOne(ITSupportCategoryModel::class,"id","SubCategoryContent")->first()->Name;
         else
             return null;
     }
+
+    public function getFileLinkAttribute()
+    {
+
+        $file = $this->hasOne(DiskFileModel::class,"id","File");
+        if ($file)
+        {
+            $file = $file->first();
+
+            return "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/" . $file->id . "/?token=" . $request->token . "&filename=" . $file->original_name;
+        }
+        else
+            return null;
+    }
+
 }
