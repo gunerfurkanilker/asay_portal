@@ -465,9 +465,8 @@ class OvertimeController extends ApiController
 
         $employee = $request->Employee;
 
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->where(function ($query) use ($employee) {
-            $query->orWhere(['CreatedBy' => $employee]);
-            $query->orWhere(['ManagerID' => $employee]);
+        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->where(function ($query) use ($employee,$status) {
+            $query->where(['CreatedBy' => $employee, 'ManagerID' => $employee]);
         })->groupBy("StatusID")->get();
 
         $amount = [];
@@ -482,7 +481,6 @@ class OvertimeController extends ApiController
             'data' => $overtimeData['overtimes'],
             'dataCounts' => $amount,
             'dataCount' => $overtimeData['singleStatusCount'],
-            'test' => $employee
         ], 200);
 
     }
@@ -638,10 +636,8 @@ class OvertimeController extends ApiController
                     'message' => 'İş Başlangıç saati, bitiş saatinden büyük olamaz.'
                 ], 200);
 
-        if ($request->Employee !== 1642 || $request->ManagerID !== 1642)
             $dateCheck = OvertimeModel::dateCheck($request);
-        else
-            $dateCheck =true;
+
 
 
         if(!$dateCheck)
@@ -657,7 +653,6 @@ class OvertimeController extends ApiController
             return response([
                 'status' => true,
                 'message' => $status['message'],
-                'test' => $status['test']
             ], 200);
 
         return response([

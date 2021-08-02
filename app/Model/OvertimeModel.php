@@ -794,7 +794,8 @@ class OvertimeModel extends Model
 
         $data = [
             'singleStatusCount' => $overtimeCountQ->count(),
-            'overtimes' => $overtimeQ->offset($paginationPage)->take($recordPerPage)->get()
+            'overtimes' => $overtimeQ->offset($paginationPage)->take($recordPerPage)->get(),
+
         ];
 
         return $data;
@@ -986,6 +987,7 @@ class OvertimeModel extends Model
                 if ($atHoliday['status'] == false) {
                     $overtimeRecord = OvertimeModel::find($request->OvertimeId);
                     $limitCheck = self::overtimeLimitCheck($request, $overtimeRecord);
+                    $limitCheck['testMessage'] = $atHoliday['message'];
                     if ($limitCheck['status'] == false)
                         return $limitCheck;
                 }
@@ -1506,11 +1508,9 @@ class OvertimeModel extends Model
         }
         else if ($assignedEmployeePosition->UnitSupervisorID == $employee->Id) {
 
-            $test = "Romulus";
             //Varsa-Yöneticiye mail
             if ($assignedEmployeesManager != null)
             {
-                $test = "Augustus";
                 $usingCar = $overtimeRecord->UsingCar == 0 ? 'Hayır' : 'Evet';
                 $overtimeLink1 = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-manager/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-manager/'.$overtimeRecord->id ;
 
@@ -1525,7 +1525,6 @@ class OvertimeModel extends Model
                 } else
                     Asay::sendMail($assignedEmployeesManager->JobEmail, "", "Fazla çalışma birim sorumlusu tarafından onaylandı", $mailTable1, "aSAY Group", "", "", "");
                 $overtimeRecord->ManagerID = $assignedEmployeesManager->Id;
-                $test = $overtimeRecord->ManagerID;
             }
             //Yönetici Yoksa İK'ya mail ve ik onayına geçiş
             else

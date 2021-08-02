@@ -20,7 +20,6 @@ class ITSupportModel extends Model
         "CategoryName",
         "SubCategoryName",
         "SubCategoryContentName",
-        "FileLink"
     ];
 
     public function getRequestedFromNameAttribute()
@@ -83,20 +82,6 @@ class ITSupportModel extends Model
     {
         if($this->attributes["SubCategoryContent"]!==null)
             return $this->hasOne(ITSupportCategoryModel::class,"id","SubCategoryContent")->first()->Name;
-        else
-            return null;
-    }
-
-    public function getFileLinkAttribute()
-    {
-
-        $file = $this->hasOne(DiskFileModel::class,"id","File");
-        if ($file)
-        {
-            $file = $file->first();
-
-            return "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/" . $file->id . "/?token=" . $request->token . "&filename=" . $file->original_name;
-        }
         else
             return null;
     }
