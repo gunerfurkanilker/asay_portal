@@ -94,7 +94,7 @@ class PermitController extends ApiController
             $description = $permit->description;
             $permitStartDate = date("d.m.Y H:i:s",strtotime($permit->start_date));
             $permitEndDate = date("d.m.Y H:i:s",strtotime($permit->end_date));
-            $permitDayCount = $permit->user_day;
+            $permitDayCount = $permit->used_day;
             $oermitHourCount = $permit->over_hour;
             $permitMinuteCount = $permit->over_minute;
             $permitStatus = "";

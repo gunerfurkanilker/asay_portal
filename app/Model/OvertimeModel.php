@@ -36,10 +36,20 @@ class OvertimeModel extends Model
             $overtimeRecord = OvertimeModel::find($request->OvertimeId);
             if (in_array($overtimeRecord->StatusID,[0,1,2,3,4,5]))
             {
+                $today = date("d");
                 $month      = date("m",strtotime($request->BeginDate));
                 $todayMonth = date("m");
 
-                if ($month != $todayMonth)
+                if($today == '01' || $today == '02')
+                {
+                    $previousMonth = date('m',strtotime('first day of last month'));
+                    if(($month - $previousMonth) < 2)
+                        return true;
+                    else
+                        return false;
+                }
+
+                else if ($month != $todayMonth)
                     return false;
                 else
                     return true;
@@ -50,7 +60,16 @@ class OvertimeModel extends Model
                 $month      = date("m",strtotime($request->WorkBeginDate));
                 $todayMonth = date("m");
 
-                if ($month != $todayMonth)
+                if($today == '01' || $today == '02')
+                {
+                    $previousMonth = date('m',strtotime('first day of last month'));
+                    if(($month - $previousMonth) < 2)
+                        return true;
+                    else
+                        return false;
+                }
+
+                else if ($month != $todayMonth)
                     return false;
                 else
                     return true;
