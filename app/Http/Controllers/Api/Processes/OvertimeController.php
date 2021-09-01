@@ -639,12 +639,11 @@ class OvertimeController extends ApiController
         $dateCheck = OvertimeModel::dateCheck($request);
 
 
-
-
         if(!$dateCheck)
             return response([
                 'status' => false,
                 'message' => 'Bu kayıt geçmiş döneme ait bir kayıttır, işlem yapılamaz',
+                'test' => $dateCheck
             ], 200);
 
 

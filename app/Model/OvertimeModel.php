@@ -43,7 +43,9 @@ class OvertimeModel extends Model
                 if($today == '01' || $today == '02')
                 {
                     $previousMonth = date('m',strtotime('first day of last month'));
-                    if(($month - $previousMonth) < 2)
+                    //Ayın 1 i veya 2 si ise gelen istekteki date'in ayı ile bir önceki ay arasındaki farka bakıp,
+                    // gelen isteğin o ay mı yoksa bir önceki ay mı olduğuna bakıyorum
+                    if(($month - $previousMonth) == 1 || ($month - $previousMonth) == 0)
                         return true;
                     else
                         return false;
@@ -64,7 +66,7 @@ class OvertimeModel extends Model
                 if($today == '01' || $today == '02')
                 {
                     $previousMonth = date('m',strtotime('first day of last month'));
-                    if(($month - $previousMonth) < 2)
+                    if(($month - $previousMonth) == 1 || ($month - $previousMonth) == 0)
                         return true;
                     else
                         return false;
@@ -81,10 +83,20 @@ class OvertimeModel extends Model
         }
         else
         {
+            $today = date("d");
             $month      = date("m",strtotime($request->BeginDate));
             $todayMonth = date("m");
 
-            if ($month != $todayMonth)
+            if($today == '01' || $today == '02')
+            {
+                $previousMonth = date('m',strtotime('first day of last month'));
+                if(($month - $previousMonth) == 1 || ($month - $previousMonth) == 0)
+                    return true;
+                else
+                    return false;
+            }
+
+            else if ($month != $todayMonth)
                 return false;
             else
                 return true;
