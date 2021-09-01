@@ -57,6 +57,7 @@ class OvertimeModel extends Model
             }
             else if (in_array($overtimeRecord->StatusID,[6,7]))
             {
+                $today = date("d");
                 $month      = date("m",strtotime($request->WorkBeginDate));
                 $todayMonth = date("m");
 
