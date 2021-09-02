@@ -33,7 +33,9 @@ class EmployeeModel extends Model
         'HomePhone',
         'REMMail',
         'Email',
-        'BloodTypeID'
+        'BloodTypeID',
+        'IsUnitSupervisor',
+        'IsEmployeeManager'
     ];
 
     public static function toExcelGeneralInformations($spreadSheet, $employees)
@@ -1817,7 +1819,30 @@ class EmployeeModel extends Model
     }
 
 
+    public function getIsUnitSupervisorAttribute(){
 
+        $unitSupervisorCount = EmployeePositionModel::where(["UnitSupervisorID" => $this->attributes['Id'], "Active" => 2])
+            ->count();
+
+        if ($unitSupervisorCount > 0)
+            return true;
+        else
+            return false;
+
+
+    }
+
+    public function getIsEmployeeManagerAttribute(){
+
+        $employeeManagerCount = EmployeePositionModel::where(["ManagerID" => $this->attributes['Id'], "Active" => 2])
+            ->count();
+
+        if ($employeeManagerCount > 0)
+            return true;
+        else
+            return false;
+
+    }
 
     public function getDomainAttribute()
     {

@@ -193,6 +193,15 @@ Route::namespace("Api")->group(function(){
             Route::get('getHesCode','HESCodeController@ticketStatusList');
         });
 
+        Route::prefix('processes/Performance/')->group(function () {
+            Route::get('getManagersEmployees','PerformanceController@getManagersEmployees')->name('performance_managers_employees');
+            Route::post('savePerformanceRequest','PerformanceController@savePerformanceRequest')->name('save_performance_request');
+            Route::post('test','PerformanceController@test')->name('test');
+            Route::post('search','PerformanceController@search')->name('search');
+
+        });
+
+
     });
 
 

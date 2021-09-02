@@ -81,6 +81,8 @@ class AuthController extends Controller
                 'active' => $employee->Active,
                 'user_group' => $employee->EmployeeGroup,
                 "user_menus" => json_encode($Menus),
+                'isUnitSupervisor' => $employee->IsUnitSupervisor,
+                'isEmployeeManager' => $employee->IsEmployeeManager
             ];
             $userdata["token"] = EmployeeModel::createToken($userdata);
             $firstLogin = EmployeeLogsModel::where(["LogType"=>"LOGIN","EmployeeID"=>$employee->Id,["LogDate",">=",date("Y-m-d")." ".ParametersModel::where(["metaKey"=>"userFirstLoginTime"])->first()->metaValue]])->count();
