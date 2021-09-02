@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
+use App\Model\LogsModel;
+use App\Model\NotificationsModel;
 use App\Model\OvertimeKindModel;
 use App\Model\OvertimeModel;
 use App\Model\OvertimeStatusModel;
@@ -36,7 +38,12 @@ class OvertimeController extends ApiController
         $columns = [
             'TC Kimlik No',
             'Atayan Kişi',
+            'Çalışmayı Atama Tarihi',
+            'Çalışmanın Onaylandığı Tarih',
+            'İK Birimi Tarafından Onaylanma Tarihi',
             'Atanan Kişi',
+            'Çalışmanın Kabul Edildiği Tarih',
+            'Çalışmanın Onaya Gönderildiği Tarih',
             'Hizmet Kodu',
             'Departman',
             'Proje',
@@ -149,7 +156,18 @@ class OvertimeController extends ApiController
                 $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
                 $department = $overtime->AssignedEmployee->EmployeePosition->Department->Sym;
             }
-
+            $ovReqAssignDate = NotificationsModel::where(['EmployeeID' => $overtime->AssignedID, 'ObjectID' => $overtime->id, 'ObjectType' => 4])
+                ->where("Content","like",'%fazla çalışma için onayınız bekleniyor%')
+                ->first();
+            $ovReqAssignDate = $ovReqAssignDate ? $ovReqAssignDate->created_at : '';
+            $ovReqEmployeeConfirmDate = LogsModel::where(['LogType' => 24, 'ObjectType' => 4, 'ObjectId' => $overtime->id, 'EmployeeID' => $overtime->AssignedID])->first();
+            $ovReqEmployeeConfirmDate = $ovReqEmployeeConfirmDate ? $ovReqEmployeeConfirmDate->StartDate : '';
+            $ovReqEmployeeCompleteDate = LogsModel::where(['LogType' => 27, 'ObjectType' => 4, 'ObjectId' => $overtime->id, 'EmployeeID' => $overtime->AssignedID])->first();
+            $ovReqEmployeeCompleteDate = $ovReqEmployeeCompleteDate ? $ovReqEmployeeCompleteDate->StartDate : '';
+            $ovReqManagerConfirmDate = LogsModel::where(['LogType' => 28, 'ObjectType' => 4, 'ObjectId' => $overtime->id])->first();
+            $ovReqManagerConfirmDate = $ovReqManagerConfirmDate ? $ovReqManagerConfirmDate->StartDate : '';
+            $ovReqHRConfirmDate = LogsModel::where(['LogType' => 29, 'ObjectType' => 4, 'ObjectId' => $overtime->id])->first();
+            $ovReqHRConfirmDate = $ovReqHRConfirmDate ? $ovReqHRConfirmDate->StartDate : '';
             $project = $overtime->Project->name;
             $city = $overtime->City->Sym;
             $overtimeKind = $overtime->Kind->Name;
@@ -204,7 +222,12 @@ class OvertimeController extends ApiController
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
             array_push($values,isset($tcKimlikNo) ? $tcKimlikNo : '');
             array_push($values,isset($createdBy) ? $createdBy : '');
+            array_push($values,$ovReqAssignDate);
+            array_push($values,$ovReqManagerConfirmDate);
+            array_push($values,$ovReqHRConfirmDate);
             array_push($values,isset($assignedTo) ? $assignedTo : '');
+            array_push($values,$ovReqEmployeeConfirmDate);
+            array_push($values,$ovReqEmployeeCompleteDate);
             array_push($values,isset($serviceCode) ? $serviceCode : '');
             array_push($values,isset($department) ? $department : '');
             array_push($values,$project);

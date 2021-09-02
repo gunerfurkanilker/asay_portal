@@ -25,7 +25,7 @@ class EmployeePositionModel extends Model
       'Region',
       'Office',
       'WorkingField',
-      'UnitSupervisor'
+      'UnitSupervisor',
     ];
 
     public static function getPositionFields()
@@ -260,5 +260,13 @@ class EmployeePositionModel extends Model
         else
             return null;
     }
+
+
+
+    public function getEmployee(){
+        return $this->hasOne("App\Model\EmployeeModel","Id","EmployeeID");
+    }
+
+
 
  }

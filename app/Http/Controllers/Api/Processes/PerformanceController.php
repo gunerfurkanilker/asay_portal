@@ -34,6 +34,8 @@ class PerformanceController extends ApiController
         $managerId = $request->Employee;
         //  dd($request->TitleID);
 
+
+
         $userEmployees = PerformanceResource::collection(EmployeePositionModel::Where(['ManagerID' => $managerId])->get());
 
         return response()->json($userEmployees);

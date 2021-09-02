@@ -1953,5 +1953,11 @@ class EmployeeModel extends Model
         }
     }
 
+    public function getEmployeePerformance()
+    {
+        return $this->hasOne('App\Model\PerformanceModel','EmployeeID','Id');
+    }
+
+
 
 }
