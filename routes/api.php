@@ -201,6 +201,11 @@ Route::namespace("Api")->group(function(){
 
         });
 
+        Route::prefix('processes/ISGTraining/')->group(function () {
+            Route::post('saveEmployeeTraining','TrainingController@saveTraining')->name('save_training');
+            Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
+        });
+
 
     });
 
