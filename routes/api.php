@@ -200,10 +200,17 @@ Route::namespace("Api")->group(function(){
             Route::post('search','PerformanceController@search')->name('search');
 
         });
-
+        Route::prefix('processes/Qr/')->group(function () {
+            Route::post('saveQr','QrController@saveQr')->name('save-qr-pin');
+        });
         Route::prefix('processes/ISGTraining/')->group(function () {
             Route::post('saveEmployeeTraining','TrainingController@saveTraining')->name('save_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
+            Route::get('getTrainings','TrainingController@getTrainings')->name('get_trainings');
+            Route::get('getCompanies','TrainingController@getCompanies')->name('get_companies');
+            Route::get('getEmployees','TrainingController@getEmployees')->name('get_employees');
+            Route::get('getStatuses','TrainingController@getStatuses')->name('get_statuses');
+            Route::get('getResults','TrainingController@getISGResults')->name('get_results');
         });
 
 
