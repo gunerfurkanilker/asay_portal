@@ -11,7 +11,8 @@ class EmployeeTrainingModel extends Model
     protected $appends = [
         "Training",
         "Status",
-        "Result"
+        "Result",
+        "Employee"
     ];
     protected $guarded = [];
 
@@ -22,7 +23,7 @@ class EmployeeTrainingModel extends Model
         ]);
 
         $trainingInstance->TrainingID = $request->TrainingID;
-        $trainingInstance->CreateDate = $trainingInstance->CreateDate ? "" : date("Y-m-d H:i:s");
+        $trainingInstance->CreateDate = $trainingInstance->CreateDate ? $trainingInstance->CreateDate : date("Y-m-d");
         $trainingInstance->StartDate = $request->StartDate;
         $trainingInstance->ExpireDate = $request->ExpireDate;
         $trainingInstance->StatusID = $request->StatusID;
@@ -99,6 +100,19 @@ class EmployeeTrainingModel extends Model
             return null;
     }
 
+    public function getEmployeeAttribute(){
+        $employee = $this->hasOne(EmployeeModel::class,"Id","EmployeeID");
+        if ($employee)
+        {
+            $employee = $employee->where("Active",1)->first();
+            if ($employee)
+                return $employee;
+            else
+                return null;
+        }
+        else
+            return null;
+    }
 
 
 }

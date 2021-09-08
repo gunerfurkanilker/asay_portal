@@ -669,6 +669,7 @@ class OvertimeController extends ApiController
             || $request->AssignedID == 1187
             || $request->AssignedID == 1734
             || $request->AssignedID == 1733
+            || $request->AssignedID == 1733
         ){
             $byPassDateCheck = true;
         }

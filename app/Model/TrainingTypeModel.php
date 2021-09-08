@@ -9,4 +9,8 @@ class TrainingTypeModel extends Model
     //
     protected $table = "TrainingType";
     public $timestamps = false;
+    protected $guarded = [];
+
+
+
 }
