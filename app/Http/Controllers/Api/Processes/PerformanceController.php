@@ -41,6 +41,27 @@ class PerformanceController extends ApiController
         return response()->json($userEmployees);
     }
 
+    public function test1(Request $request){
+
+
+            $data=$request->except('token');
+//             dd('test');
+    //        PerformanceWeightModel::create($data);
+//     return response()->json([
+//                                                                             'success'=>true,
+//                                                                             'message'=>$request->all()
+//                                                                         ]);
+            PerformanceWeightModel::updateOrCreate([
+               'EmployeeID'=>$request->EmployeeID,
+
+            ],$request->except(['EmployeeID','token']));
+            return response()->json([
+                                                                        'success'=>true,
+                                                                        'message'=>'Başarıyla Eklendi'
+                                                                    ]);
+        }
+
+
 
 
 }

@@ -13,8 +13,12 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::namespace("Api")->group(function(){
 
+Route::get('getTrainingByID/{id}','PubTrainingController@getTrainingByID')->name("get_TrainingByID");
+//Route::post('resultQ1','PubTrainingController@resultQr1')->name('result-qr-pin');
+Route::namespace("Api")->group(function(){
+    //tests1
+    Route::post('resultQr','AuthController@resultQr')->name('result-qr-pin');
     Route::post('auth/login', "AuthController@loginPost")->name("apiloginPost");
     Route::post('auth/logout', "AuthController@logout")->name("apilogout");
     Route::post('auth/loginCheck', "AuthController@loginCheck")->name("apiloginCheck");
@@ -192,17 +196,20 @@ Route::namespace("Api")->group(function(){
             Route::get('listHesCodes','HESCodeController@listHesCodes');
             Route::get('getHesCode','HESCodeController@ticketStatusList');
         });
-
         Route::prefix('processes/Performance/')->group(function () {
             Route::get('getManagersEmployees','PerformanceController@getManagersEmployees')->name('performance_managers_employees');
             Route::post('savePerformanceRequest','PerformanceController@savePerformanceRequest')->name('save_performance_request');
-            Route::post('test','PerformanceController@test')->name('test');
+            Route::post('test','PerformanceController@test1')->name('test1');
             Route::post('search','PerformanceController@search')->name('search');
 
         });
         Route::prefix('processes/Qr/')->group(function () {
-            Route::post('saveQr','QrController@saveQr')->name('save-qr-pin');
+            Route::post('saveQr','QrController@postQr')->name('post-qr-pin');
         });
+       Route::prefix('processes/PublicTraining/')->group(function () {
+                   Route::get('getTrainingByID/{id}','PublicTrainingController@getTrainingByID')->name("get_TrainingByID");
+        });
+
         Route::prefix('processes/ISGTraining/')->group(function () {
             Route::post('saveEmployeeTraining','TrainingController@saveTraining')->name('save_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
@@ -367,3 +374,5 @@ Route::namespace("Api")->group(function(){
 
 
 });
+
+

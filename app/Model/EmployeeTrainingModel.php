@@ -99,6 +99,16 @@ class EmployeeTrainingModel extends Model
             return null;
     }
 
+//    public function employee()
+//    {
+//        return $this->belongsTo(EmployeeModel::class,'EmployeeID');
+//    }
+//
+//    public function trainings()
+//    {
+//        return $this->belongsTo(Trai)
+//    }
+
 
 
 }

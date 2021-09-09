@@ -38,6 +38,10 @@ class EmployeeModel extends Model
         'IsEmployeeManager'
     ];
 
+    public function getIdAttribute(){
+        return $this->attributes['Id'];
+    }
+
     public static function toExcelGeneralInformations($spreadSheet, $employees)
     {
         $workSheet = new Worksheet($spreadSheet, 'Genel Bilgiler');
@@ -1955,8 +1959,18 @@ class EmployeeModel extends Model
 
     public function getEmployeePerformance()
     {
-        return $this->hasOne('App\Model\PerformanceModel','EmployeeID','Id');
+        return $this->belongsTo(PerformanceModel::class,'EmployeeID');
     }
+
+    public function trainings()
+    {
+        return $this->belongsToMany(TrainingModel::class,'EmployeeTrainings','EmployeeID','TrainingID');
+    }
+
+//     public function blood()
+//     {
+//         return $this->belongsTo(BloodTypeModel::class,'BloodTypeID');
+//     }
 
 
 

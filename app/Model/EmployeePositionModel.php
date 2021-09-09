@@ -251,10 +251,23 @@ class EmployeePositionModel extends Model
         else
             return null;
     }
+
+    public function supervisor()
+    {
+       return $this->hasOne(EmployeeModel::class,'Id','UnitSupervisorID');
+//         return $this->belongsTo(EmployeeModel::class,'Id','UnitSupervisorID');
+    }
+
+    public function employee()
+    {
+        return $this->hasOne(EmployeeModel::class,'Id','EmployeeID');
+    }
+
     public function getUnitSupervisorAttribute(){
         if ($this->attributes['UnitSupervisorID'])
         {
             $unitSupervisor = DB::table("Employee")->where(['Id' => $this->attributes['UnitSupervisorID']])->first();
+//             $unitSupervisor = EmployeeModel::where(['Id' => $this->attributes['UnitSupervisorID']])->first();
             return $unitSupervisor;
         }
         else
@@ -263,9 +276,36 @@ class EmployeePositionModel extends Model
 
 
 
-    public function getEmployee(){
-        return $this->hasOne("App\Model\EmployeeModel","Id","EmployeeID");
-    }
+        public function getEmployee()
+        {
+            return $this->hasOne('App\Model\EmployeeModel','Id','EmployeeID');
+        }
+
+
+
+
+
+        public function getTitle()
+        {
+            return $this->hasOne('App\Model\TitleModel','Id','TitleID');
+        }
+        public function getDepartment()
+        {
+            return $this->hasOne('App\Model\DepartmentModel','Id','DepartmentID');
+        }
+
+        public function getRegion()
+        {
+            return $this->hasOne('App\Model\RegionModel','Id','RegionID');
+        }
+        public function getCity()
+        {
+            return $this->hasOne('App\Model\CityModel','Id','CityID');
+        }
+
+        public function getUnitSupervisor(){
+            return $this->belongsTo('App\Model\EmployeeModel','Id','UnitSupervisorID');
+        }
 
 
 

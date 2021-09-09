@@ -3,19 +3,41 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Model\BloodTypeModel;
 use App\Model\DomainModel;
 use App\Model\EmployeeLogsModel;
 use App\Model\EmployeeModel;
 use App\Model\LdapModel;
 use App\Model\LogsModel;
 use App\Model\ParametersModel;
+use App\Model\QrModel;
 use App\Model\UserMenuModel;
+use Carbon\Carbon;
 use PHPUnit\Framework\MockObject\Rule\Parameters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
+public function resultQr(Request $request){
+
+header('Access-Control-Allow-Origin:  *');
+header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
+header('Access-Control-Allow-Headers:  Content-Type, X-Auth-Token, Origin, Authorization');
+        $employee=QrModel::where(function($query) use ($request){
+                                      $query->where('number',$request->code)->where('updated_at','>',Carbon::now()->subMinutes(120));
+                                  })->firstOrFail();
+//         $employee=EmployeeModel::findOrFail($employee->EmployeeID);
+        $data=$employee->employee()->with('trainings')->first();
+        if($employee->employee->BloodTypeID!='')
+            $data['blood']=BloodTypeModel::findOrFail($employee->employee->BloodTypeID)->Sym;
+        else
+            $data['blood']='Belirtilmemiş';
+//         $data['photo']='https://connect.ms.asay.com.tr/rest/file/id_card/223?token=7f57760fb140a62d9fbf63af6f3e90d0&filename=IDCardPhoto_223.PNG'
+        return response([
+                'data'=>$data
+        ]);
+    }
     public function loginPost(Request $request)
     {
         $data["username"]   = $request->username;

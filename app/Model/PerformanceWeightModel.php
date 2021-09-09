@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class PerformanceWeightModel extends Model
 {
     protected $primaryKey = "id";
-    protected $table = "PerformanceWeight";
+    protected $table = "performanceweight";
     protected $guarded=[];
     public $timestamps = false;
 
