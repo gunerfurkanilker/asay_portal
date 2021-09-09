@@ -211,13 +211,17 @@ Route::namespace("Api")->group(function(){
         });
 
         Route::prefix('processes/ISGTraining/')->group(function () {
-            Route::post('saveEmployeeTraining','TrainingController@saveTraining')->name('save_training');
+            Route::post('saveTrainingCategory','TrainingController@saveTrainingCategory')->name('save_training_category');
+            Route::post('saveTraining','TrainingController@saveTraining')->name('save_training');
+            Route::post('saveEmployeeTraining','TrainingController@saveEmployeeTraining')->name('save_employee_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
             Route::get('getTrainings','TrainingController@getTrainings')->name('get_trainings');
             Route::get('getCompanies','TrainingController@getCompanies')->name('get_companies');
             Route::get('getEmployees','TrainingController@getEmployees')->name('get_employees');
             Route::get('getStatuses','TrainingController@getStatuses')->name('get_statuses');
             Route::get('getResults','TrainingController@getISGResults')->name('get_results');
+            Route::get('getCategories','TrainingController@getCategories')->name('get_categories');
+            Route::get('getTypes','TrainingController@getTrainingTypes')->name('get_types');
         });
 
 

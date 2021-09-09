@@ -12,11 +12,14 @@ class TrainingModel extends Model
         "Category",
         "Company"
     ];
+    protected $guarded = [];
 
     public static function saveTraining($request){
 
+
         $trainingInstance = TrainingModel::firstOrNew([
-            'id' => $request->TrainingID
+            'CategoryID' => $request->CategoryID,
+            'CompanyID' => $request->CompanyID
         ]);
 
         $trainingInstance->CategoryID = $request->CategoryID;

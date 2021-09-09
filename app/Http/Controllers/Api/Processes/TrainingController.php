@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\Processes;
 use App\Http\Controllers\Api\ApiController;
 use App\Model\EmployeeModel;
 use App\Model\EmployeeTrainingModel;
+use App\Model\TrainingCategoryModel;
 use App\Model\TrainingCompanyModel;
 use App\Model\TrainingModel;
 use App\Model\TrainingResultModel;
 use App\Model\TrainingStatusModel;
+use App\Model\TrainingTypeModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +18,30 @@ class TrainingController extends ApiController
 {
     //
 
-    public function saveTraining(Request $request){
+    public function saveTrainingCategory(Request $request){
+
+        $result = TrainingCategoryModel::saveTrainingCategory($request);
+
+        return response([
+            'status' => $result,
+            'message' => $result ? 'Kayıt Başarılı' : 'Kayıt Başarısız'
+        ],200);
+
+    }
+
+    public function saveTraining(Request $request)
+    {
+
+        $result = TrainingModel::saveTraining($request);
+
+        return response([
+            'status' => $result,
+            'message' => $result ? 'Kayıt Başarılı' : 'Kayıt Başarısız'
+        ],200);
+
+    }
+
+    public function saveEmployeeTraining(Request $request){
 
         $isEmployeeExists = EmployeeModel::where(['Active' => 1, 'Id' => $request->EmployeeID])->first();
 
@@ -105,6 +130,28 @@ class TrainingController extends ApiController
         return response([
             'status' => true,
             'data' => $results
+        ],200);
+
+    }
+
+    public function getCategories(Request $request){
+
+        $categories = TrainingCategoryModel::where(['Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'data' => $categories
+        ],200);
+
+    }
+
+    public function getTrainingTypes(Request $request){
+
+        $trainingTypes = TrainingTypeModel::where(['Active' => 1])->get();
+
+        return response([
+            'status' => true,
+            'data' => $trainingTypes
         ],200);
 
     }
