@@ -8,6 +8,7 @@ use App\Model\EmployeeTrainingModel;
 use App\Model\TrainingCategoryModel;
 use App\Model\TrainingCompanyModel;
 use App\Model\TrainingModel;
+use App\Model\TrainingPeriodModel;
 use App\Model\TrainingResultModel;
 use App\Model\TrainingStatusModel;
 use App\Model\TrainingTypeModel;
@@ -44,18 +45,25 @@ class TrainingController extends ApiController
     public function saveEmployeeTraining(Request $request){
 
         $isEmployeeExists = EmployeeModel::where(['Active' => 1, 'Id' => $request->EmployeeID])->first();
-
         if(!$isEmployeeExists)
             return response([
                 'status' => false,
                 'message' => "Eğitim eklemesi yapılması istenen çalışan bulunamadı"
             ],200);
 
+        /*$isTrainingCategoryExistsForEmployee = EmployeeTrainingModel::isTrainingExistAtEmployee($request);
+
+        if(!$isTrainingCategoryExistsForEmployee && $request->CreateType == 0)
+            return response([
+                'status' => false,
+                'message' => "Bu personel için eklenmek istenen eğitim tipi sistemde mevcuttur, var olan eğitimi tekrarlayabilir veya yenileyebilirsiniz."
+            ],200);*/
+
         $result = EmployeeTrainingModel::saveEmployeeTraining($request);
 
         return response([
             'status' => $result,
-            'message' => $result ? 'Kayıt Başarılı' : 'Kayıt Başarısız'
+            'message' => $result ? 'Kayıt Başarılı' : 'Kayıt Başarısız',
         ],200);
 
     }
@@ -68,9 +76,41 @@ class TrainingController extends ApiController
 
         return response([
             'message' => 'İşlem Başarılı',
-            'data' => $employeeTrainings
+            'data' => $employeeTrainings,
+            'filters' => $filters
         ],200);
 
+    }
+
+    public function getTrainingsParents(Request $request){
+
+        if($request->Root == 0)
+            return response([
+                'status' => false,
+                'message' => 'Bu kaydın alt kayıtları bulunmamaktadır.'
+            ],200);
+        $counter = 0;
+        $training = EmployeeTrainingModel::find($request->id);
+        $root = $training->Root;
+        $parentId = $training->Parent;
+        $parentList = [];
+        while($root != 0)
+        {
+            $counter++;
+            $root--;
+            $parent = EmployeeTrainingModel::where(['id' =>$parentId, 'Root' => $root])->first();
+            if($parent)
+            {
+                array_push($parentList,$parent);
+                $parentId = $parent->Parent;
+            }
+        }
+
+        return response([
+            'status' => true,
+            'data' => $parentList,
+            'test' => $counter
+        ],200);
     }
 
     public function getTrainings(Request $request){
@@ -152,6 +192,18 @@ class TrainingController extends ApiController
         return response([
             'status' => true,
             'data' => $trainingTypes
+        ],200);
+
+    }
+
+    public function getTrainingPeriodsOfTraining(Request $request){
+
+        $data = TrainingPeriodModel::getPeriodOfTraining($request);
+
+        return response([
+            'status' => $data['status'],
+            'message' => $data['message'],
+            'data' => $data['data']
         ],200);
 
     }

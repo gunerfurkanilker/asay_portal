@@ -11,24 +11,66 @@ class EmployeeTrainingModel extends Model
     protected $appends = [
         "Training",
         "Status",
-        "Result"
+        "Result",
+        "Employee",
+        "CreateTypeName"
     ];
     protected $guarded = [];
 
+    public static function isTrainingExistAtEmployee($request){
+
+        $employeesTrainings = self::where(['Active' => 1, 'EmployeeID' => $request->EmployeeID])->get();
+
+        $trainingCategory = TrainingModel::find($request->TrainingID);
+        $trainingCategory = $trainingCategory->CategoryID;
+        $status = true;
+        foreach ($employeesTrainings as $employeesTraining)
+        {
+            if($employeesTraining->Training->CategoryID == $trainingCategory)
+                $status = false;
+        }
+
+        return $status;
+
+    }
+
     public static function saveEmployeeTraining($request){
 
-        $trainingInstance = EmployeeTrainingModel::firstOrNew([
-            'id' => $request->id
-        ]);
+
+        $parent = 0;
+        $root = 0;
+        switch ($request->EditType){
+            case 0:
+                $trainingInstance = EmployeeTrainingModel::firstOrNew([
+                    'id' => $request->id
+                ]);
+                break;
+            case 1 || 2:
+                $tempInstance = EmployeeTrainingModel::find($request->id);
+                $parent = $tempInstance->id;
+                $root = $tempInstance->Root + 1;
+                $tempInstance->Active = 0;
+                $tempInstance->save();
+                $trainingInstance = new EmployeeTrainingModel();
+                break;
+            default:
+                $trainingInstance = EmployeeTrainingModel::firstOrNew([
+                    'id' => $request->id
+                ]);
+        }
+
 
         $trainingInstance->TrainingID = $request->TrainingID;
-        $trainingInstance->CreateDate = $trainingInstance->CreateDate ? "" : date("Y-m-d H:i:s");
+        $trainingInstance->CreateDate = $trainingInstance->CreateDate ? $trainingInstance->CreateDate : date("Y-m-d");
+        $trainingInstance->Root = $root;
+        $trainingInstance->Parent = $parent;
         $trainingInstance->StartDate = $request->StartDate;
         $trainingInstance->ExpireDate = $request->ExpireDate;
         $trainingInstance->StatusID = $request->StatusID;
         $trainingInstance->ResultID = $request->ResultID;
         $trainingInstance->Grade = $request->Grade;
         $trainingInstance->EmployeeID = $request->EmployeeID;
+        $trainingInstance->CreateType = $request->EditType;
 
         $result = $trainingInstance->save();
 
@@ -44,16 +86,35 @@ class EmployeeTrainingModel extends Model
          *
          * */
 
-        $trainingsQ = self::where("Active",1);
+        $joinTableArray =[];
 
-        $employeeID ? $trainingsQ->where('EmployeeID',$employeeID) : '';
-        $arrayOfString = [];
+        $trainingsQ = self::where(['Active' => 1]);
+
         if ($filters && count($filters) > 0 )
+        {
             foreach ($filters as $key => $filter)
-                $trainingsQ->where($key, $filter);
+            {
+                if (isset($filter['value']))
+                {
+                    switch ($filter['type'])
+                    {
+                        case 'where' :
+                            $trainingsQ->where($filter['table'].".".$key, $filter['value']);
+                            break;
+                        case 'whereMonth' && isset($filter['value']) :
+                            $trainingsQ->whereMonth($filter['table'].".".$key, explode("-",$filter['value'])[1]);
+                            break;
+                    }
+                }
+
+            }
+        }
 
 
-        return $trainingsQ->get();
+
+        $trainings = $trainingsQ->get();
+
+        return $trainings;
 
     }
 
@@ -99,16 +160,33 @@ class EmployeeTrainingModel extends Model
             return null;
     }
 
-//    public function employee()
-//    {
-//        return $this->belongsTo(EmployeeModel::class,'EmployeeID');
-//    }
-//
-//    public function trainings()
-//    {
-//        return $this->belongsTo(Trai)
-//    }
+    public function getEmployeeAttribute(){
+        $employee = $this->hasOne(EmployeeModel::class,"Id","EmployeeID");
+        if ($employee)
+        {
+            $employee = $employee->where("Active",1)->first();
+            if ($employee)
+                return $employee;
+            else
+                return null;
+        }
+        else
+            return null;
+    }
 
+    public function getCreateTypeNameAttribute(){
+        switch ($this->attributes['CreateType'])
+        {
+            case 0:
+                return "Yeni Kayıt / İlk Kayıt";
+            case 1:
+                return "Eğitim Yenileme";
+            case 2:
+                return "Eğitim Tekrarı";
+            default:
+                return "Bilinmiyor";
+        }
+    }
 
 
 }

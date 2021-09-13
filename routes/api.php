@@ -216,12 +216,14 @@ Route::namespace("Api")->group(function(){
             Route::post('saveEmployeeTraining','TrainingController@saveEmployeeTraining')->name('save_employee_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
             Route::get('getTrainings','TrainingController@getTrainings')->name('get_trainings');
+            Route::get('getTrainingsParents','TrainingController@getTrainingsParents')->name('get_trainings_parents');
             Route::get('getCompanies','TrainingController@getCompanies')->name('get_companies');
             Route::get('getEmployees','TrainingController@getEmployees')->name('get_employees');
             Route::get('getStatuses','TrainingController@getStatuses')->name('get_statuses');
             Route::get('getResults','TrainingController@getISGResults')->name('get_results');
             Route::get('getCategories','TrainingController@getCategories')->name('get_categories');
             Route::get('getTypes','TrainingController@getTrainingTypes')->name('get_types');
+            Route::get('getTrainingPeriodsOfTraining','TrainingController@getTrainingPeriodsOfTraining')->name('getTrainingPeriodsOfTraining');
         });
 
 

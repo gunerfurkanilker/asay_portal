@@ -661,26 +661,8 @@ class OvertimeController extends ApiController
 
         $assignedEmployeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->AssignedID])->first();
 
-        $byPassDateCheck = false;
-        if ($request->AssignedID == 1243
-            || $request->AssignedID == 1191
-            || $request->AssignedID == 1188
-            || $request->AssignedID == 1190
-            || $request->AssignedID == 1187
-            || $request->AssignedID == 1734
-            || $request->AssignedID == 1733
-            || $request->AssignedID == 1733
-        ){
-            $byPassDateCheck = true;
-        }
 
-
-        if(!$byPassDateCheck)
-        {
-            $dateCheck = OvertimeModel::dateCheck($request);
-        }
-        else
-            $dateCheck = true;
+        $dateCheck = OvertimeModel::dateCheck($request);
 
 
 

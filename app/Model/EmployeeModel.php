@@ -956,6 +956,7 @@ class EmployeeModel extends Model
 
         $columns = [
             'T.C Kimlik No',
+            'İsim Soysim',
             'Çalışanın Kan Grubu',
             'Acil Durumda Aranacak Birinci Kişi Ad Soyad',
             'Acil Durumda Aranacak Birinci Kişi Yakınlık Derecesi',
@@ -982,7 +983,7 @@ class EmployeeModel extends Model
             $values = [];
             $employeeTCKN = IdCardModel::where("Id",$employee->Id)->first();
             $employeeTCKN = $employeeTCKN ? $employeeTCKN->TCNo : $employee->UsageName . ' ' . $employee->LastName;
-
+            $employeeName = $employee->UsageName . ' ' . $employee->LastName;
             $emergencyInformations = EmergencyFieldModel::where(['EmployeeID' => $employee->Id])->get();
 
             foreach ($emergencyInformations as $emergencyInformation){
@@ -992,6 +993,7 @@ class EmployeeModel extends Model
                 if ($emergencyInformation->Priority == 0)
                 {
                     array_push($values,$employeeTCKN);
+                    array_push($values,$employeeName);
                     array_push($values,$employee->BloodTypeID ? BloodTypeModel::find($employee->BloodTypeID)->Sym : '');
                     array_push($values,$emergencyInformation->EmergencyPerson);
                     array_push($values,$emergencyInformation->EPDegree);
@@ -1002,6 +1004,7 @@ class EmployeeModel extends Model
                 }
                 else {
                     array_push($values,$employeeTCKN);
+                    array_push($values,$employeeName);
                     array_push($values,$employee->BloodTypeID ? BloodTypeModel::find($employee->BloodTypeID)->Sym : '');
                     array_push($values,'');
                     array_push($values,'');
