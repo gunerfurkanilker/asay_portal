@@ -17,18 +17,26 @@ class TrainingPeriodModel extends Model
 
         if (!$employeeSGKRegistryNumber)
             return ['status' => false, 'message' => 'Çalışana ait SGK Sicil No Bilgisi Bulunamadı', 'data' => null];
+        else
+            $employeeSGKRegistryNumber = $employeeSGKRegistryNumber->SSIRecord;
 
         if (!$employeePosition || !$employeePosition->OrganizationID)
-        {
             return ['status' => false, 'message' => 'Çalışanın organizasyon bilgisi bulunamadı', 'data' => null];
-        }
 
 
+        $training = TrainingModel::find($request->TrainingID);
 
-        $trainingPeriod = TrainingPeriodModel::where(['TrainingCategoryID' =>  $request->CategoryID])
+        $trainingPeriodQ = TrainingPeriodModel::where(['TrainingCategoryID' =>  $training->Category->id])
             ->where("SGKRegistryIDs","like","%$employeeSGKRegistryNumber%")
-            ->where("OrganizationIDs","like","%$employeePosition->OrganizationID%")
-            ->first();
+            ->where("OrganizationIDs","like","%$employeePosition->OrganizationID%");
+
+
+         if($request->CompanyID != 1 && $request->CompanyID != 2 && $training->Category->id == 1)
+         {
+             $trainingPeriodQ->where("ExternalCompany",1);
+         }
+
+         $trainingPeriod = $trainingPeriodQ->first();
 
         if(!$trainingPeriod)
             return ['status' => false, 'message' => 'Bu eğitime ait periyot bulunamadı, lütfen tamamlanma tarihini elle giriniz', 'data' => null];
@@ -40,5 +48,6 @@ class TrainingPeriodModel extends Model
 
 
     }
+
 
 }

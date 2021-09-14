@@ -200,12 +200,12 @@ class TrainingController extends ApiController
 
         $data = TrainingPeriodModel::getPeriodOfTraining($request);
 
-        return response([
-            'status' => $data['status'],
-            'message' => $data['message'],
-            'data' => $data['data']
-        ],200);
+        return response($data,200);
 
+    }
+
+    public function sendExpiredTrainingsMailToIsgEmployees(){
+        EmployeeTrainingModel::sendExpiredTrainingsMailToIsgEmployees();
     }
 
 
