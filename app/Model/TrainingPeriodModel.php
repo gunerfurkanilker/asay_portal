@@ -44,7 +44,7 @@ class TrainingPeriodModel extends Model
         $trainingExpireDate = date("Y-m-d",strtotime("+$trainingPeriod->Period months", strtotime($request->TrainingStartDate)));
 
 
-        return ['status' => true, 'message' => 'Bu eğitime ait periyot '.$trainingPeriod->Period . " aydır", 'data' => $trainingExpireDate];
+        return ['status' => true, 'message' => 'Bu eğitime ait periyot '.$trainingPeriod->Period . " aydır", 'data' => $trainingPeriod->id];
 
 
     }
