@@ -57,12 +57,7 @@ class PerformanceController extends ApiController
             ]);
 
             $data = $request->except('token');
-//             dd('test');
-    //        PerformanceWeightModel::create($data);
-//     return response()->json([
-//                                                                             'success'=>true,
-//                                                                             'message'=>$request->all()
-//                                                                         ]);
+
             PerformanceWeightModel::updateOrCreate([
                 'EmployeeID' => $request->EmployeeID,
 
