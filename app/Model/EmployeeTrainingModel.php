@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Library\Asay;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeeTrainingModel extends Model
@@ -32,6 +33,25 @@ class EmployeeTrainingModel extends Model
 
         return $status;
 
+    }
+
+    public static function sendExpiredTrainingsMailToIsgEmployees(){
+        $fifteenDaysEarlierDate = date("Y-m-d",strtotime("-15 days"));
+        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
+            ->whereBetween("ExpireDate",[$fifteenDaysEarlierDate,date("Y-m-d")])
+            ->get();
+        if(count($isgTrainingsExpireRecords) < 1)
+            return;
+        $textMessage = "";
+        $mailData = ['trainings' => $isgTrainingsExpireRecords];
+        $mailTable = view('mails.isg-expire-trainings', $mailData);
+        foreach ($isgTrainingsExpireRecords as $isgTrainingsExpireRecord)
+        {
+            $isgTrainingsExpireRecord->StatusID = 3;// Süresi Yaklaşıyor yapıldı;
+            $isgTrainingsExpireRecord->save();
+        }
+
+        Asay::sendMail("ilker.guner@asay.com.tr","","Geçerlilik süresinin dolmasına 15 gün kalmış eğitimler","$mailTable","aSAY Group","","","");
     }
 
     public static function saveEmployeeTraining($request){
