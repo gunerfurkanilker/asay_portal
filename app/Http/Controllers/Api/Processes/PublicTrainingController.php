@@ -24,4 +24,17 @@ class PublicTrainingController extends \App\Http\Controllers\Controller
                      ],200);
 
     }
+/*
+        public static function sendMail($to,$title="")
+        {
+            Mail::send([], [], function ($email) use($to,$title) {
+                if($title==""){
+                    $title="My QR CODE";
+                }
+                $email->from('sender@asay.com.tr', $title);
+                $email->to($to);
+
+                $email->setBody(<img src="<?php echo $email->embed($pathToFile); ?>">, 'text/html');
+            });
+        } */
 }

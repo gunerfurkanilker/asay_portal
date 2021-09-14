@@ -35,16 +35,28 @@ class PerformanceController extends ApiController
         //  dd($request->TitleID);
 
 
-
         $userEmployees = PerformanceResource::collection(EmployeePositionModel::Where(['ManagerID' => $managerId])->get());
 
         return response()->json($userEmployees);
     }
 
-    public function test1(Request $request){
+    public function test1(Request $request)
+    {
+        $request->validate([
+            "EmployeeID" => 'required',
+            "TechKnowledge" => 'required',
+            "TimeManagement" => 'required',
+            "Teamwork" => 'required',
+            "MasteryOfTech" => 'required',
+            "Responsibility" => 'required',
+            "CommunicationSkills" => 'required',
+            "CustomerFocus" => 'required',
+            "SafeWorkProvider" => 'required',
+            "ExitEffect" => 'required',
+            "ExitEffectReason"=>'required'
+            ]);
 
-
-            $data=$request->except('token');
+            $data = $request->except('token');
 //             dd('test');
     //        PerformanceWeightModel::create($data);
 //     return response()->json([
@@ -52,16 +64,14 @@ class PerformanceController extends ApiController
 //                                                                             'message'=>$request->all()
 //                                                                         ]);
             PerformanceWeightModel::updateOrCreate([
-               'EmployeeID'=>$request->EmployeeID,
+                'EmployeeID' => $request->EmployeeID,
 
-            ],$request->except(['EmployeeID','token']));
+            ], $request->except(['EmployeeID', 'token']));
             return response()->json([
-                                                                        'success'=>true,
-                                                                        'message'=>'Başarıyla Eklendi'
-                                                                    ]);
+                'success' => true,
+                'message' => 'Başarıyla Eklendi'
+            ]);
         }
-
-
 
 
 }

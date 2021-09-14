@@ -205,6 +205,7 @@ Route::namespace("Api")->group(function(){
         });
         Route::prefix('processes/Qr/')->group(function () {
             Route::post('saveQr','QrController@postQr')->name('post-qr-pin');
+            Route::post('getPhoto/{fileId}','QrController@getPhoto')->name('get-photo');
         });
        Route::prefix('processes/PublicTraining/')->group(function () {
                    Route::get('getTrainingByID/{id}','PublicTrainingController@getTrainingByID')->name("get_TrainingByID");
@@ -381,4 +382,5 @@ Route::namespace("Api")->group(function(){
 
 });
 
+Route::get('getFile1', "Api\GetFileController@index")->name("disk_getFile1");
 

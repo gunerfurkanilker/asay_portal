@@ -288,6 +288,7 @@ class DiskController extends ApiController
 
     public function getFile(Request $request)
     {
+
         if ($request->fileId === null) {
             return response([
                 'status' => false,
@@ -304,6 +305,28 @@ class DiskController extends ApiController
             'file' => $file
         ], 200);
     }
+
+    public function getFile1(Request $request)
+        {
+            dd('test');
+            if ($request->fileId === null) {
+                return response([
+                    'status' => false,
+                    'message' => 'Dosya Bulunamadı',
+                ], 200);
+            }
+
+            $file = DiskFileModel::find($request->fileId);
+            $fileObject["viewFile"] = "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/" . $file->id . "&filename=" . $file->original_name;
+            $fileObject["downloadFile"] = "http://" . parse_url(request()->root())['host'] . "/rest/file/" . $file->module_id . "/downloadFile/" . $file->id . "&filename=" . $file->original_name;
+            return response([
+                'status' => true,
+                'data' => $fileObject,
+                'file' => $file
+            ], 200);
+        }
+
+
 
     public function rights(Request $request)
     {

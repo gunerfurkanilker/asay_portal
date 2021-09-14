@@ -28,4 +28,6 @@ class QrController extends ApiController
             }
 
 
+
+
 }

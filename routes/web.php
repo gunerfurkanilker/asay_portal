@@ -17,6 +17,8 @@ Route::get('file/disk/downloadFile/{storage}/{objectId}', "Api\Components\DiskCo
 Route::get('file/{moduleId}/{fileId}', "Api\Components\DiskController@viewFile");
 Route::get('file/{moduleId}/downloadFile/{fileId}', "Api\Components\DiskController@downloadFile");
 
+Route::get('file1/{moduleId}/{fileId}', "Api\GetFileController@viewFile");
+
 
 /*
 Route::get('/', "View\Ik\DefaultController@index")->name("home");
