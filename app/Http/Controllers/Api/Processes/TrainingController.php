@@ -24,6 +24,7 @@ class TrainingController extends ApiController
 {
     //
 
+
     public function mailToIsgNewEmployee(Request $request){
         EmployeeTrainingModel::mailToIsgNewEmployee($request);
 

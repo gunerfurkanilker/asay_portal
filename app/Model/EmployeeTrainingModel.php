@@ -18,6 +18,7 @@ class EmployeeTrainingModel extends Model
     ];
     protected $guarded = [];
 
+
     public static function mailToIsgNewEmployee($request){
 
         $employee = EmployeeModel::find($request->EmployeeID);

@@ -1436,6 +1436,7 @@ class EmployeeModel extends Model
             $loggedUser = DB::table("Employee")->find($request->Employee);
             LogsModel::setLog($request->Employee,$employee->Id,15,34,"","",$loggedUser->UsageName . ' ' . $loggedUser->LastName . " adlı çalışan, " . $employee->UsageName . ' ' . $employee->LastName . " adında bir çalışan oluşturdu","","","","","");
 
+
         }catch (QueryException $queryException)
         {
             $errorCode = $queryException->errorInfo[1];

@@ -15,6 +15,7 @@
             <th>Yöneticisi</th>
         </tr>
 
+
         <tr
         >
             <td>{{ $employee->UsageName . ' ' . $employee->LastName  }}</td>

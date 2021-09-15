@@ -292,6 +292,7 @@ Route::namespace("Api")->group(function(){
             Route::post('employee/delete', "EmployeeController@deleteEmployee")->name("delete_employee");
             Route::delete('employee/destroy', "EmployeeController@destroyEmployee")->name("destroy_employee");
 
+
             Route::post('employee/general-informations/save/{id}', "EmployeeController@saveGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_general_informations");
             Route::post('employee/general-informations/other/save/{id}', "EmployeeController@saveOtherGeneralInformations")->where(['id' => '[0-9]+'])->name("employee_other_general_informations");
 

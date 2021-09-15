@@ -28,6 +28,7 @@ class EmployeePositionModel extends Model
       'UnitSupervisor',
     ];
 
+
     public static function getPositionFields()
     {
         $data = [];

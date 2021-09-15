@@ -593,6 +593,7 @@ class EmployeeController extends ApiController
     public function addEmployee(Request $request)
     {
 
+
         if ($request->staffId != null)
         {
             $count = EmployeeModel::where(['StaffID' => $request->staffId])->count();
