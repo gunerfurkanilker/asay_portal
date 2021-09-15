@@ -31,6 +31,7 @@ class EmployeeModel extends Model
         'EmployeeGroup',
         'MobilePhone',
         'HomePhone',
+        'SocialSecurityInfo',
         'REMMail',
         'Email',
         'BloodTypeID',
@@ -1467,7 +1468,7 @@ class EmployeeModel extends Model
         //Erişim Tiplerini Belirliyoruz.
         self::saveEmployeeAccessType($request->AccessTypes,$employee->Id);
 
-        return $employee->fresh();
+        return EmployeeModel::find($employee->Id);
     }
 
     public static function deleteEmployee($id)
@@ -1798,6 +1799,20 @@ class EmployeeModel extends Model
         if ($contractType)
         {
             return $contractType->where("Active",1)->first();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    public function getSocialSecurityInfoAttribute()
+    {
+
+        $ssi = $this->hasOne(SocialSecurityInformationModel::class,"EmployeeID","Id");
+        if ($ssi)
+        {
+            return $ssi->first();
         }
         else
         {

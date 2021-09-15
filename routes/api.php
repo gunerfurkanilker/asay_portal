@@ -217,6 +217,8 @@ Route::namespace("Api")->group(function(){
             Route::post('saveTraining','TrainingController@saveTraining')->name('save_training');
             Route::post('saveEmployeeTraining','TrainingController@saveEmployeeTraining')->name('save_employee_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
+            Route::post('trainingsToExcel','TrainingController@getTrainingsToExcel')->name('trainings_to_excel');
+            Route::post('mailToIsgNewEmployee','TrainingController@mailToIsgNewEmployee')->name('mail_to_isg_new_employee');
             Route::get('getTrainings','TrainingController@getTrainings')->name('get_trainings');
             Route::get('getTrainingsParents','TrainingController@getTrainingsParents')->name('get_trainings_parents');
             Route::get('getCompanies','TrainingController@getCompanies')->name('get_companies');

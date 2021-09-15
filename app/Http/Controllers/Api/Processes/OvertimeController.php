@@ -659,13 +659,9 @@ class OvertimeController extends ApiController
                     'message' => 'İş Başlangıç saati, bitiş saatinden büyük olamaz.'
                 ], 200);
 
-        $assignedEmployeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->AssignedID])->first();
 
 
-        if($request->AssignedID == 1542 || $request->AssignedID == 1541 || $request->AssignedID == 90)
-            $dateCheck = true;
-        else
-            $dateCheck = OvertimeModel::dateCheck($request);
+        $dateCheck = OvertimeModel::dateCheck($request);
 
 
 

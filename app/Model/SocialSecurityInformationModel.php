@@ -20,6 +20,7 @@ class SocialSecurityInformationModel extends Model
         'SSICreateDate',
         'SSINo',
         'SSIRecord',
+        'SSIRecordObject',
         'FirstLastName',
         'DisabledDegreeID',
         'DisabledReport',
@@ -229,6 +230,12 @@ class SocialSecurityInformationModel extends Model
     public function getDisabledDegreeAttribute()
     {
         $disabledDegree = $this->hasOne(DisabledDegreeModel::class,"Id","DisabledDegreeID");
+        return $disabledDegree->where("Active",1)->first();
+    }
+
+    public function getSSIRecordObjectAttribute()
+    {
+        $disabledDegree = $this->hasOne(SGKRegistryNumbersModel::class,"id","SSIRecord");
         return $disabledDegree->where("Active",1)->first();
     }
 

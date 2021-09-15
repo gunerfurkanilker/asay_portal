@@ -18,6 +18,19 @@ class EmployeeTrainingModel extends Model
     ];
     protected $guarded = [];
 
+    public static function mailToIsgNewEmployee($request){
+
+        $employee = EmployeeModel::find($request->EmployeeID);
+
+        $mailData = [
+            'employee' => $employee,
+            'mailContext' => "Aşağıda bilgileri olan personel işe giriş yapmıştır, lütfen ilgili personelin eğitimlerini sisteme giriniz"
+        ];
+        $mailTable = view('mails.isg-new-employee', $mailData);
+
+        Asay::sendMail("ilker.guner@asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
+    }
+
     public static function isTrainingExistAtEmployee($request){
 
         $employeesTrainings = self::where(['Active' => 1, 'EmployeeID' => $request->EmployeeID])->get();
@@ -36,14 +49,16 @@ class EmployeeTrainingModel extends Model
     }
 
     public static function sendExpiredTrainingsMailToIsgEmployees(){
-        $fifteenDaysEarlierDate = date("Y-m-d",strtotime("-15 days"));
+        $fifteenDaysLaterDate = date("Y-m-d",strtotime("+15 days"));
         $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
-            ->whereBetween("ExpireDate",[$fifteenDaysEarlierDate,date("Y-m-d")])
+            ->whereBetween("ExpireDate",[date("Y-m-d"),$fifteenDaysLaterDate])
             ->get();
         if(count($isgTrainingsExpireRecords) < 1)
             return;
-        $textMessage = "";
-        $mailData = ['trainings' => $isgTrainingsExpireRecords];
+        $mailData = [
+            'trainings' => $isgTrainingsExpireRecords ,
+            'mailContext' => "Eğitim geçerlilik tarihi süresininin bitimine 15 günden az kalmış kayıtlar aşağıdaki gibidir"
+        ];
         $mailTable = view('mails.isg-expire-trainings', $mailData);
         foreach ($isgTrainingsExpireRecords as $isgTrainingsExpireRecord)
         {
@@ -52,6 +67,26 @@ class EmployeeTrainingModel extends Model
         }
 
         Asay::sendMail("ilker.guner@asay.com.tr","","Geçerlilik süresinin dolmasına 15 gün kalmış eğitimler","$mailTable","aSAY Group","","","");
+    }
+
+    public static function sendExpiredTrainingsMailToIsgEmployees2(){
+        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
+            ->whereDate("ExpireDate","<=",date("Y-m-d"))
+            ->get();
+        if(count($isgTrainingsExpireRecords) < 1)
+            return;
+        $mailData = [
+            'trainings' => $isgTrainingsExpireRecords,
+            'mailContext' => "Eğitim geçerlilik tarihi süresi bitmiş kayıtlar aşağıdaki gibidir"
+        ];
+        $mailTable = view('mails.isg-expire-trainings', $mailData);
+        foreach ($isgTrainingsExpireRecords as $isgTrainingsExpireRecord)
+        {
+            $isgTrainingsExpireRecord->StatusID = 2;// Süresi Dolmuş yapıldı;
+            $isgTrainingsExpireRecord->save();
+        }
+
+        Asay::sendMail("ilker.guner@asay.com.tr","","Geçerlilik süresi bitmiş olan eğitimler","$mailTable","aSAY Group","","","");
     }
 
     public static function saveEmployeeTraining($request){

@@ -27,7 +27,7 @@ class TrainingPeriodModel extends Model
         $training = TrainingModel::find($request->TrainingID);
 
         $trainingPeriodQ = TrainingPeriodModel::where(['TrainingCategoryID' =>  $training->Category->id])
-            ->where("SGKRegistryIDs","like","%$employeeSGKRegistryNumber%")
+            ->whereRaw('FIND_IN_SET(?,SGKRegistryIDs)', [$employeeSGKRegistryNumber])
             ->where("OrganizationIDs","like","%$employeePosition->OrganizationID%");
 
 
@@ -44,7 +44,7 @@ class TrainingPeriodModel extends Model
         $trainingExpireDate = date("Y-m-d",strtotime("+$trainingPeriod->Period months", strtotime($request->TrainingStartDate)));
 
 
-        return ['status' => true, 'message' => 'Bu eğitime ait periyot '.$trainingPeriod->Period . " aydır", 'data' => $trainingPeriod->id];
+        return ['status' => true, 'message' => 'Bu eğitime ait periyot '.$trainingPeriod->Period . " aydır", 'data' => $trainingExpireDate];
 
 
     }

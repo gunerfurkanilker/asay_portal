@@ -32,6 +32,7 @@ class Kernel extends ConsoleKernel
        // $schedule->command('permit:sendNetsis')->hourly();
 
         //$schedule->call('App\Http\Controllers\Api\Processes\TrainingController@sendExpiredTrainingsMailToIsgEmployees')->everyMinute();
+        //$schedule->call('App\Http\Controllers\Api\Processes\TrainingController@sendExpiredTrainingsMailToIsgEmployees2')->everyMinute();
     }
 
     /**

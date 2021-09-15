@@ -2,7 +2,7 @@
 
 @section('content')
     <p>Sayın Yetkili,</p>
-    <p>Eğitim geçerlilik tarihi süresininin bitimine 15 günden az kalmış kayıtlar aşağıdaki gibidir</p>
+    <p>{{ $mailContext }}</p>
     <table width="800">
         <tr>
             <th>Eğitimi Alan Personel</th>
@@ -20,7 +20,7 @@
                 <td>{{ date("d.m.y",strtotime($training->StartDate)) }}</td>
                 <td>{{ date("d.m.y",strtotime($training->ExpireDate)) }}</td>
                 <td>{{ $training->Training->Company->Name }}</td>
-                <td>{{   }}</td>
+                <td>{{ $training->Status->Name  }}</td>
             </tr>
             @endforeach
 
