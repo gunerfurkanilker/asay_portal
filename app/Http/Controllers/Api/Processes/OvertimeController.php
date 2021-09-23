@@ -18,6 +18,7 @@ use App\Model\UserProjectsModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use DateTime;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -26,6 +27,28 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class OvertimeController extends ApiController
 {
+
+    public function saveOvertimePermissions(Request $request){
+
+        $permissionSaveResult = OvertimeModel::saveOvertimePermissions($request);
+
+        return response([
+            'status' => $permissionSaveResult,
+            'message' => $permissionSaveResult ? 'İşlem Başarılı' : 'İşlem Başarısız'
+        ],200);
+
+    }
+
+    public function overtimePermissions(Request $request){
+
+        $permissionList = OvertimeModel::getOvertimeEmployeePermissionList();
+
+        return response([
+            'status' => true,
+            'data' => $permissionList
+        ],200);
+
+    }
 
     public function overtimeReportsToExcel(Request $request){
 
@@ -521,11 +544,12 @@ class OvertimeController extends ApiController
 
     public function getHREmployees(Request $request)
     {
-        $employees = OvertimeModel::getHREmployees($request);
+        $employees = $request->NonRegional ? EmployeeModel::where("Id",">","999")->where("Active",1)->get() : OvertimeModel::getHREmployees($request);
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-            'data' => $employees
+            'data' => $employees,
+            'NonRegional' => true
         ], 200);
     }
 
@@ -661,7 +685,10 @@ class OvertimeController extends ApiController
 
 
 
-        $dateCheck = OvertimeModel::dateCheck($request);
+        /*if ($request->AssignedID == 1778)
+            $dateCheck = true;
+        else*/
+            $dateCheck = OvertimeModel::dateCheck($request);
 
 
 

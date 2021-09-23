@@ -36,7 +36,8 @@ class EmployeeModel extends Model
         'Email',
         'BloodTypeID',
         'IsUnitSupervisor',
-        'IsEmployeeManager'
+        'IsEmployeeManager',
+        'OvertimePermissions'
     ];
 
     public function getIdAttribute(){
@@ -1990,6 +1991,23 @@ class EmployeeModel extends Model
 //     {
 //         return $this->belongsTo(BloodTypeModel::class,'BloodTypeID');
 //     }
+
+    public function getOvertimePermissionsAttribute()
+    {
+        $employeeID = $this->attributes['Id'];
+
+        $weekendAndHolidayCount = OvertimePermissionModel::where("PermissionTypeID",1)
+            ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$employeeID])->count();
+        $blacklistCount = OvertimePermissionModel::where("PermissionTypeID",2)
+            ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$employeeID])->count();
+        $overtimeLimit = new \stdClass();
+        $overtimeLimit->WeekendAndPublicHolidayOnly = $weekendAndHolidayCount > 0 ? true : false;
+        $overtimeLimit->Blacklist = $blacklistCount > 0 ? true: false;
+
+        return $overtimeLimit;
+
+
+    }
 
 
 

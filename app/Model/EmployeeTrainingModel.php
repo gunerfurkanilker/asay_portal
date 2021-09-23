@@ -100,6 +100,7 @@ class EmployeeTrainingModel extends Model
                 $trainingInstance = EmployeeTrainingModel::firstOrNew([
                     'id' => $request->id
                 ]);
+
                 break;
             case 1 || 2:
                 $tempInstance = EmployeeTrainingModel::find($request->id);
@@ -118,8 +119,8 @@ class EmployeeTrainingModel extends Model
 
         $trainingInstance->TrainingID = $request->TrainingID;
         $trainingInstance->CreateDate = $trainingInstance->CreateDate ? $trainingInstance->CreateDate : date("Y-m-d");
-        $trainingInstance->Root = $root;
-        $trainingInstance->Parent = $parent;
+        $trainingInstance->Root = $trainingInstance->Root != 0 ? $trainingInstance->Root : $root;
+        $trainingInstance->Parent = $trainingInstance->Parent != 0 ? $trainingInstance->Parent : $parent;
         $trainingInstance->StartDate = $request->StartDate;
         $trainingInstance->ExpireDate = $request->ExpireDate;
         $trainingInstance->StatusID = $request->StatusID;
@@ -134,7 +135,7 @@ class EmployeeTrainingModel extends Model
 
     }
 
-    public static function getTrainings($filters,$employeeID){
+    public static function getTrainings($filters,$employeeID,$page = null,$rowPerPage = null,$active = 1){
 
         /*
          *
@@ -142,9 +143,7 @@ class EmployeeTrainingModel extends Model
          *
          * */
 
-        $joinTableArray =[];
-
-        $trainingsQ = self::where(['Active' => 1]);
+        $trainingsQ = $active==1 ? self::where(['Active' => 1]) : self::whereIn("Active",[0,1]) ;
 
         if ($filters && count($filters) > 0 )
         {
@@ -159,18 +158,25 @@ class EmployeeTrainingModel extends Model
                             break;
                         case 'whereMonth' && isset($filter['value']) :
                             $trainingsQ->whereMonth($filter['table'].".".$key, explode("-",$filter['value'])[1]);
+                            $trainingsQ->whereYear($filter['table'].".".$key, explode("-",$filter['value'])[0]);
                             break;
                     }
                 }
 
             }
         }
+        $count = $trainingsQ->count();
+        if (!is_null($page) && !is_null($rowPerPage)){
+            $offset = ($page - 1)*$rowPerPage;
+            $trainingsQ->offset($offset)->take($rowPerPage);
+        }
 
 
 
-        $trainings = $trainingsQ->get();
+        $data['trainings'] = $trainingsQ->get();
+        $data['count'] = $count;
 
-        return $trainings;
+        return $data;
 
     }
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Model;
+namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrainingCompanyModel extends Model
+class OvertimePermissionTypeModel extends Model
 {
     //
-    protected $table = "TrainingCompany";
+    protected $table = "OvertimePermissionType";
     public $timestamps = false;
     protected $guarded = [];
 }

@@ -14,6 +14,22 @@ class TrainingModel extends Model
     ];
     protected $guarded = [];
 
+    public static function saveISGCompany($request){
+
+        $companyInstance = TrainingCompanyModel::firstOrNew([
+            'id' => $request->id
+        ]);
+
+        $companyInstance->Name = $request->Name;
+        $companyInstance->Description = $request-> Description;
+
+        $result = $companyInstance->save();
+
+        return $result;
+
+
+    }
+
     public static function saveTraining($request){
 
 

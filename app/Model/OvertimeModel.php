@@ -30,6 +30,32 @@ class OvertimeModel extends Model
     protected $guarded = [];
 
 
+    public static function saveOvertimePermissions($request){
+
+        $permissionInstance = OvertimePermissionModel::where("PermissionTypeID",$request->PermissionTypeID)->first();
+
+        $permissionInstance->EmployeeIDs = implode(",",$request->EmployeeIDs);
+
+
+        $result = $permissionInstance->save();
+
+        return $result;
+
+    }
+
+    public static function getOvertimeEmployeePermissionList(){
+
+        $list['weekendPublicHolidayOnly'] = OvertimePermissionModel::select("EmployeeIDs")->where("PermissionTypeID",1)->first()->EmployeeIDs;
+        $list['blacklist'] = OvertimePermissionModel::select("EmployeeIDs")->where("PermissionTypeID",2)->first()->EmployeeIDs;
+
+        $list['weekendPublicHolidayOnly'] = array_map('intval', explode(",",$list['weekendPublicHolidayOnly']));
+        $list['blacklist'] = array_map('intval', explode(",",$list['blacklist']));
+
+
+       return $list;
+
+    }
+
     public static function dateCheck($request){
         if ($request->OvertimeId != null)
         {
@@ -1513,7 +1539,7 @@ class OvertimeModel extends Model
             $logStatus = LogsModel::setLog($overtimeRequest->Employee, $overtimeRecord->id, 4, 28, '', '', $overtimeRecord->BeginDate . ' ' . $overtimeRecord->BeginTime . ' tarihli fazla çalışma ' . $userEmployee->UsageName . '' . $userEmployee->LastName . ' adlı yönetici tarafından onaylandı.', '', '', '', '', '');
 
 
-            $hrSpecialists = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->get();
+            $hrSpecialists = ProcessesSettingsModel::where(['object_type' => 4, 'PropertyCode' => 'HRManager', 'RegionID' => $assignedEmployeePosition->RegionID])->where("PropertyValue","!=","1639")->get();
 
 
             $overtimeLink = $assignedEmployee->EmployeePosition->OrganizationID == 4 ? "http://connect.ms.asay.com.tr/#/overtime-hr/".$overtimeRecord->id : 'http://portal.asay.com.tr/#/overtime-hr/'.$overtimeRecord->id ;

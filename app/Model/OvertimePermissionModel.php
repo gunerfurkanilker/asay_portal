@@ -4,10 +4,12 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrainingCompanyModel extends Model
+class OvertimePermissionModel extends Model
 {
     //
-    protected $table = "TrainingCompany";
+    protected $table = "OvertimePermissions";
     public $timestamps = false;
     protected $guarded = [];
+
+
 }

@@ -58,6 +58,19 @@ class TrainingController extends ApiController
 
     }
 
+    public function saveCompany(Request $request)
+    {
+
+        $result = TrainingModel::saveISGCompany($request);
+
+        return response([
+            'status' => $result,
+            'message' => $result ? 'Kayıt Başarılı' : 'Kayıt Başarısız',
+            'test' => $request->all()
+        ],200);
+
+    }
+
     public function saveEmployeeTraining(Request $request){
 
         $isEmployeeExists = EmployeeModel::where(['Active' => 1, 'Id' => $request->EmployeeID])->first();
@@ -86,11 +99,12 @@ class TrainingController extends ApiController
 
     public function getTrainingsToExcel(Request $request){
 
-        if (count($request->Trainings) < 1)
-            return response([
-                'status' => false,
-                'message' => "Excel'e aktarılacak veri bulunamadı, lütfen farklı bir filtre ile verileri filtreleyin"
-            ],200);
+        $filters = $request->filters;
+        $employeeID = $filters['EmployeeID'];
+        $active = $employeeID ? 0:1;
+        $trainings = EmployeeTrainingModel::getTrainings($filters,$employeeID,null,null,$active);
+
+        $trainings = $trainings['trainings'];
 
         $spreadsheet = new Spreadsheet();
 
@@ -100,6 +114,7 @@ class TrainingController extends ApiController
 
         $columns = [
             'Kayıt No',
+            'Üst Kayıt No',
             'Çalışan Adı Soyadı',
             'Eğitim Adı',
             'Eğitimi Veren Kurum',
@@ -108,7 +123,7 @@ class TrainingController extends ApiController
             'Eğitim Son Geçerlilik Tarihi',
             'Kayıt Oluşturulma Tarihi',
             'Eğitim Sonucu',
-
+            'Kayıt Durumu'
         ];
 
         //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
@@ -121,12 +136,13 @@ class TrainingController extends ApiController
             $asciiCapitalA++;
         }
 
-        foreach ($request->Trainings as $key => $training)
+        foreach ($trainings as $key => $training)
         {
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
             $asciiCapitalA = 65;
             $values = [];
             $kayitNo = $training['id'] ;
+            $parentNo = $training['Parent'];
             $employeeName = $training['Employee'] ? $training['Employee']['UsageName'] . ' ' .  $training['Employee']['LastName'] : '';
             $trainingName = $training['Training']['Category']['Name'];
             $trainingCompanyName = $training['Training']['Company']['Name'];
@@ -135,16 +151,19 @@ class TrainingController extends ApiController
             $trainingCreateDate = $training['CreateDate'];
             $trainingResult = $training['Result']['Name'];
             $trainingStatus = $training['Status']['Name'];
+            $recordStatus = $training['Active'] == 1 ? 'Asıl Kayıt' : 'Arşiv Kayıt';
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
-            array_push($values,$kayitNo);
-            array_push($values,$employeeName);
-            array_push($values,$trainingName);
-            array_push($values,$trainingCompanyName);
-            array_push($values,$trainingStatus);
-            array_push($values,$trainingStartDate);
-            array_push($values,$trainingExpireDate);
-            array_push($values,$trainingCreateDate);
-            array_push($values,$trainingResult);
+            array_push($values, $kayitNo);
+            array_push($values, $parentNo);
+            array_push($values, $employeeName);
+            array_push($values, $trainingName);
+            array_push($values, $trainingCompanyName);
+            array_push($values, $trainingStatus);
+            array_push($values, $trainingStartDate);
+            array_push($values, $trainingExpireDate);
+            array_push($values, $trainingCreateDate);
+            array_push($values, $trainingResult);
+            array_push($values, $recordStatus);
 
 
             foreach ($columns as $keyColumns => $column)
@@ -174,12 +193,21 @@ class TrainingController extends ApiController
 
         $filters = $request->filters;
         $employeeID = $request->EmployeeID;
-        $employeeTrainings = EmployeeTrainingModel::getTrainings($filters,$employeeID);
+        $rowPerPage = $request->rowsPerPage;
+        $page = $request->page;
+        $data = EmployeeTrainingModel::getTrainings($filters,$employeeID,$page,$rowPerPage);
+        $totalCount = $data['count'];
+        $paginationNumMax =  $rowPerPage && $data['trainings'] && $totalCount > 0 ? (int) ($totalCount / $rowPerPage) : 1;
+        $paginationNumMax = $totalCount % $rowPerPage != 0 ? $paginationNumMax + 1 : $paginationNumMax ;
 
         return response([
             'message' => 'İşlem Başarılı',
-            'data' => $employeeTrainings,
-            'filters' => $filters
+            'data' => $data['trainings'],
+            'filters' => $filters,
+            'paginationNumMax' => $paginationNumMax,
+            'page' => $page,
+            'rowsPerPage' => $rowPerPage,
+            'count' => $totalCount
         ],200);
 
     }

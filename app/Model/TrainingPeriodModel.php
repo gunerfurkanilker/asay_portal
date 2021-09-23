@@ -31,7 +31,7 @@ class TrainingPeriodModel extends Model
             ->where("OrganizationIDs","like","%$employeePosition->OrganizationID%");
 
 
-         if($request->CompanyID != 1 && $request->CompanyID != 2 && $training->Category->id == 1)
+         if($request->CompanyID != 1 && $training->Category->id == 1)
          {
              $trainingPeriodQ->where("ExternalCompany",1);
          }

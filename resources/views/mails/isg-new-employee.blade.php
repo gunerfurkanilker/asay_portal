@@ -5,9 +5,11 @@
     <p>{{ $mailContext }}</p>
     <table width="800">
         <tr>
+            <th>Personel ID Numarası</th>
             <th>Personel Adı Soyadı</th>
             <th>SGK Sicil Bilgisi</th>
             <th>Şirket</th>
+            <th>Departman</th>
             <th>Organizasyon</th>
             <th>Ünvan</th>
             <th>Çalıştığı Bölge</th>
@@ -18,9 +20,11 @@
 
         <tr
         >
+            <td>{{ $employee->StaffID  }}</td>
             <td>{{ $employee->UsageName . ' ' . $employee->LastName  }}</td>
             <td>{{ $employee->SocialSecurityInfo ? $employee->SocialSecurityInfo->SSIRecordObject ? $employee->SocialSecurityInfo->SSIRecordObject->Name : '' : '' }}</td>
             <td>{{ $employee->EmployeePosition ? $employee->EmployeePosition->Company ? $employee->EmployeePosition->Company->Sym : '' : '' }}</td>
+            <td>{{ $employee->EmployeePosition ? $employee->EmployeePosition->Department ?  $employee->EmployeePosition->Department->Sym : '' : '' }}</td>
             <td>{{ $employee->EmployeePosition ? $employee->EmployeePosition->Organization ?  $employee->EmployeePosition->Organization->name : '' : '' }}</td>
             <td>{{ $employee->EmployeePosition ? $employee->EmployeePosition->Title ? $employee->EmployeePosition->Title->Sym : '' : '' }}</td>
             <td>{{ $employee->EmployeePosition ? $employee->EmployeePosition->Region ? $employee->EmployeePosition->Region->Name : '' : '' }}</td>

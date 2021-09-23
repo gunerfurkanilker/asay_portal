@@ -136,6 +136,8 @@ Route::namespace("Api")->group(function(){
             Route::get('managersProjectList','OvertimeController@managersProjectList')->name('overtime_managers_project_list');
             Route::post('saveOvertimeRequest','OvertimeController@saveOvertimeRequest')->name('save_overtime_request');
             Route::post('overtimeReportsToExcel','OvertimeController@overtimeReportsToExcel')->name('overtime_reports_to_excel');
+            Route::get('overtimePermissions','OvertimeController@overtimePermissions')->name('overtime_permissions');
+            Route::post('saveOvertimePermissions','OvertimeController@saveOvertimePermissions')->name('save_overtime_permissions');
         });
 
         Route::prefix('processes/HealthReport/')->group(function () {
@@ -215,6 +217,7 @@ Route::namespace("Api")->group(function(){
         Route::prefix('processes/ISGTraining/')->group(function () {
             Route::post('saveTrainingCategory','TrainingController@saveTrainingCategory')->name('save_training_category');
             Route::post('saveTraining','TrainingController@saveTraining')->name('save_training');
+            Route::post('saveCompany','TrainingController@saveCompany')->name('save_company');
             Route::post('saveEmployeeTraining','TrainingController@saveEmployeeTraining')->name('save_employee_training');
             Route::post('employeeTrainingList','TrainingController@getEmployeeTrainings')->name('get_employee_trainings');
             Route::post('trainingsToExcel','TrainingController@getTrainingsToExcel')->name('trainings_to_excel');
