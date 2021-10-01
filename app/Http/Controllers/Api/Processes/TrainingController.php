@@ -116,6 +116,9 @@ class TrainingController extends ApiController
             'Kayıt No',
             'Üst Kayıt No',
             'Çalışan Adı Soyadı',
+            'Ünvanı',
+            'Birimi',
+            'Bulunduğu Bölge',
             'Eğitim Adı',
             'Eğitimi Veren Kurum',
             'Eğitim Statüsü',
@@ -144,6 +147,9 @@ class TrainingController extends ApiController
             $kayitNo = $training['id'] ;
             $parentNo = $training['Parent'];
             $employeeName = $training['Employee'] ? $training['Employee']['UsageName'] . ' ' .  $training['Employee']['LastName'] : '';
+            $employeeTitle = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Title']['Sym'] : '' : '';
+            $employeeDepartment = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Department']['Sym'] : '' : '';
+            $employeeRegion = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Region']['Name'] : '' : '';
             $trainingName = $training['Training']['Category']['Name'];
             $trainingCompanyName = $training['Training']['Company']['Name'];
             $trainingStartDate = $training['StartDate'];
@@ -156,6 +162,9 @@ class TrainingController extends ApiController
             array_push($values, $kayitNo);
             array_push($values, $parentNo);
             array_push($values, $employeeName);
+            array_push($values, $employeeTitle);
+            array_push($values, $employeeDepartment);
+            array_push($values, $employeeRegion);
             array_push($values, $trainingName);
             array_push($values, $trainingCompanyName);
             array_push($values, $trainingStatus);
@@ -249,7 +258,10 @@ class TrainingController extends ApiController
         $trainingsQ = TrainingModel::where(["Active" => 1]);
 
         if($request->CompanyID)
+        {
             $trainingsQ->where("CompanyID",$request->CompanyID);
+        }
+
 
         $trainings = $trainingsQ->get();
 

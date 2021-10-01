@@ -121,6 +121,7 @@ class EmployeeTrainingModel extends Model
         $trainingInstance->CreateDate = $trainingInstance->CreateDate ? $trainingInstance->CreateDate : date("Y-m-d");
         $trainingInstance->Root = $trainingInstance->Root != 0 ? $trainingInstance->Root : $root;
         $trainingInstance->Parent = $trainingInstance->Parent != 0 ? $trainingInstance->Parent : $parent;
+        $trainingInstance->TrainingDescription = $request->TrainingDescription;
         $trainingInstance->StartDate = $request->StartDate;
         $trainingInstance->ExpireDate = $request->ExpireDate;
         $trainingInstance->StatusID = $request->StatusID;
@@ -155,6 +156,9 @@ class EmployeeTrainingModel extends Model
                     {
                         case 'where' :
                             $trainingsQ->where($filter['table'].".".$key, $filter['value']);
+                            break;
+                        case 'whereIn' :
+                            $trainingsQ->whereIn($filter['table'].".".$key, $filter['value']);
                             break;
                         case 'whereMonth' && isset($filter['value']) :
                             $trainingsQ->whereMonth($filter['table'].".".$key, explode("-",$filter['value'])[1]);
