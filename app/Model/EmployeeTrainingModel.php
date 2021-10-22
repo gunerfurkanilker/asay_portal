@@ -28,8 +28,8 @@ class EmployeeTrainingModel extends Model
             'mailContext' => "Aşağıda bilgileri olan personel işe giriş yapmıştır, lütfen ilgili personelin eğitimlerini sisteme giriniz"
         ];
         $mailTable = view('mails.isg-new-employee', $mailData);
-
-        Asay::sendMail("ilker.guner@asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
+        //TODO İSG Gru
+        Asay::sendMail("isg-ms@ms.asay.com.tr,ilker.guner@asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
     }
 
     public static function isTrainingExistAtEmployee($request){

@@ -32,8 +32,19 @@ class OvertimeModel extends Model
 
     public static function saveOvertimePermissions($request){
 
-        $permissionInstance = OvertimePermissionModel::where("PermissionTypeID",$request->PermissionTypeID)->first();
-
+        if ($request->PermissionTypeID == 3)
+            $permissionInstance = OvertimePermissionModel::where(["PermissionTypeID" => $request->PermissionTypeID, "YearControl" => $request->YearControl])->first();
+        else
+            $permissionInstance = OvertimePermissionModel::where("PermissionTypeID",$request->PermissionTypeID)->first();
+        if (!$permissionInstance)
+        {
+            $permissionInstance = new OvertimePermissionModel();
+            $permissionInstance->PermissionTypeID = $request->PermissionTypeID;
+        }
+        if ($request->PermissionTypeID == 3)
+        {
+            $permissionInstance->YearControl = $request->YearControl;
+        }
         $permissionInstance->EmployeeIDs = implode(",",$request->EmployeeIDs);
 
 
@@ -57,11 +68,26 @@ class OvertimeModel extends Model
     }
 
     public static function dateCheck($request){
+
         if ($request->OvertimeId != null)
         {
             $overtimeRecord = OvertimeModel::find($request->OvertimeId);
             if (in_array($overtimeRecord->StatusID,[0,1,2,3,4,5]))
             {
+
+                $permittedMonthCounts = OvertimePermissionModel::where("PermissionTypeID",3)
+                    ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$request->AssignedID])->get();
+                if ($permittedMonthCounts){
+                    foreach ($permittedMonthCounts as $permittedMonthCount){
+                        $permittedYear = date("Y",strtotime($permittedMonthCount->YearControl));
+                        $permittedMonth = date("m",strtotime($permittedMonthCount->YearControl));
+                        $overtimeYear = date("Y",strtotime($request->BeginDate));
+                        $overtimeMonth = date("m",strtotime($request->BeginDate));
+                        if ($permittedYear == $overtimeYear && $permittedMonth == $overtimeMonth)
+                            return true;
+                    }
+                }
+
                 $today = date("d");
                 $month      = date("m",strtotime($request->BeginDate));
                 $todayMonth = date("m");
@@ -85,6 +111,21 @@ class OvertimeModel extends Model
             }
             else if (in_array($overtimeRecord->StatusID,[6,7]))
             {
+
+                $permittedMonthCounts = OvertimePermissionModel::where("PermissionTypeID",3)
+                    ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$request->AssignedID])->get();
+                if ($permittedMonthCounts){
+                    foreach ($permittedMonthCounts as $permittedMonthCount){
+                        $permittedYear = date("Y",strtotime($permittedMonthCount->YearControl));
+                        $permittedMonth = date("m",strtotime($permittedMonthCount->YearControl));
+                        $overtimeYear = date("Y",strtotime($request->WorkBeginDate));
+                        $overtimeMonth = date("m",strtotime($request->WorkBeginDate));
+                        if ($permittedYear == $overtimeYear && $permittedMonth == $overtimeMonth)
+                            return true;
+                    }
+                }
+
+
                 $today = date("d");
                 $month      = date("m",strtotime($request->WorkBeginDate));
                 $todayMonth = date("m");
@@ -109,6 +150,20 @@ class OvertimeModel extends Model
         }
         else
         {
+
+            $permittedMonthCounts = OvertimePermissionModel::where("PermissionTypeID",3)
+                ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$request->AssignedID])->get();
+            if ($permittedMonthCounts){
+                foreach ($permittedMonthCounts as $permittedMonthCount){
+                    $permittedYear = date("Y",strtotime($permittedMonthCount->YearControl));
+                    $permittedMonth = date("m",strtotime($permittedMonthCount->YearControl));
+                    $overtimeYear = date("Y",strtotime($request->BeginDate));
+                    $overtimeMonth = date("m",strtotime($request->BeginDate));
+                    if ($permittedYear == $overtimeYear && $permittedMonth == $overtimeMonth)
+                        return true;
+                }
+            }
+
             $today = date("d");
             $month      = date("m",strtotime($request->BeginDate));
             $todayMonth = date("m");

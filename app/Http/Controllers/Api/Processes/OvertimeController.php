@@ -28,6 +28,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class OvertimeController extends ApiController
 {
 
+
     public function saveOvertimePermissions(Request $request){
 
         $permissionSaveResult = OvertimeModel::saveOvertimePermissions($request);
@@ -511,14 +512,55 @@ class OvertimeController extends ApiController
 
         $employee = $request->Employee;
 
-        $counts = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")->where(['Active' => 1])->where(function ($query) use ($employee,$status) {
+        $beginDateStatuses = [0,1,2,3,4];
+        $countStatusByBeginDate = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")
+            ->where(['Active' => 1])->whereYear("BeginDate",$year)->whereMonth("BeginDate",$month)->whereIn("StatusID",$beginDateStatuses)->where(function ($query) use ($employee,$status) {
             $query->where(['CreatedBy' => $employee, 'ManagerID' => $employee]);
+
         })->groupBy("StatusID")->get();
+        $workBeginDateStatuses = [5,6,7,8,9,10];
+        $countStatusByWorkBeginDate = OvertimeModel::selectRaw("StatusID AS statusVal, COUNT(*) AS count")
+            ->where(['Active' => 1])->whereYear("WorkBeginDate",$year)->whereMonth("WorkBeginDate",$month)->whereIn("StatusID",$workBeginDateStatuses)->where(function ($query) use ($employee,$status) {
+                $query->where(['CreatedBy' => $employee, 'ManagerID' => $employee]);
+
+            })->groupBy("StatusID")->get();
 
         $amount = [];
 
-        foreach ($counts as $count) {
-            $amount['Status_' . $count->statusVal] = $count->count;
+        foreach ($beginDateStatuses as $beginDateStatus)
+        {
+            if(count($countStatusByBeginDate) < 1)
+                $amount['Status_' . $beginDateStatus] = 0;
+            else
+                foreach ($countStatusByBeginDate as $item){
+                    if ($item->statusVal == 0)
+                        $amount['Status_0'] = $item->count;
+                    else if ($item->statusVal == $beginDateStatus){
+                        $amount['Status_' . $beginDateStatus] = $item->count;
+                    }
+                    else
+                    {
+                        $amount['Status_' . $beginDateStatus] = 0;
+                    }
+                }
+        }
+
+        foreach ($workBeginDateStatuses as $workBeginDateStatus)
+        {
+            if(count($countStatusByWorkBeginDate) < 1)
+                $amount['Status_' . $workBeginDateStatus] = 0;
+            else
+                foreach ($countStatusByWorkBeginDate as $item){
+                    if ($item->statusVal == 0)
+                        $amount['Status_0'] = $item->count;
+                    else if ($item->statusVal == $workBeginDateStatus){
+                        $amount['Status_' . $workBeginDateStatus] = $item->count;
+                    }
+                    else
+                    {
+                        $amount['Status_' . $workBeginDateStatus] = 0;
+                    }
+                }
         }
 
         return response([
@@ -526,15 +568,19 @@ class OvertimeController extends ApiController
             'message' => 'İşlem Başarılı',
             'data' => $overtimeData['overtimes'],
             'dataCounts' => $amount,
-            'dataCount' => $overtimeData['singleStatusCount'],
+            'dataCount' => $overtimeData['singleStatusCount']
         ], 200);
 
     }
 
     public function getManagersEmployees(Request $request)
     {
-        $manager = EmployeeModel::find($request->Employee);
-        $employees = OvertimeModel::getManagersEmployees($manager->Id);
+        if (isset($request->ManagerID))
+            $employees = OvertimeModel::getManagersEmployees($request->ManagerID);
+        else{
+            $employees = OvertimeModel::getManagersEmployees($request->Employee);
+        }
+
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',

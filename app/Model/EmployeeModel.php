@@ -2000,9 +2000,19 @@ class EmployeeModel extends Model
             ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$employeeID])->count();
         $blacklistCount = OvertimePermissionModel::where("PermissionTypeID",2)
             ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$employeeID])->count();
+        $permittedMonthCounts = OvertimePermissionModel::where("PermissionTypeID",3)
+            ->whereRaw('FIND_IN_SET(?,EmployeeIDs)', [$employeeID])->get();
         $overtimeLimit = new \stdClass();
         $overtimeLimit->WeekendAndPublicHolidayOnly = $weekendAndHolidayCount > 0 ? true : false;
         $overtimeLimit->Blacklist = $blacklistCount > 0 ? true: false;
+        if (count($permittedMonthCounts) > 0)
+        {
+            foreach ($permittedMonthCounts as $permittedMonthCount)
+                $overtimeLimit->YearControl[] = $permittedMonthCount->YearControl;
+        }
+        else
+            $overtimeLimit->YearControl = null;
+
 
         return $overtimeLimit;
 

@@ -115,7 +115,12 @@ class TrainingController extends ApiController
         $columns = [
             'Kayıt No',
             'Üst Kayıt No',
+            'Personel ID',
             'Çalışan Adı Soyadı',
+            'TC Kimlik No',
+            'SGK Sicil No',
+            'SGK No',
+            'Şirkete Giriş Tarihi',
             'Ünvanı',
             'Birimi',
             'Bulunduğu Bölge',
@@ -124,6 +129,7 @@ class TrainingController extends ApiController
             'Eğitim Statüsü',
             'Eğitim Veriliş Tarihi',
             'Eğitim Son Geçerlilik Tarihi',
+            'Eğitim Açıklaması',
             'Kayıt Oluşturulma Tarihi',
             'Eğitim Sonucu',
             'Kayıt Durumu'
@@ -142,10 +148,16 @@ class TrainingController extends ApiController
         foreach ($trainings as $key => $training)
         {
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
+            $ssiRecord = SocialSecurityInformationModel::where(['EmployeeID' => $training['Employee']['Id']])->first();
             $asciiCapitalA = 65;
             $values = [];
             $kayitNo = $training['id'] ;
             $parentNo = $training['Parent'];
+            $personelId = $training['Employee'] ? $training['Employee']['StaffID'] : 'Tanımlı Değil';
+            $tckn = $training['Employee'] ? $training['Employee']['IDCard'] ? $training['Employee']['IDCard']['TCNo'] : 'Tanımlı Değil' : 'Tanımlı Değil';
+            $sgkno = $ssiRecord->SSIRecordObject ? $ssiRecord->SSIRecordObject->Name : 'Tanımlı Değil';
+            $sgkRecord = $ssiRecord->SSIRecordObject ? $ssiRecord->SSINo : 'Tanımlı Değil';
+            $startDate = $training['Employee'] ? $training['Employee']['PositionStartDate'] : 'Tanımlı Değil';
             $employeeName = $training['Employee'] ? $training['Employee']['UsageName'] . ' ' .  $training['Employee']['LastName'] : '';
             $employeeTitle = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Title']['Sym'] : '' : '';
             $employeeDepartment = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Department']['Sym'] : '' : '';
@@ -154,6 +166,7 @@ class TrainingController extends ApiController
             $trainingCompanyName = $training['Training']['Company']['Name'];
             $trainingStartDate = $training['StartDate'];
             $trainingExpireDate = $training['ExpireDate'];
+            $trainingDescription = $training['TrainingDescription'];
             $trainingCreateDate = $training['CreateDate'];
             $trainingResult = $training['Result']['Name'];
             $trainingStatus = $training['Status']['Name'];
@@ -161,7 +174,12 @@ class TrainingController extends ApiController
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
             array_push($values, $kayitNo);
             array_push($values, $parentNo);
+            array_push($values, $personelId);
             array_push($values, $employeeName);
+            array_push($values, $tckn);
+            array_push($values, $sgkRecord);
+            array_push($values, $sgkno);
+            array_push($values, $startDate);
             array_push($values, $employeeTitle);
             array_push($values, $employeeDepartment);
             array_push($values, $employeeRegion);
@@ -170,6 +188,7 @@ class TrainingController extends ApiController
             array_push($values, $trainingStatus);
             array_push($values, $trainingStartDate);
             array_push($values, $trainingExpireDate);
+            array_push($values, $trainingDescription);
             array_push($values, $trainingCreateDate);
             array_push($values, $trainingResult);
             array_push($values, $recordStatus);
