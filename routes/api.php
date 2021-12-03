@@ -210,6 +210,10 @@ Route::namespace("Api")->group(function(){
             Route::post('getPhoto/{fileId}','QrController@getPhoto')->name('get-photo');
             Route::post('sendMailQr','QrController@sendMailQr')->name('send-mail-qr');
         });
+
+        Route::prefix('processes/SendSms/')->group(function () {
+            Route::post('smsSender','SendSmsController@smsSender')->name('sms-sender');
+        });
        Route::prefix('processes/PublicTraining/')->group(function () {
                    Route::get('getTrainingByID/{id}','PublicTrainingController@getTrainingByID')->name("get_TrainingByID");
         });

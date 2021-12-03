@@ -35,6 +35,42 @@ class Asay
         });
     }
 
+    public static function sendSMS($message,$messageTo){
+        $messageHeader="ASAY";
+        $username = "8503073830"; //
+        $password = "N7LERJ4F"; //
+
+        $url= "https://api.netgsm.com.tr/sms/send/get";
+
+        $guzzleParams = [
+            'query' => [
+                'usercode'      => $username,
+                'password'      => $password,
+                'gsmno'         => $messageTo,
+                'message'       => $message,
+                'msgheader'     => $messageHeader
+            ],
+        ];
+
+        $client = new \GuzzleHttp\Client();
+        $res = $client->request("GET", $url,$guzzleParams);
+        $responseBody = json_decode($res->getBody());
+
+        $responseBodyArray = explode(" ",$responseBody); // 00 => hata kodu 123456 => SMS kontrol kodu
+
+        if ($responseBodyArray[0] == "20")
+            return ['status' => false,'message' => 'Mesaj karakter sınırını aşıyor.'];
+        if ($responseBodyArray[0] == "30")
+            return ['status' => false,'message' => 'API username veya password hatası'];
+        if ($responseBodyArray[0] == "40")
+            return ['status' => false,'message' => 'Gönderici adı sistemde kayıtlı değil'];
+        if ($responseBodyArray[0] == "70")
+            return ['status' => false,'message' => 'Hatalı parametre gönderdiniz, parametreleri kontrol ediniz'];
+
+        return ['status' => true, 'message' => 'Mesaj Gönderimi Başarılı', 'apiResponse' => $responseBody];
+
+    }
+
 
 
 }

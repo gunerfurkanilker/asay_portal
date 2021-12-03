@@ -29,7 +29,10 @@ class EmployeeTrainingModel extends Model
         ];
         $mailTable = view('mails.isg-new-employee', $mailData);
         //TODO İSG Gru
-        Asay::sendMail("isg-ms@ms.asay.com.tr,ilker.guner@asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
+
+        //        Asay::sendMail("isg-ms@ms.asay.com.tr,ilker.guner@asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
+
+        Asay::sendMail("isg-ms@ms.asay.com.tr","","Yeni Personel Kaydı","$mailTable","aSAY Group","","","");
     }
 
     public static function isTrainingExistAtEmployee($request){
@@ -67,7 +70,7 @@ class EmployeeTrainingModel extends Model
             $isgTrainingsExpireRecord->save();
         }
 
-        Asay::sendMail("ilker.guner@asay.com.tr","","Geçerlilik süresinin dolmasına 15 gün kalmış eğitimler","$mailTable","aSAY Group","","","");
+        Asay::sendMail("isg-ms@ms.asay.com.tr","","Geçerlilik süresinin dolmasına 15 gün kalmış eğitimler","$mailTable","aSAY Group","","","");
     }
 
     public static function sendExpiredTrainingsMailToIsgEmployees2(){
@@ -87,7 +90,7 @@ class EmployeeTrainingModel extends Model
             $isgTrainingsExpireRecord->save();
         }
 
-        Asay::sendMail("ilker.guner@asay.com.tr","","Geçerlilik süresi bitmiş olan eğitimler","$mailTable","aSAY Group","","","");
+        Asay::sendMail("isg-ms@ms.asay.com.tr","","Geçerlilik süresi bitmiş olan eğitimler","$mailTable","aSAY Group","","","");
     }
 
     public static function saveEmployeeTraining($request){
