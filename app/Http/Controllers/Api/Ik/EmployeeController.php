@@ -560,21 +560,7 @@ class EmployeeController extends ApiController
 
     }
 
-    public function deleteEmployeesChild(Request $request)
-    {
-        if (EmployeesChildModel::where('id', $request->childId)->update(['active' => 0])) {
-            return response([
-                'status' => true,
-                'message' => 'İşlem Başarılı.',
-            ], 200);
-        } else {
-            return response([
-                'status' => false,
-                'message' => 'İşlem Başarısız.',
-            ], 200);
-        }
 
-    }
 
     public function getEmployeesChildren(Request $request)
     {

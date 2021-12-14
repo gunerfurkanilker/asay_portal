@@ -97,6 +97,25 @@ class TrainingController extends ApiController
 
     }
 
+
+
+    public function deleteEmployeeTraining(Request $request){
+        $request->validate([
+         'TrainingID'=>'required',
+            'EmployeeID'=>'required'
+        ]);
+
+
+
+        $result = EmployeeTrainingModel::where(['Active' => 1, 'EmployeeID'=>$request->EmployeeID,'TrainingID' => $request->TrainingID])->update(['active' => 0]);
+        return response([
+            'status' => $result,
+            'message' => $result ? 'İşlem Başarılı' : 'İşlem Başarısız',
+        ],200);
+
+    }
+
+
     public function getTrainingsToExcel(Request $request){
 
         $filters = $request->filters;

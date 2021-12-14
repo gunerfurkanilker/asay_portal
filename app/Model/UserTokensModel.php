@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use Adldap\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class UserTokensModel extends Model
@@ -17,5 +18,10 @@ class UserTokensModel extends Model
     {
         $tokenSearch = self::where("user_token", $token)->first();
         return $tokenSearch->user_id;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(EmployeeModel::class,'EmployeeID');
     }
 }

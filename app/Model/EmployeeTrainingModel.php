@@ -139,6 +139,13 @@ class EmployeeTrainingModel extends Model
 
     }
 
+    public static function deleteEmployeeTraining($request){
+        $trainingInstance = EmployeeTrainingModel::firstOrNew([
+            'id' => $request->id
+        ]);
+        $trainingInstance->TrainingID = $request->TrainingID;
+    }
+
     public static function getTrainings($filters,$employeeID,$page = null,$rowPerPage = null,$active = 1){
 
         /*

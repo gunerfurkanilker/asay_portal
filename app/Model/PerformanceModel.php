@@ -12,6 +12,8 @@ use Symfony\Component\Process\Process;
 
 class PerformanceModel extends Model
 {
+    const CREATED_AT = 'CreateDate';
+    const UPDATED_AT = 'LastUpdateDate';
     protected $primaryKey = 'Id';
     protected $table = 'performance';
 
@@ -25,9 +27,9 @@ class PerformanceModel extends Model
         'UnitManagerID',
         'EvaluationPeriod',
         'StatusID',
-        
+
     ];
 
-   
+
 
 }

@@ -181,6 +181,8 @@ class EmployeePositionModel extends Model
     }
 
 
+
+
     public function getTitleAttribute(){
         $title = $this->hasOne(TitleModel::class,'Id','TitleID');
         return $title->first();

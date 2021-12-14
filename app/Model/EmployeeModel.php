@@ -120,6 +120,11 @@ class EmployeeModel extends Model
 
     }
 
+    public function getFullNameAttribute()
+    {
+        return $this->FirstName .' '.$this->LastName;
+    }
+
     public static function toExcelContractInformations($spreadSheet, $employees)
     {
         $workSheet = new Worksheet($spreadSheet, 'Sözleşme Bilgisi');
@@ -1854,6 +1859,16 @@ class EmployeeModel extends Model
             return false;
 
 
+    }
+
+    public function getEmployeesAttribute()
+    {
+        return EmployeePositionModel::where('ManagerID',$this->Id)->get();
+    }
+
+    public function getPerformanceStatusAttribute()
+    {
+        return PerformanceWeightModel::where('EmployeeID',$this->Id)->exists() ? 'Değerlendirildi' : 'Bekliyor';
     }
 
     public function getIsEmployeeManagerAttribute(){

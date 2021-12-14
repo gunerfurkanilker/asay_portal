@@ -731,9 +731,9 @@ class OvertimeController extends ApiController
 
 
 
-        /*if ($request->AssignedID == 1778)
+      /*  if ($request->AssignedID == 6033)
             $dateCheck = true;
-        else*/
+        else */
             $dateCheck = OvertimeModel::dateCheck($request);
 
 
