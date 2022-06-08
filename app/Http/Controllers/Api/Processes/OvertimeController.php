@@ -177,8 +177,8 @@ class OvertimeController extends ApiController
                 $tcKimlikNo = $overtime->AssignedEmployee->IDCard ? $overtime->AssignedEmployee->IDCard->TCNo : '' ;
                 $createdBy = $overtime->CreatedByEmployee->UsageName . ' ' . $overtime->CreatedByEmployee->LastName;
                 $assignedTo = $overtime->AssignedEmployee->UsageName . ' ' . $overtime->AssignedEmployee->LastName;
-                $serviceCode = $overtime->AssignedEmployee->EmployeePosition->ServiceCode;
-                $department = $overtime->AssignedEmployee->EmployeePosition->Department->Sym;
+                $serviceCode = $overtime->AssignedEmployee->EmployeePosition["ServiceCode"];
+                $department = $overtime->AssignedEmployee->EmployeePosition["Department"]["Sym"];
             }
             $ovReqAssignDate = NotificationsModel::where(['EmployeeID' => $overtime->AssignedID, 'ObjectID' => $overtime->id, 'ObjectType' => 4])
                 ->where("Content","like",'%fazla çalışma için onayınız bekleniyor%')

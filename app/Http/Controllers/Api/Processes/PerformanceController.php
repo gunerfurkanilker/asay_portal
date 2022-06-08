@@ -20,17 +20,19 @@ use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use function Complex\add;
 
 class PerformanceController extends ApiController
 {
     //
 
-    public function toExcel(Request $request){
+    public function toExcel(Request $request)
+    {
 
 
         $list = [];
-       // $authuser=UserTokensModel::where('user_token',$request->token)->first()->user;
-        $user=UserTokensModel::where('user_token',$request->token)->first()->user;
+        // $authuser=UserTokensModel::where('user_token',$request->token)->first()->user;
+        $user = UserTokensModel::where('user_token', $request->token)->first()->user;
 
         $spreadsheet = new Spreadsheet();
 
@@ -61,16 +63,24 @@ class PerformanceController extends ApiController
 
         //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
         $asciiCapitalA = 65;
-        foreach ($columns as $key => $column)
-        {
+        foreach ($columns as $key => $column) {
             $columnLetter = chr($asciiCapitalA);
-            $workSheet->setCellValue($columnLetter."1",$column);
+            $workSheet->setCellValue($columnLetter . "1", $column);
             $workSheet->getColumnDimension($columnLetter)->setAutoSize(false)->setWidth(40);
             $asciiCapitalA++;
         }
-        $list=$user->employees;
-        foreach ($list as $keyItem => $item)
-        {
+       // $list = $user->employees;
+        if (in_array($user->id, [82])) {
+            $list = EmployeePositionModel::whereHas('employee', function ($query) {
+                $query->where('Active', 1);
+            })->get();
+        }else{
+
+            $list = EmployeePositionModel::where('ManagerID',$user->id)->whereHas('employee', function ($query) {
+                $query->where('Active', 1);
+            })->get();
+        }
+        foreach ($list as $keyItem => $item) {
 
 
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
@@ -78,68 +88,65 @@ class PerformanceController extends ApiController
             $values = [];
 
             $employee = EmployeeModel::find($item->EmployeeID);
-            $employeePosition = EmployeePositionModel::where('EmployeeID',$item->EmployeeID)->first();
+            $employeePosition = EmployeePositionModel::where('EmployeeID', $item->EmployeeID)->first();
 
-            $employeeManager = $user->FirstName .' '. $user->LastName;
+           // $employeeManager = $user->FirstName . ' ' . $user->LastName;
+            $employeeManager = ($employeePosition->managerr->FirstName ?? '') . ' ' .($employeePosition->managerr->LastName ?? '');
             $employeeFullName = $employee->FirstName ?? '';
             $employeeLastName = $employee->LastName ?? '';
-            $employeeName = $employeeFullName . " ".$employeeLastName;
+            $employeeName = $employeeFullName . " " . $employeeLastName;
 
             $employeeDepartment = $employeePosition->Department->Sym;
 
 
             $employeeTitle = $employeePosition->Title->Sym;
-            $employeeRegion = $employeePosition->Region->Sym;
+            $employeeRegion = $employeePosition->Region->Name;
             $employeeCity = $employeePosition->City->Sym;
             $employeeUnitSupervisor = EmployeeModel::find($employeePosition->UnitSupervisorID)->full_name ?? '';
-                $performance = "test";
-                $employeeStatus = $employee->performance_status ?? 'Bekliyor';
+            $performance = "test";
+            $employeeStatus = $employee->performance_status ?? 'Bekliyor';
 
 
+            $performanceWeight = PerformanceWeightModel::where('EmployeeID', $item->EmployeeID)->first();
 
-                $performanceWeight = PerformanceWeightModel::where('EmployeeID',$item->EmployeeID)->first();
-
-            $employeeEvualationPeriod =  isset($performanceWeight->created_at) ? (Carbon::parse($performanceWeight->created_at )->year.' Yılı') : Carbon::now()->year. 'Yılı';
-                $employeeTech = $performanceWeight->TechKnowledge ?? '';
-                $employeeTime = $performanceWeight->TimeManagement ?? '';
-                $employeeTeam = $performanceWeight->Teamwork ?? '';
-                $employeeMastery = $performanceWeight->MasteryOfTech ?? '';
-                $employeeResponsibility = $performanceWeight->Responsibility ?? '';
-                $employeeCom = $performanceWeight->CommunicationSkills ?? '';
-                $employeeCustomer = $performanceWeight->CustomerFocus ?? '';
-                $employeeSafe = $performanceWeight->SafeWorkProvider ?? '';
-                $employeeExit = $performanceWeight->ExitEffect ?? '';
-                $employeeExitReason = $performanceWeight->ExitEffectReason ?? '';
-
+            $employeeEvualationPeriod = isset($performanceWeight->created_at) ? (Carbon::parse($performanceWeight->created_at)->year . ' Yılı') : Carbon::now()->year . 'Yılı';
+            $employeeTech = $performanceWeight->TechKnowledge ?? '';
+            $employeeTime = $performanceWeight->TimeManagement ?? '';
+            $employeeTeam = $performanceWeight->Teamwork ?? '';
+            $employeeMastery = $performanceWeight->MasteryOfTech ?? '';
+            $employeeResponsibility = $performanceWeight->Responsibility ?? '';
+            $employeeCom = $performanceWeight->CommunicationSkills ?? '';
+            $employeeCustomer = $performanceWeight->CustomerFocus ?? '';
+            $employeeSafe = $performanceWeight->SafeWorkProvider ?? '';
+            $employeeExit = $performanceWeight->ExitEffect ?? '';
+            $employeeExitReason = $performanceWeight->ExitEffectReason ?? '';
 
 
             //TODO DİKKAT VALUES DİZİSİNE DEĞERLER SIRA İLE EKLENMELİDİR. SÜTUN VE DEĞERLER EŞLEŞECEK ŞEKİLDE
-            array_push($values,$employeeManager);
-            array_push($values,$employeeName);
-            array_push($values,$employeeDepartment);
-            array_push($values,$employeeTitle);
-            array_push($values,$employeeRegion);
-            array_push($values,$employeeCity);
-            array_push($values,$employeeUnitSupervisor);
-            array_push($values,$employeeEvualationPeriod);
-            array_push($values,$employeeStatus);
-            array_push($values,$employeeTech>=0 ? $this->performanceWeightToText($employeeTech) : '');
-            array_push($values,$employeeTime>=0 ? $this->performanceWeightToText($employeeTime) : '');
-            array_push($values,$employeeTeam>=0 ? $this->performanceWeightToText($employeeTeam) : '');
-            array_push($values,$employeeMastery>=0 ? $this->performanceWeightToText($employeeMastery) : '');
-            array_push($values,$employeeResponsibility>=0 ? $this->performanceWeightToText($employeeResponsibility) : '');
-            array_push($values,$employeeCom>=0 ? $this->performanceWeightToText($employeeCom) : '');
-            array_push($values,$employeeCustomer>=0 ? $this->performanceWeightToText($employeeCustomer) : '');
-            array_push($values,$employeeSafe>=0 ? $this->performanceWeightToText($employeeSafe) : '');
-            array_push($values,$employeeExit>=0 ? $this->performanceReasonToText($employeeExit) : '');
-            array_push($values,$employeeExitReason);
+            array_push($values, $employeeManager);
+            array_push($values, $employeeName);
+            array_push($values, $employeeDepartment);
+            array_push($values, $employeeTitle);
+            array_push($values, $employeeRegion);
+            array_push($values, $employeeCity);
+            array_push($values, $employeeUnitSupervisor);
+            array_push($values, $employeeEvualationPeriod);
+            array_push($values, $employeeStatus);
+            array_push($values, $employeeTech >= 0 ? $this->performanceWeightToText($employeeTech) : '');
+            array_push($values, $employeeTime >= 0 ? $this->performanceWeightToText($employeeTime) : '');
+            array_push($values, $employeeTeam >= 0 ? $this->performanceWeightToText($employeeTeam) : '');
+            array_push($values, $employeeMastery >= 0 ? $this->performanceWeightToText($employeeMastery) : '');
+            array_push($values, $employeeResponsibility >= 0 ? $this->performanceWeightToText($employeeResponsibility) : '');
+            array_push($values, $employeeCom >= 0 ? $this->performanceWeightToText($employeeCom) : '');
+            array_push($values, $employeeCustomer >= 0 ? $this->performanceWeightToText($employeeCustomer) : '');
+            array_push($values, $employeeSafe >= 0 ? $this->performanceWeightToText($employeeSafe) : '');
+            array_push($values, $employeeExit >= 0 ? $this->performanceReasonToText($employeeExit) : '');
+            array_push($values, $employeeExitReason);
 
 
-
-            foreach ($columns as $keyColumns => $column)
-            {
+            foreach ($columns as $keyColumns => $column) {
                 $columnLetter = chr($asciiCapitalA);
-                $workSheet->setCellValue($columnLetter.($keyItem+2),$values[$keyColumns]);
+                $workSheet->setCellValue($columnLetter . ($keyItem + 2), $values[$keyColumns]);
                 $asciiCapitalA++;
             }
 
@@ -148,7 +155,7 @@ class PerformanceController extends ApiController
 
         $spreadsheet->removeSheetByIndex(0); // İlk Sheet'i siliyorum.
 
-        $spreadsheet->addSheet($workSheet,0);
+        $spreadsheet->addSheet($workSheet, 0);
 
 
         $writer = new Xlsx($spreadsheet);
@@ -165,28 +172,27 @@ class PerformanceController extends ApiController
 
     public function performanceWeightToText($weight)
     {
-        if($weight===100)
+        if ($weight === 100)
             return 'Çok İyi';
-        if($weight===75)
+        if ($weight === 75)
             return 'İyi';
-        if($weight===50)
+        if ($weight === 50)
             return 'Orta';
-        if($weight===25)
+        if ($weight === 25)
             return 'Kötü';
-        if($weight===0)
+        if ($weight === 0)
             return 'Çok Kötü';
     }
 
     public function performanceReasonToText($weight)
     {
-        if($weight===0)
+        if ($weight === 0)
             return 'Az';
-        if($weight===1)
+        if ($weight === 1)
             return 'Orta';
-        if($weight===2)
+        if ($weight === 2)
             return 'Çok';
     }
-
 
 
     private $permission = array();
@@ -200,9 +206,16 @@ class PerformanceController extends ApiController
         $employee = $request->AssignedID;
         $managerId = $request->Employee;
         //  dd($request->TitleID);
-
-
-        $userEmployees = PerformanceResource::collection(EmployeePositionModel::Where(['ManagerID' => $managerId])->get());
+        $activeUser = UserTokensModel::where('user_token', $request->token)->first()->user->id;
+        $result = EmployeePositionModel::whereHas('employee', function ($query) {
+            $query->where('Active', 1);
+        })->Where(['ManagerID' => $managerId])->get();
+        if (in_array($activeUser, [82])) {
+            $result = EmployeePositionModel::whereHas('employee', function ($query) {
+                $query->where('Active', 1);
+            })->get();
+        }
+        $userEmployees = PerformanceResource::collection($result);
 
         return response()->json($userEmployees);
     }
@@ -220,20 +233,41 @@ class PerformanceController extends ApiController
             "CustomerFocus" => 'required',
             "SafeWorkProvider" => 'required',
             "ExitEffect" => 'required',
-            "ExitEffectReason"=>'required'
-            ]);
+            "ExitEffectReason" => 'required'
+        ]);
 
-            $data = $request->except('token');
+        $data = $request->except('token');
 
-            PerformanceWeightModel::updateOrCreate([
-                'EmployeeID' => $request->EmployeeID,
+        PerformanceWeightModel::updateOrCreate([
+            'EmployeeID' => $request->EmployeeID,
 
-            ], $request->except(['EmployeeID', 'token']));
-            return response()->json([
-                'success' => true,
-                'message' => 'Başarıyla Eklendi'
-            ]);
+        ], $request->except(['EmployeeID', 'token']));
+        return response()->json([
+            'success' => true,
+            'message' => 'Başarıyla Eklendi'
+        ]);
+    }
+
+    public function toAll(Request $request)
+    {
+
+
+        $paginationPage = ($request->PaginationPage - 1) * $request->RecordPerPage;
+        $recordPerPage = $request->RecordPerPage;
+        $year = $request->Year;
+        $month = $request->Month;
+        $employee = $request->AssignedID;
+        $managerId = $request->Employee;
+        $emps = EmployeeModel::all();
+        dd("$emps");
+        $empArr = [];
+
+        foreach ($emps as $emp) {
+            dd($emp);
+            $userEmployees = PerformanceResource::collection(EmployeePositionModel::Where(['ManagerID' => $emp->Id])->get());
+            $empArr->push($emp);
         }
 
-
+        return response()->json($empArr);
+    }
 }

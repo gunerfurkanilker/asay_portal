@@ -381,18 +381,25 @@ class PermitController extends ApiController
     public function savePermit(Request $request)
     {
 
+
         if ($request->permitId !== null) {
             $EmployeeID = PermitModel::find($request->permitId)->EmployeeID;
         } else
             $EmployeeID = $request->Employee;
         //tanımlar
+
         $endDate = $request->endDate;
         $startDate = $request->startDate;
 
-        if ($startDate > $endDate) {
+        $endDate2=Carbon::parse($endDate)->format('d-m-Y');
+        $endDate=$endDate2.' 08:00';
+        $startDate2=Carbon::parse($startDate)->format('d-m-Y');
+        $startDate=$startDate2.' 08:00';
+
+        if (strtotime($startDate2) > strtotime($endDate2)) {
             return response([
                 'status' => false,
-                'message' => "İzin Tarihlerini Kontrol Ediniz. Hatalı Girdiniz."
+                'message' => "İzin Tarihlerini Kontrol Ediniz. Hatalı Girdiniz.".$startDate." ".$endDate
             ], 200);
         }
 

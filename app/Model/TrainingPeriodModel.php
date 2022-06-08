@@ -15,6 +15,7 @@ class TrainingPeriodModel extends Model
         $employeeSGKRegistryNumber = SocialSecurityInformationModel::where(['EmployeeID' => $request->EmployeeID])->first();
         $employeePosition = EmployeePositionModel::where(['Active' => 2, 'EmployeeID' => $request->EmployeeID])->first();
 
+
         if (!$employeeSGKRegistryNumber)
             return ['status' => false, 'message' => 'Çalışana ait SGK Sicil No Bilgisi Bulunamadı', 'data' => null];
         else
@@ -37,6 +38,10 @@ class TrainingPeriodModel extends Model
          }
 
          $trainingPeriod = $trainingPeriodQ->first();
+         if( $training->Category->id == 3)
+         {
+             $trainingPeriodQ="";
+         }
 
         if(!$trainingPeriod)
             return ['status' => false, 'message' => 'Bu eğitime ait periyot bulunamadı, lütfen tamamlanma tarihini elle giriniz', 'data' => null];

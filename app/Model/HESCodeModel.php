@@ -2,14 +2,16 @@
 
 namespace App\Model;
 
+use App\Library\Asay;
 use Illuminate\Database\Eloquent\Model;
 
 class HESCodeModel extends Model
 {
     //
     protected $table = "HESCodes";
+    protected $guarded=[];
     protected $appends = [
-        'Employee'
+        'Employee', 'departmentt','IsActive'
     ];
 
     public function getEmployeeAttribute(){
@@ -23,5 +25,20 @@ class HESCodeModel extends Model
         else
             return null;
     }
+
+    public function getDepartmenttAttribute()
+    {
+        return $this->employee->employeeposition->Department->Sym ?? '';
+    }
+    public function getIsActiveAttribute(){
+
+        if($this->Active == 1)
+        {
+            return "Aktif Çalışan";
+        }else{
+            return "Aktif Çalışan Değil";
+        }
+    }
+
 
 }

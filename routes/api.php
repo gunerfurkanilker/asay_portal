@@ -1,5 +1,6 @@
 <?php
 
+use App\Library\Asay;
 use Illuminate\Http\Request;
 
 /*
@@ -15,9 +16,12 @@ use Illuminate\Http\Request;
 
 
 Route::get('getTrainingByID/{id}','PubTrainingController@getTrainingByID')->name("get_TrainingByID");
+
 //Route::post('resultQ1','PubTrainingController@resultQr1')->name('result-qr-pin');
 Route::namespace("Api")->group(function(){
     //tests1
+    Route::get('dismissalReason','AuthController@dismissalReason')->name("get_dismissial");
+    Route::get('dismissalReason','AuthController@dismissalReason')->name("get_dismissial");
     Route::post('resultQr','AuthController@resultQr')->name('result-qr-pin');
     Route::post('auth/login', "AuthController@loginPost")->name("apiloginPost");
     Route::post('auth/logout', "AuthController@logout")->name("apilogout");
@@ -180,6 +184,14 @@ Route::namespace("Api")->group(function(){
             Route::get('contactUsTypes','ContactUsController@getContactUsTypes');
         });
 
+       Route::get('sendMails',function (){
+
+
+           \App\Model\EmployeeTrainingModel::sendExpiredTrainingsMailToIsgEmployees2();
+            \App\Model\EmployeeTrainingModel::sendExpiredTrainingsMailToIsgEmployees();
+            return response([],200);
+        });
+
         Route::prefix('processes/Ticket/')->group(function () {
             Route::get('getTicket','TicketController@getTicket');
             Route::post('createTicket','TicketController@createTicket');
@@ -200,12 +212,20 @@ Route::namespace("Api")->group(function(){
         });
         Route::prefix('processes/Performance/')->group(function () {
             Route::get('getManagersEmployees','PerformanceController@getManagersEmployees')->name('performance_managers_employees');
+            Route::get('toAll','PerformanceController@toAll')->name('to-All');
             Route::post('savePerformanceRequest','PerformanceController@savePerformanceRequest')->name('save_performance_request');
             Route::post('test','PerformanceController@test1')->name('test1');
             Route::post('search','PerformanceController@search')->name('search');
             Route::get('toExcel','PerformanceController@toExcel')->name('to-Excel');
 
         });
+        Route::prefix('processes/Dismissal/')->group(function () {
+
+            Route::get('dismissalReason','DismissalController@dismissalReason')->name("gets_dismissial");
+            Route::post('saveDismissal','DismissalController@saveDismissal')->name("save-Dismissal");
+            Route::get('socialDismissalReason','DismissalController@socialDismissalReason')->name("socialGets_dismissial");
+        });
+
         Route::prefix('processes/Qr/')->group(function () {
             Route::post('saveQr','QrController@postQr')->name('post-qr-pin');
             Route::post('getPhoto/{fileId}','QrController@getPhoto')->name('get-photo');
@@ -232,6 +252,8 @@ Route::namespace("Api")->group(function(){
             Route::get('getTrainingsParents','TrainingController@getTrainingsParents')->name('get_trainings_parents');
             Route::get('getCompanies','TrainingController@getCompanies')->name('get_companies');
             Route::get('getEmployees','TrainingController@getEmployees')->name('get_employees');
+            Route::get('getDepartments','TrainingController@getDepartments')->name('get_departments');
+            Route::get('getRegions','TrainingController@getRegions')->name('get_regions');
             Route::get('getStatuses','TrainingController@getStatuses')->name('get_statuses');
             Route::get('getResults','TrainingController@getISGResults')->name('get_results');
             Route::get('getCategories','TrainingController@getCategories')->name('get_categories');
@@ -349,8 +371,22 @@ Route::namespace("Api")->group(function(){
     });
 
     Route::namespace('Common')->group(function (){
+        Route::prefix('Common/CarColor/')->group(function () {
+
+            Route::get('getCarColor','CarColorController@getCarColor')->name("get-car-colors");
+            Route::get('getCarFines','CarColorController@getCarFines')->name("get-car-fines");
+            Route::get('getCarBrand','CarColorController@getCarBrand')->name("get-car-brand");
+            Route::get('getCarType','CarColorController@getCarType')->name("get-car-type");
+            Route::get('getAllCity','CarColorController@getAllCity')->name("get-car-city");
+            Route::get('getCarResult','CarColorController@getCarResult')->name("get-car-result");
+            Route::post('carResult','CarColorController@carResult')->name("car-result");
+            Route::get('toExcel','CarColorController@toExcel')->name("car-excel");
+
+
+        });
 
         Route::prefix('common')->group(function () {
+
             Route::get('cities', "CityController@getCities")->name("get_cities_of_country");
             Route::post('country/cities', "CountryController@getCitiesOfCountry")->name("get_cities_of_country");
             Route::post('cities/districts', "CityController@getDistrictsOfCity")->name("get_districts_of_city");

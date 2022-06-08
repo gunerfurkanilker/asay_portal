@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Processes;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\DepartmentModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeeTrainingModel;
+use App\Model\RegionModel;
 use App\Model\SocialSecurityInformationModel;
 use App\Model\TrainingCategoryModel;
 use App\Model\TrainingCompanyModel;
@@ -117,13 +119,15 @@ class TrainingController extends ApiController
 
 
     public function getTrainingsToExcel(Request $request){
-
+        set_time_limit(600);
         $filters = $request->filters;
         $employeeID = $filters['EmployeeID'];
         $active = $employeeID ? 0:1;
+       // $filters['DepartmentID']=$request->addFilters["DepartmentID"] ?? '';
+     //   $filters['RegionID']=$request->addFilters["RegionID"] ?? '';
         $trainings = EmployeeTrainingModel::getTrainings($filters,$employeeID,null,null,$active);
-
         $trainings = $trainings['trainings'];
+
 
         $spreadsheet = new Spreadsheet();
 
@@ -172,10 +176,12 @@ class TrainingController extends ApiController
             $values = [];
             $kayitNo = $training['id'] ;
             $parentNo = $training['Parent'];
+
+
             $personelId = $training['Employee'] ? $training['Employee']['StaffID'] : 'Tanımlı Değil';
             $tckn = $training['Employee'] ? $training['Employee']['IDCard'] ? $training['Employee']['IDCard']['TCNo'] : 'Tanımlı Değil' : 'Tanımlı Değil';
-            $sgkno = $ssiRecord->SSIRecordObject ? $ssiRecord->SSIRecordObject->Name : 'Tanımlı Değil';
-            $sgkRecord = $ssiRecord->SSIRecordObject ? $ssiRecord->SSINo : 'Tanımlı Değil';
+            $sgkno = isset($ssiRecord) &&$ssiRecord->SSIRecordObject ? $ssiRecord->SSIRecordObject->Name : 'Tanımlı Değil';
+            $sgkRecord = isset($ssiRecord) &&$ssiRecord->SSIRecordObject ? $ssiRecord->SSINo : 'Tanımlı Değil';
             $startDate = $training['Employee'] ? $training['Employee']['PositionStartDate'] : 'Tanımlı Değil';
             $employeeName = $training['Employee'] ? $training['Employee']['UsageName'] . ' ' .  $training['Employee']['LastName'] : '';
             $employeeTitle = $training['Employee'] ? $training['Employee']['EmployeePosition'] ? $training['Employee']['EmployeePosition']['Title']['Sym'] : '' : '';
@@ -236,12 +242,25 @@ class TrainingController extends ApiController
 
     }
 
-    public function getEmployeeTrainings(Request $request){
+    public function getDepartments()
+    {
+        return response(['data'=>DepartmentModel::where('Active',1)->get()]);
+    }
 
+    public function getRegions()
+    {
+        return response(['data'=>RegionModel::where('Active',1)->get()]);
+
+    }
+
+    public function getEmployeeTrainings(Request $request){
         $filters = $request->filters;
         $employeeID = $request->EmployeeID;
         $rowPerPage = $request->rowsPerPage;
+        $filters['DepartmentID']=$request->addFilters["DepartmentID"] ?? '';
+        $filters['RegionID']=$request->addFilters["RegionID"] ?? '';
         $page = $request->page;
+       // return response(EmployeeTrainingModel::getTrainings($filters,$employeeID,$page,$rowPerPage));
         $data = EmployeeTrainingModel::getTrainings($filters,$employeeID,$page,$rowPerPage);
         $totalCount = $data['count'];
         $paginationNumMax =  $rowPerPage && $data['trainings'] && $totalCount > 0 ? (int) ($totalCount / $rowPerPage) : 1;
@@ -250,6 +269,7 @@ class TrainingController extends ApiController
         return response([
             'message' => 'İşlem Başarılı',
             'data' => $data['trainings'],
+            'addFilters' => $data['addFilters'],
             'filters' => $filters,
             'paginationNumMax' => $paginationNumMax,
             'page' => $page,

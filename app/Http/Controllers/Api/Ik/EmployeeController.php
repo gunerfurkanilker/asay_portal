@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Ik;
 use App\Http\Controllers\Api\ApiController;
 use App\Library\Asay;
 use App\Model\ContractTypeModel;
+use App\Model\DiskFileModel;
 use App\Model\EducationLevelModel;
 use App\Model\Employee;
 use App\Model\EmployeeHasGroupModel;
@@ -18,6 +19,7 @@ use App\Model\EmployeesChildModel;
 use App\Model\GenderModel;
 use App\Model\HealthReportModel;
 use App\Model\IdCardModel;
+use App\Model\ITSupportModel;
 use App\Model\PaymentModel;
 use App\Model\PermitModel;
 use App\Model\ProcessesSettingsModel;
@@ -416,7 +418,7 @@ class EmployeeController extends ApiController
         $page = ($request->Page - 1) * $request->RecordPerPage;
         $recordPerPage = $request->RecordPerPage;
 
-        $loggedUserHasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $request->Employee, 'active' => 1])->whereIn('group_id',[17,18])->count();
+        $loggedUserHasGroup = EmployeeHasGroupModel::where(['EmployeeID' => $request->Employee, 'active' => 1])->whereIn('group_id',[17,18,25])->count();
 
         $employeesRegularIDList = [];
 
@@ -599,15 +601,45 @@ class EmployeeController extends ApiController
         ], 200);
     }
 
+
     public function deleteEmployee(Request $request)
     {
-        $request_data['employeeid'] = $request->all();
+
+/*        $request_data['employeeid'] = $request->all();
         $status = EmployeeModel::deleteEmployee($request['employeeid']);
 
         return response([
             'status' => true,
             'message' => 'İşlem Başarılı',
-        ]);
+        ]); */
+        $EmployeeID = $request->EmployeeID;
+        $empResult = EmployeeModel::where("Id",$EmployeeID)->first();
+        $empResult->PositionEndDate = $request->date;
+        $empResult->ReasonBreak = $request->reason;
+        $empResult->SocialReasonBreak = $request->socialReason;
+        $empResult->BreakComment = $request->comment;
+        $empResult->save();
+
+   /*     $File = $request->File;
+        $itSupport  = new ITSupportModel();
+        if($itSupport->save()){
+            $itSupport->FileUrl = "";
+            $itSupport->FileName = "";
+            $itSupport->Mime = "";
+
+                $fileQ   = DiskFileModel::where(["module_id"=>"disk","id"=> (int) $itSupport->File]);
+
+                $file = $fileQ->first();
+                $itSupport->FileUrl = Storage::disk("connect")->path($file->subdir."/".$file->filename);
+                $itSupport->FileName = $file->original_name;
+                $itSupport->Mime    = Storage::disk("connect")->mimeType($file->subdir."/".$file->filename);
+
+
+
+            $employee = EmployeeModel::find($request->RequestedFrom);
+
+
+        }*/
     }
 
     public function destroyEmployee(Request $request)

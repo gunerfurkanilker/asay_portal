@@ -213,6 +213,11 @@ class EmployeePositionModel extends Model
         return $district->first();
     }
 
+    public function managerr()
+    {
+        return $this->hasOne(EmployeeModel::class,'id','ManagerID');
+    }
+
     public function getManagerAttribute(){
         if ($this->attributes['ManagerID'])
         {

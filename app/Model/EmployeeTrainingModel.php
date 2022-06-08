@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use App\Library\Asay;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeeTrainingModel extends Model
@@ -17,6 +18,7 @@ class EmployeeTrainingModel extends Model
         "CreateTypeName"
     ];
     protected $guarded = [];
+    protected $with=["positions"];
 
 
     public static function mailToIsgNewEmployee($request){
@@ -54,11 +56,16 @@ class EmployeeTrainingModel extends Model
 
     public static function sendExpiredTrainingsMailToIsgEmployees(){
         $fifteenDaysLaterDate = date("Y-m-d",strtotime("+15 days"));
-        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
+     /*   $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
             ->whereBetween("ExpireDate",[date("Y-m-d"),$fifteenDaysLaterDate])
             ->get();
-        if(count($isgTrainingsExpireRecords) < 1)
-            return;
+     */
+        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
+            ->where("ExpireDate","=",Carbon::now()->addDays(15)->format('Y-m-d'))
+            ->whereNotIn('StatusID',[3])
+            ->get();
+        if(count($isgTrainingsExpireRecords) > 0){
+
         $mailData = [
             'trainings' => $isgTrainingsExpireRecords ,
             'mailContext' => "Eğitim geçerlilik tarihi süresininin bitimine 15 günden az kalmış kayıtlar aşağıdaki gibidir"
@@ -69,12 +76,12 @@ class EmployeeTrainingModel extends Model
             $isgTrainingsExpireRecord->StatusID = 3;// Süresi Yaklaşıyor yapıldı;
             $isgTrainingsExpireRecord->save();
         }
-
+//isg mail ->isg-ms@ms.asay.com.tr
         Asay::sendMail("isg-ms@ms.asay.com.tr","","Geçerlilik süresinin dolmasına 15 gün kalmış eğitimler","$mailTable","aSAY Group","","","");
-    }
+    }}
 
     public static function sendExpiredTrainingsMailToIsgEmployees2(){
-        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)
+        $isgTrainingsExpireRecords = EmployeeTrainingModel::where("Active",1)->whereNotIn('StatusID',[2])
             ->whereDate("ExpireDate","<=",date("Y-m-d"))
             ->get();
         if(count($isgTrainingsExpireRecords) < 1)
@@ -155,7 +162,10 @@ class EmployeeTrainingModel extends Model
          * */
 
         $trainingsQ = $active==1 ? self::where(['Active' => 1]) : self::whereIn("Active",[0,1]) ;
-
+        $departmentid=$filters['DepartmentID'] ?? null;
+        $regionid=$filters['RegionID'] ?? null;
+        unset($filters["DepartmentID"]);
+        unset($filters["RegionID"]);
         if ($filters && count($filters) > 0 )
         {
             foreach ($filters as $key => $filter)
@@ -179,19 +189,39 @@ class EmployeeTrainingModel extends Model
 
             }
         }
+        if($departmentid!=null){
+
+            $departmentid=DepartmentModel::where('Sym',$departmentid)->first()->Id;
+            $trainingsQ=$trainingsQ->whereHas('positions',function ($query) use ($regionid,$departmentid){
+                $query->where('DepartmentID',$departmentid);
+            });
+
+        }
+        if($regionid!=null){
+
+            $regionid=RegionModel::where('Name',$regionid)->first()->id;
+            $trainingsQ=$trainingsQ->whereHas('positions',function ($query) use ($regionid,$departmentid){
+                $query->where('RegionID',$regionid);
+            });
+        }
         $count = $trainingsQ->count();
         if (!is_null($page) && !is_null($rowPerPage)){
             $offset = ($page - 1)*$rowPerPage;
             $trainingsQ->offset($offset)->take($rowPerPage);
         }
 
-
+        $data["addFilters"]=[$regionid,$departmentid];
 
         $data['trainings'] = $trainingsQ->get();
         $data['count'] = $count;
 
         return $data;
 
+    }
+
+    public function positions()
+    {
+        return $this->belongsTo(EmployeePositionModel::class,"EmployeeID","EmployeeID");
     }
 
     public function getTrainingAttribute(){

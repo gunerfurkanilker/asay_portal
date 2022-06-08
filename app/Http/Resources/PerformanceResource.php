@@ -22,7 +22,9 @@ class PerformanceResource extends JsonResource
     {
         //'CityId'=> $this->getEmployee->getCity->city_name,
         //'LastName'=> $userEmployee->getEmployee(['Active='>5])->LastName,
+
         return [
+
           'id'=>$this->EmployeeID,
                           'FirstName'=> ($this->getEmployee) ? $this->getEmployee->FirstName." ".$this->getEmployee->LastName : null,
                           'Manager'=> ($this->manager) ? $this->manager->FirstName.' '.$this->manager->LastName : null,

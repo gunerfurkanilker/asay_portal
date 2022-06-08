@@ -12,10 +12,12 @@ use App\Model\LogsModel;
 use App\Model\ParametersModel;
 use App\Model\QrModel;
 use App\Model\UserMenuModel;
+use App\SocialDismissalModel;
 use Carbon\Carbon;
 use PHPUnit\Framework\MockObject\Rule\Parameters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Model\DismissalModel;
 
 class AuthController extends Controller
 {
@@ -37,6 +39,16 @@ header('Access-Control-Allow-Headers:  Content-Type, X-Auth-Token, Origin, Autho
         return response([
                 'data'=>$data
         ]);
+    }
+
+    public function socialDismissalReason(Request $request){
+
+
+        $allReason = SocialDismissalModel::All();
+        return response([
+            'status' => true,
+            'data' => $allReason
+        ],200);
     }
     public function loginPost(Request $request)
     {

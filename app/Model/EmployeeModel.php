@@ -77,8 +77,10 @@ class EmployeeModel extends Model
             //ASCII "A" harfi 65'ten başlar, "Z" harfi 90 koduyla biter
             $asciiCapitalA = 65;
             $values = [];
-            $employeeTCKN = IdCardModel::where("Id",$employee->Id)->first();
-            $employeeTCKN = $employeeTCKN ? $employeeTCKN->TCNo : $employee->UsageName . ' ' . $employee->LastName;
+            //$employeeTCKN = IdCardModel::where("Id",$employee->Id)->first();
+            $employeeTCKN = IdCardModel::where("Id",$employee->IDCardID)->first();
+            //$employee->UsageName . ' ' . $employee->LastName
+            $employeeTCKN = $employeeTCKN ? $employeeTCKN->TCNo : $employee->Id;
             $employeeStaffID = $employee->StaffID;
             $employeeFullName = $employee->FirstName;
             $employeeUsageName = $employee->UsageName;
@@ -1863,7 +1865,17 @@ class EmployeeModel extends Model
 
     public function getEmployeesAttribute()
     {
-        return EmployeePositionModel::where('ManagerID',$this->Id)->get();
+        return EmployeePositionModel::where('ManagerID',$this->Id)->where('Active',1)->get();
+    }
+
+    public function employeeposition()
+    {
+        return $this->belongsTo(EmployeePositionModel::class,'EmployeeID');
+    }
+
+    public function hescode()
+    {
+        return $this->hasOne(HESCodeModel::class,'EmployeeID','Id');
     }
 
     public function getPerformanceStatusAttribute()
