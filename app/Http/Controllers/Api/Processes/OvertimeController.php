@@ -715,6 +715,11 @@ class OvertimeController extends ApiController
             'message' => $request->all(),
         ],200);*/
 
+        return response([
+            'status' => false,
+            'message' => 'Fazla Çalışma kaydetme işlemi devre dışı bırakılmıştır'
+        ], 200);
+
 
         if (strtotime($request->BeginTime) > strtotime($request->EndTime))
             return response([

@@ -76,7 +76,10 @@ class CarNotifyController extends ApiController
 
     public function saveCarNotify(Request $request){
 
-
+        return response([
+            'status' => false,
+            'message' => 'Araç bildirim işlemi devre dışı bırakılmıştır'
+        ], 200);
 
         $result = CarNotifyModel::saveCarNotify($request);
 

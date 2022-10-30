@@ -135,6 +135,12 @@ class ItSupportController extends ApiController
 
     public function supportSave(Request $request)
     {
+
+        return response([
+            'status' => false,
+            'message' => 'IT Destek kaydetme işlemi devre dışı bırakılmıştır'
+        ], 200);
+
         $rules = [
             'RequestType'   => 'required',
             'Priority'      => 'required',

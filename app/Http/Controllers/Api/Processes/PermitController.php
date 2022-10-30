@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Processes;
 
 
 use App\Http\Controllers\Api\ApiController;
+use App\Model\CityModel;
+use App\Model\DepartmentModel;
 use App\Model\EmployeeModel;
 use App\Model\EmployeePositionModel;
 use App\Model\IdCardModel;
@@ -55,6 +57,9 @@ class PermitController extends ApiController
             'Saat',
             'Dakika',
             'Durumu',
+            'Talep Tarihi',
+            'Departman',
+            'Şehir'
 
         ];
 
@@ -98,6 +103,9 @@ class PermitController extends ApiController
             $oermitHourCount = $permit->over_hour;
             $permitMinuteCount = $permit->over_minute;
             $permitStatus = "";
+            $permitTalepTarihi = date("d.m.Y H:i:s",strtotime($permit->created_date));
+            $departman = DepartmentModel::find($employeePosition->DepartmentID)->Sym_TR;
+            $city = CityModel::find($employeePosition->CityID)->Sym_TR;
             switch ($permit->status)
             {
                 case 0:
@@ -141,7 +149,9 @@ class PermitController extends ApiController
             array_push($values,$oermitHourCount);
             array_push($values,$permitMinuteCount);
             array_push($values,$permitStatus);
-
+            array_push($values,$permitTalepTarihi);
+            array_push($values,$departman);
+            array_push($values,$city);
             foreach ($columns as $keyColumns => $column)
             {
                 $columnLetter = chr($asciiCapitalA);
@@ -381,6 +391,11 @@ class PermitController extends ApiController
     public function savePermit(Request $request)
     {
 
+
+        return response([
+            'status' => false,
+            'message' => 'Fazla Çalışma kaydetme işlemi devre dışı bırakılmıştır'
+        ], 200);
 
         if ($request->permitId !== null) {
             $EmployeeID = PermitModel::find($request->permitId)->EmployeeID;
