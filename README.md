@@ -1,5 +1,3 @@
-<p align="center"><img src="http://www.asay.com.tr/Graphics/Images/aSAY_Group.png" width="400"></p>
+aSAY İletişim'deki işim boyunca geliştirilmesine katkıda bulunduğum Ericsson/Asay Portal projesi.
 
-<p align="center">
-    Asay yönetim portalı
-</p>
+Kullanılan dil : PHP(Laravel),VueJS v2
